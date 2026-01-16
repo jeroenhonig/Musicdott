@@ -63,12 +63,13 @@ generated-icon.png
 site.webmanifest
 sitemap.xml
 
-# Config files not needed in container
-tsconfig.json
-vite.config.ts
+# Config files not needed in container (but needed for build!)
+# Keep tsconfig, vite, postcss, tailwind for build process
+# tsconfig.json
+# vite.config.ts
+# postcss.config.js
+# tailwind.config.ts
 vite.config.production.ts
 vitest.config.js
-postcss.config.js
-tailwind.config.ts
 drizzle.config.ts
 components.json
