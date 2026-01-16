@@ -40,7 +40,7 @@ export function TablatureViewer({
         settings.player.enablePlayer = true;
         settings.player.enableCursor = true;
         settings.player.enableUserInteraction = true;
-        settings.player.soundFont = "https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.3.0/dist/soundfont/sonivox.sf2";
+        settings.player.soundFont = "https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.7.1/dist/soundfont/sonivox.sf2";
         
         const api = new alphaTab.AlphaTabApi(containerRef.current!, settings);
         apiRef.current = api;

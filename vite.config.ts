@@ -27,5 +27,23 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Separate music notation libraries into their own chunks for better performance
+          if (id.includes('abcjs')) return 'abcjs';
+          if (id.includes('flat-embed')) return 'flat-embed';
+          if (id.includes('opensheetmusicdisplay')) return 'osmd';
+          if (id.includes('vexflow')) return 'vexflow';
+          if (id.includes('@coderline/alphatab')) return 'alphatab';
+
+          // Separate large vendor libraries
+          if (id.includes('node_modules')) {
+            if (id.includes('@radix-ui')) return 'radix-ui';
+            if (id.includes('react') || id.includes('react-dom')) return 'react-vendor';
+          }
+        }
+      }
+    }
   },
 });
