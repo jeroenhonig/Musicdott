@@ -1,0 +1,74 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist/
+build/
+
+# Development files
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test and documentation
+tests/
+*.test.ts
+*.spec.ts
+*.md
+!README.md
+
+# Logs
+logs/
+*.log
+
+# Data directories
+data/
+export/
+import-data/
+attached_assets/
+archive/
+teacher_code_extract/
+
+# Lock files (we want to use package-lock.json, but not bun locks)
+bun.lock
+bun.lockb
+
+# Documentation
+DEPLOYMENT.md
+BETA_DEPLOYMENT_GUIDE.md
+PRODUCTION_DEPLOYMENT.md
+PRODUCTION_READINESS_CERTIFICATION.md
+SECURITY_PERFORMANCE_GDPR_AUDIT.md
+ai-training-data.md
+live-billing-demonstration.md
+replit.md
+
+# Generated files
+generated-icon.png
+site.webmanifest
+sitemap.xml
+
+# Config files not needed in container
+tsconfig.json
+vite.config.ts
+vite.config.production.ts
+vitest.config.js
+postcss.config.js
+tailwind.config.ts
+drizzle.config.ts
+components.json
