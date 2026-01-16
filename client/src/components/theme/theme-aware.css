@@ -1,0 +1,241 @@
+/**
+ * Theme-aware CSS for School Branding
+ * Uses CSS variables set by ThemeProvider
+ */
+
+/* Default color mappings when branding is enabled */
+.themed-app {
+  /* Primary color overrides */
+  --primary: var(--school-primary, 222.2 84% 4.9%);
+  --primary-foreground: var(--school-primary-foreground, 210 40% 98%);
+  
+  /* Secondary color overrides */
+  --secondary: var(--school-secondary, 210 40% 96%);
+  --secondary-foreground: var(--school-secondary-foreground, 222.2 84% 4.9%);
+  
+  /* Accent color overrides */
+  --accent: var(--school-accent, 210 40% 96%);
+  --accent-foreground: var(--school-accent-foreground, 222.2 84% 4.9%);
+  
+  /* Font family override */
+  font-family: var(--school-font-family, Inter, system-ui, sans-serif);
+}
+
+/* Background image support */
+.themed-app .school-background {
+  background-image: var(--school-background-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Primary color utilities */
+.themed-app .text-school-primary {
+  color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .bg-school-primary {
+  background-color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .border-school-primary {
+  border-color: var(--school-primary, #3b82f6);
+}
+
+/* Secondary color utilities */
+.themed-app .text-school-secondary {
+  color: var(--school-secondary, #64748b);
+}
+
+.themed-app .bg-school-secondary {
+  background-color: var(--school-secondary, #64748b);
+}
+
+.themed-app .border-school-secondary {
+  border-color: var(--school-secondary, #64748b);
+}
+
+/* Accent color utilities */
+.themed-app .text-school-accent {
+  color: var(--school-accent, #10b981);
+}
+
+.themed-app .bg-school-accent {
+  background-color: var(--school-accent, #10b981);
+}
+
+.themed-app .border-school-accent {
+  border-color: var(--school-accent, #10b981);
+}
+
+/* Button overrides for primary actions */
+.themed-app .btn-primary {
+  background-color: var(--school-primary, #3b82f6);
+  border-color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .btn-primary:hover {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 90%, black);
+  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 90%, black);
+}
+
+.themed-app .btn-primary:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #3b82f6) 25%, transparent);
+}
+
+/* Card and component theming */
+.themed-app .card-branded {
+  border-left: 4px solid var(--school-accent, #10b981);
+}
+
+.themed-app .card-branded .card-header {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 5%, transparent);
+}
+
+/* Navigation theming */
+.themed-app .nav-branded {
+  background-color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .nav-branded .nav-link {
+  color: white;
+}
+
+.themed-app .nav-branded .nav-link:hover {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 80%, white);
+}
+
+.themed-app .nav-branded .nav-link.active {
+  background-color: var(--school-accent, #10b981);
+}
+
+/* Form elements theming */
+.themed-app .form-control:focus {
+  border-color: var(--school-primary, #3b82f6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #3b82f6) 25%, transparent);
+}
+
+.themed-app .form-check-input:checked {
+  background-color: var(--school-primary, #3b82f6);
+  border-color: var(--school-primary, #3b82f6);
+}
+
+/* Badge and status indicators */
+.themed-app .badge-primary {
+  background-color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .badge-accent {
+  background-color: var(--school-accent, #10b981);
+}
+
+/* Progress bars */
+.themed-app .progress-bar {
+  background-color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .progress-bar-accent {
+  background-color: var(--school-accent, #10b981);
+}
+
+/* Link styling */
+.themed-app .link-primary {
+  color: var(--school-primary, #3b82f6);
+}
+
+.themed-app .link-primary:hover {
+  color: color-mix(in srgb, var(--school-primary, #3b82f6) 85%, black);
+}
+
+/* Alert theming */
+.themed-app .alert-branded {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 10%, transparent);
+  border-color: var(--school-primary, #3b82f6);
+  color: var(--school-primary, #3b82f6);
+}
+
+/* Table theming */
+.themed-app .table-branded thead th {
+  background-color: var(--school-primary, #3b82f6);
+  color: white;
+}
+
+.themed-app .table-branded tbody tr:hover {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 5%, transparent);
+}
+
+/* Spinner/Loading indicators */
+.themed-app .spinner-branded {
+  border-top-color: var(--school-primary, #3b82f6);
+}
+
+/* Text selection */
+.themed-app ::selection {
+  background-color: color-mix(in srgb, var(--school-primary, #3b82f6) 30%, transparent);
+}
+
+/* School logo styling */
+.themed-app .school-logo {
+  max-height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+.themed-app .school-logo-large {
+  max-height: 120px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Dark mode support for themed apps */
+.themed-app.dark {
+  /* Adjust color variables for dark mode */
+  --primary: var(--school-primary, 217.2 32.6% 17.5%);
+  --secondary: var(--school-secondary, 217.2 32.6% 17.5%);
+  --accent: var(--school-accent, 217.2 32.6% 17.5%);
+}
+
+/* Responsive font scaling */
+@media (max-width: 768px) {
+  .themed-app {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .themed-app {
+    font-size: 0.85rem;
+  }
+  
+  .themed-app .school-logo {
+    max-height: 45px;
+  }
+  
+  .themed-app .school-logo-large {
+    max-height: 90px;
+  }
+}
+
+/* Accessibility improvements */
+.themed-app .focus-visible {
+  outline: 2px solid var(--school-accent, #10b981);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .themed-app {
+    --school-primary: #000000;
+    --school-secondary: #333333;
+    --school-accent: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .themed-app * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

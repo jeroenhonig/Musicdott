@@ -1,0 +1,53 @@
+{
+  "name": "MusicDott - Music Education Platform",
+  "short_name": "MusicDott",
+  "description": "Comprehensive music education platform with gamification, video feedback, and interactive assignments",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/generated-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/generated-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "music", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Practice Timer",
+      "short_name": "Practice",
+      "description": "Start a practice session",
+      "url": "/practice",
+      "icons": [{ "src": "/generated-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ask Teacher",
+      "short_name": "Ask Teacher",
+      "description": "Send a message to your teacher",
+      "url": "/student/ask-teacher",
+      "icons": [{ "src": "/generated-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Assignments",
+      "short_name": "Assignments", 
+      "description": "View your assignments",
+      "url": "/student/my-assignments",
+      "icons": [{ "src": "/generated-icon.png", "sizes": "96x96" }]
+    }
+  ]
+}
