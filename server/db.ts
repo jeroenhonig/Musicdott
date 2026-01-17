@@ -1,19 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-// Configure Neon WebSocket - will fall back to in-memory when disabled
-try {
-  if (typeof ws !== 'undefined') {
-    neonConfig.webSocketConstructor = ws;
-    neonConfig.useSecureWebSocket = true;
-    neonConfig.pipelineConnect = false;
-    console.log("WebSocket configuration successful");
-  }
-} catch (wsError) {
-  console.warn("WebSocket configuration failed:", wsError);
-}
 
 // Helper function to URL-encode DATABASE_URL password if needed
 function sanitizeDatabaseUrl(url: string | undefined): string | undefined {
