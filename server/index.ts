@@ -27,7 +27,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
-      connectSrc: ["'self'", "https://api.stripe.com"],
+      connectSrc: ["'self'", "https://api.stripe.com", "wss://musicdott.honig-it.com", "wss://musicdott.app"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: []
@@ -36,7 +36,9 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? ['https://musicdott.app'] : true,
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://musicdott.app', 'https://musicdott.honig-it.com']
+    : true,
   credentials: true
 }));
 
