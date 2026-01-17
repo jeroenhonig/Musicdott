@@ -54,6 +54,9 @@ WORKDIR /app
 # Copy built application from builder
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 
+# Copy wrapper script from build context
+COPY --chown=nodejs:nodejs wrapper.cjs ./dist/wrapper.cjs
+
 # Copy production dependencies (with native modules built for Alpine)
 COPY --from=prod-deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 
@@ -80,5 +83,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Use tini as init system for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Start the application
+# Start the application directly
 CMD ["node", "dist/index.cjs"]
