@@ -1,8 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
-import { verifyDatabaseSetup } from "./setup-db";
-import { seedAchievements } from "./seed-achievements";
+import { setupDatabase } from "./setup-db";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -83,33 +82,29 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Verify database setup first
+  // Setup database with migrations, admin bootstrap, and seeding
   try {
-    const dbResult = await verifyDatabaseSetup();
+    const dbResult = await setupDatabase();
     if (dbResult.success) {
-      logger.info('Database verification completed successfully');
-      
-      // Seed achievement definitions if database is available
-      try {
-        await seedAchievements();
-      } catch (seedError) {
-        logger.error('Achievement seeding error', seedError instanceof Error ? seedError.message : String(seedError));
-      }
+      logger.info('✅ Database setup completed successfully');
+      logger.info('📊 Database status:', dbResult.status);
 
       // Initialize automated billing scheduler
       try {
         logger.info('Initializing automated monthly billing scheduler...');
         // The billing scheduler starts automatically when imported
-        logger.info('Billing scheduler initialized successfully');
+        logger.info('✅ Billing scheduler initialized successfully');
       } catch (billingError) {
-        logger.error('Billing scheduler initialization error', billingError instanceof Error ? billingError.message : String(billingError));
+        logger.error('❌ Billing scheduler initialization error', billingError instanceof Error ? billingError.message : String(billingError));
       }
     } else {
-      logger.warn('Database verification failed', dbResult.message);
+      logger.error('❌ Database setup failed:', dbResult.message);
+      logger.warn('⚠️  Server will attempt to continue with limited functionality');
       // Continue anyway, as the server will fall back to file-based storage
     }
   } catch (error) {
-    logger.error('Database verification error', error instanceof Error ? error.message : String(error));
+    logger.error('❌ Database setup error', error instanceof Error ? error.message : String(error));
+    logger.warn('⚠️  Server will attempt to continue with limited functionality');
     // Continue anyway, as the server will fall back to file-based storage
   }
 

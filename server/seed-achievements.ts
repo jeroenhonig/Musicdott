@@ -6,11 +6,11 @@ export async function seedAchievements() {
     // Check if achievements already exist
     const existingAchievements = await db.select().from(achievementDefinitions).limit(1);
     if (existingAchievements.length > 0) {
-      console.log('Achievement definitions already exist, skipping seed...');
+      console.log('✅ Achievement definitions already exist, skipping seed');
       return;
     }
 
-    console.log('Seeding achievement definitions...');
+    console.log('🌱 Seeding achievement definitions...');
 
     const achievements = [
       // Lesson Completion Achievements
@@ -199,9 +199,10 @@ export async function seedAchievements() {
 
     // Insert achievement definitions
     await db.insert(achievementDefinitions).values(achievements);
-    
-    console.log(`Successfully seeded ${achievements.length} achievement definitions!`);
+
+    console.log(`✅ Successfully seeded ${achievements.length} achievement definitions!`);
   } catch (error) {
-    console.error('Error seeding achievements:', error);
+    console.error('❌ Error seeding achievements:', error);
+    // Don't throw - allow app to continue even if seeding fails
   }
 }
