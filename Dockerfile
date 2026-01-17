@@ -20,10 +20,25 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Production stage
+# Stage 2: Production dependencies (build native modules for Alpine)
+FROM node:20-alpine AS prod-deps
+
+# Install build tools needed for native modules
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies with native modules built for Alpine Linux
+RUN npm install --only=production && \
+    npm cache clean --force
+
+# Stage 3: Production runtime
 FROM node:20-alpine AS production
 
-# Install production dependencies only
+# Install runtime dependencies only
 RUN apk add --no-cache \
     tini \
     curl \
@@ -36,15 +51,14 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install production dependencies only
-RUN npm install --only=production && \
-    npm cache clean --force
-
 # Copy built application from builder
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+
+# Copy production dependencies (with native modules built for Alpine)
+COPY --from=prod-deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+
+# Copy package.json for runtime
+COPY --chown=nodejs:nodejs package*.json ./
 
 # Copy necessary files
 COPY --chown=nodejs:nodejs shared ./shared

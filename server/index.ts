@@ -1,9 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import { verifyDatabaseSetup } from "./setup-db";
 import { seedAchievements } from "./seed-achievements";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { billingScheduler } from "./services/billing-scheduler";
 import { birthdayScheduler } from "./services/birthday-scheduler";
 import { securityHeaders, httpsRedirect, sanitizeInput, apiRateLimit, validateEnvironment, fileUploadSecurity } from "./middleware/security";
@@ -143,9 +145,26 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Serve static files in production (inline to avoid loading vite module)
+    // @ts-ignore - __dirname is available in CJS (bundled)
+    const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+    const distPath = path.resolve(currentDir, "public");
+
+    if (!fs.existsSync(distPath)) {
+      throw new Error(
+        `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      );
+    }
+
+    app.use(express.static(distPath));
+
+    // fall through to index.html if the file doesn't exist
+    app.use("*", (_req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // Error handling middleware - must be after all routes
@@ -161,7 +180,7 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    logger.info(`serving on port ${port}`);
     logger.info(`🚀 MusicDott 2.0 production server started on port ${port}`);
     logger.info(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.info(`💾 Database: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'Memory fallback'}`);
