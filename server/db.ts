@@ -15,8 +15,31 @@ try {
   console.warn("WebSocket configuration failed:", wsError);
 }
 
+// Helper function to URL-encode DATABASE_URL password if needed
+function sanitizeDatabaseUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+
+  try {
+    // Parse the URL to check if it's valid
+    new URL(url);
+    return url; // Already valid, no encoding needed
+  } catch {
+    // Try to fix common issues: encode password in URL
+    const match = url.match(/^(postgresql:\/\/[^:]+):([^@]+)@(.+)$/);
+    if (match) {
+      const [, prefix, password, suffix] = match;
+      const encodedPassword = encodeURIComponent(password);
+      const fixedUrl = `${prefix}:${encodedPassword}@${suffix}`;
+      console.log('🔧 Auto-encoded DATABASE_URL password');
+      return fixedUrl;
+    }
+    return url; // Can't fix, return as-is
+  }
+}
+
 // Check if DATABASE_URL is available
-const hasDbUrl = !!process.env.DATABASE_URL;
+const DATABASE_URL = sanitizeDatabaseUrl(process.env.DATABASE_URL);
+const hasDbUrl = !!DATABASE_URL;
 
 // Export a variable to indicate database connectivity status
 export let isDatabaseAvailable = false;
@@ -38,8 +61,8 @@ async function initializeDatabase() {
     if (hasDbUrl) {
       console.log("Initializing database connection...");
       
-      pool = new Pool({ 
-        connectionString: process.env.DATABASE_URL,
+      pool = new Pool({
+        connectionString: DATABASE_URL,
         connectionTimeoutMillis: 8000,
         max: 10,
         min: 2,
@@ -86,8 +109,8 @@ async function initializeDatabase() {
     // Ensure pool is defined even if connection fails
     if (!pool && hasDbUrl) {
       try {
-        pool = new Pool({ 
-          connectionString: process.env.DATABASE_URL,
+        pool = new Pool({
+          connectionString: DATABASE_URL,
           connectionTimeoutMillis: 1000,
           max: 1
         });
@@ -277,7 +300,7 @@ export function getDatabaseStatus(): {
     available: isDatabaseAvailable,
     lastHealthCheck,
     connectionRetries,
-    databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing',
+    databaseUrl: DATABASE_URL ? 'configured' : 'missing',
     poolStats: pool ? {
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,

@@ -83,5 +83,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Use tini as init system for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Start the application directly
+# Start the application
 CMD ["node", "dist/index.cjs"]
