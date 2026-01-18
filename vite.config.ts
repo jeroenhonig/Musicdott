@@ -42,10 +42,12 @@ export default defineConfig(async () => {
             if (id.includes('vexflow')) return 'vexflow';
             if (id.includes('@coderline/alphatab')) return 'alphatab';
 
-            // Separate large vendor libraries
+            // Separate large vendor libraries - keep React and Radix UI together
+            // to prevent "Cannot read properties of undefined (reading 'useState')" errors
             if (id.includes('node_modules')) {
-              if (id.includes('@radix-ui')) return 'radix-ui';
-              if (id.includes('react') || id.includes('react-dom')) return 'react-vendor';
+              if (id.includes('@radix-ui') || id.includes('react') || id.includes('react-dom')) {
+                return 'react-vendor';
+              }
             }
           }
         }
