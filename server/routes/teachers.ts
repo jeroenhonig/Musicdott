@@ -7,7 +7,7 @@ import { z } from "zod";
 // Helper function to safely check if user has access to a teacher
 function hasTeacherAccess(req: Request, teacherId: number): boolean {
   if (!req.isAuthenticated() || !req.user) return false;
-  if (req.user.role === USER_ROLES.ADMIN) return true;
+  if (req.user.role === USER_ROLES.PLATFORM_OWNER) return true;
   if (req.user.role === USER_ROLES.SCHOOL_OWNER) return true;
   return req.user.id === teacherId;
 }
@@ -22,7 +22,7 @@ function requireTeacherAccess(teacherIdParam: string = 'id') {
     const teacherId = parseInt(req.params[teacherIdParam]);
     
     // If admin or school owner, they have access
-    if (req.user && (req.user.role === USER_ROLES.ADMIN || req.user.role === USER_ROLES.SCHOOL_OWNER)) {
+    if (req.user && (req.user.role === USER_ROLES.PLATFORM_OWNER || req.user.role === USER_ROLES.SCHOOL_OWNER)) {
       return next();
     }
     
@@ -54,7 +54,7 @@ export function registerTeacherRoutes(app: Express) {
   // Get all teachers
   app.get(
     "/api/teachers", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]), 
     async (req: Request, res: Response) => {
       try {
         // If school owner, only get teachers in their school
@@ -76,7 +76,7 @@ export function registerTeacherRoutes(app: Express) {
   // Get a specific teacher
   app.get(
     "/api/teachers/:id", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
     requireTeacherAccess(), 
     async (req: Request, res: Response) => {
       try {
@@ -100,7 +100,7 @@ export function registerTeacherRoutes(app: Express) {
   // Create a new teacher (admin or school owner only)
   app.post(
     "/api/teachers", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]), 
     async (req: Request, res: Response) => {
       try {
         // Extend with role and set defaults
@@ -164,7 +164,7 @@ export function registerTeacherRoutes(app: Express) {
   // Update a teacher
   app.put(
     "/api/teachers/:id", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -211,7 +211,7 @@ export function registerTeacherRoutes(app: Express) {
   // Delete a teacher (admin only)
   app.delete(
     "/api/teachers/:id", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER]),
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]),
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -242,7 +242,7 @@ export function registerTeacherRoutes(app: Express) {
   // Get teacher's students
   app.get(
     "/api/teachers/:id/students", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]), 
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -265,7 +265,7 @@ export function registerTeacherRoutes(app: Express) {
   // Assign a student to a teacher
   app.post(
     "/api/teachers/:id/assign-student", 
-    requireRole([USER_ROLES.ADMIN, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {

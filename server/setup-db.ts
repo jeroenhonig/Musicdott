@@ -470,7 +470,7 @@ async function createTables() {
  */
 async function seedAdminAndSchool() {
   // Check if admin exists
-  const existingAdmin = await db.select().from(users).where(eq(users.role, 'admin')).limit(1);
+  const existingAdmin = await db.select().from(users).where(eq(users.role, 'platform_owner')).limit(1);
 
   if (existingAdmin.length > 0) {
     console.log('  Admin already exists, skipping');
@@ -498,7 +498,7 @@ async function seedAdminAndSchool() {
     password: hashedPassword,
     name: process.env.ADMIN_NAME || 'Admin User',
     email: process.env.ADMIN_EMAIL || 'admin@musicdott.local',
-    role: 'admin',
+    role: 'platform_owner',
     schoolId: school.id,
     bio: 'System administrator',
   }).returning();

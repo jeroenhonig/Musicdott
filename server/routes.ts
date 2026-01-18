@@ -2666,7 +2666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/billing/status", requireAuth, async (req: any, res) => {
     try {
       // Only allow school owners and admins to check billing status
-      if (req.user.role !== 'school_owner' && req.user.role !== 'admin') {
+      if (req.user.role !== 'school_owner' && req.user.role !== 'platform_owner') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -2690,12 +2690,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/billing/trigger", requireAuth, async (req: any, res) => {
     try {
       // Only allow school owners and admins to manually trigger billing
-      if (req.user.role !== 'school_owner' && req.user.role !== 'admin') {
+      if (req.user.role !== 'school_owner' && req.user.role !== 'platform_owner') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { billingScheduler } = require('../services/billing-scheduler');
-      
+
       // Trigger manual billing (for testing or emergency use)
       await billingScheduler.triggerManualBilling();
       
@@ -2721,7 +2721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify platform owner credentials
       const user = await storage.getUserByUsername(username);
       
-      if (!user || (user.role !== 'admin' && user.role !== 'platform_owner')) {
+      if (!user || user.role !== 'platform_owner') {
         return res.status(401).json({ message: "Invalid administrator credentials" });
       }
 
@@ -2760,7 +2760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    if (user.role !== 'platform_owner' && user.role !== 'admin') {
+    if (user.role !== 'platform_owner') {
       return res.status(403).json({ message: "Access denied. Platform owner role required." });
     }
     next();

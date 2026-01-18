@@ -162,7 +162,8 @@ export const loadSchoolContext: RequestHandler = asyncHandler(async (req: Reques
       },
 
       isStudent: (schoolId?: number): boolean => {
-        if (primaryRole === 'platform_owner') return true;
+        // Platform owners are NOT students - they have access through other means
+        if (primaryRole === 'platform_owner') return false;
         const targetSchoolId = schoolId || primarySchoolId;
         return primaryRole === 'student' && (!schoolId || primarySchoolId === targetSchoolId);
       }

@@ -64,7 +64,7 @@ const registerSchema = insertUserSchema.extend({
   password: z.string().min(6).max(100),
   name: z.string().min(2).max(100),
   email: z.string().email(),
-  role: z.enum(["platform_owner", "school_owner", "teacher", "student"]).default("teacher"),
+  role: z.enum(["platform_owner", "school_owner", "teacher", "student"]).default("student"),
 });
 
 type RegisterData = z.infer<typeof registerSchema>;

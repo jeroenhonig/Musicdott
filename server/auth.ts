@@ -188,7 +188,7 @@ export function setupAuth(app: Express) {
       .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
     name: z.string().min(2).max(100),
     email: z.string().email(),
-    role: z.enum(["admin", "school_owner", "teacher", "student"]).default("teacher"),
+    role: z.enum(["platform_owner", "school_owner", "teacher", "student"]).default("student"),
     // School related fields
     schoolName: z.string().optional(),
     address: z.string().optional(),

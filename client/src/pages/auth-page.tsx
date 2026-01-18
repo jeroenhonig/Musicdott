@@ -57,7 +57,7 @@ export default function AuthPage() {
         setShowPasswordChange(true);
       } else {
         // Redirect platform owners to their separate dashboard
-        if (user.role === 'platform_owner' || user.role === 'admin') {
+        if (user.role === 'platform_owner') {
           console.log("🚀 Platform owner logged in, navigating to owners dashboard...");
           navigate("/owners-dashboard");
         } else {
@@ -73,7 +73,7 @@ export default function AuthPage() {
     setShowPasswordChange(false);
     if (user && !user.mustChangePassword) {
       // Redirect platform owners to their separate dashboard
-      if (user.role === 'platform_owner' || user.role === 'admin') {
+      if (user.role === 'platform_owner') {
         navigate("/owners-dashboard");
       } else {
         navigate("/");

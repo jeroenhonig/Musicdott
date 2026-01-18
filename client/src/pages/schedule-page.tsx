@@ -66,7 +66,7 @@ export default function SchedulePage() {
   } = useQuery<Teacher[]>({
     queryKey: ["/api/teachers"],
     queryFn: getQueryFn<Teacher[]>(),
-    enabled: !!user && (user.role === "school_owner" || user.role === "admin"),
+    enabled: !!user && (user.role === "school_owner" || user.role === "platform_owner"),
     retry: 1,
     staleTime: 1000 * 60 * 5 // 5 minutes
   });
@@ -163,7 +163,7 @@ export default function SchedulePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {user.role === "school_owner" || user.role === "admin" ? (
+                {user.role === "school_owner" || user.role === "platform_owner" ? (
                   <div className="space-y-4">
                     {teachersLoading ? (
                       <div className="flex justify-center py-12">
