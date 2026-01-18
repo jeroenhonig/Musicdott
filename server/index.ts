@@ -23,11 +23,11 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://js.stripe.com", "https://checkout.stripe.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://js.stripe.com", "https://checkout.stripe.com", "https://infird.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
-      connectSrc: ["'self'", "https://api.stripe.com", "wss://musicdott.honig-it.com", "wss://musicdott.app"],
+      connectSrc: ["'self'", "https://api.stripe.com", "wss://musicdott.honig-it.com", "wss://musicdott.app", "https://infird.com"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
       workerSrc: ["'self'", "blob:"],
       objectSrc: ["'none'"],
