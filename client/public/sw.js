@@ -1,38 +1,45 @@
 // Service Worker for MusicDott PWA
-const CACHE_NAME = 'musicdott-v1';
+// Version timestamp forces cache invalidation on each build
+const CACHE_VERSION = 'v2-' + '20260118';
+const CACHE_NAME = 'musicdott-' + CACHE_VERSION;
 const OFFLINE_URL = '/offline.html';
 
 // Resources to cache on install
+// NOTE: '/' is intentionally excluded to prevent pinning stale HTML
 const STATIC_CACHE_RESOURCES = [
-  '/',
   '/offline.html',
   '/generated-icon.png',
   '/manifest.json'
 ];
 
-// Install event - cache static resources
+// Install event - cache static resources and activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_CACHE_RESOURCES);
     })
   );
+  // Skip waiting to activate new SW immediately
+  self.skipWaiting();
 });
 
-// Activate event - cleanup old caches
+// Activate event - cleanup old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .filter((cacheName) => cacheName.startsWith('musicdott-') && cacheName !== CACHE_NAME)
           .map((cacheName) => caches.delete(cacheName))
       );
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
     })
   );
 });
 
-// Fetch event - serve from cache with network fallback
+// Fetch event - network-first for navigation, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
@@ -40,37 +47,64 @@ self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request)
+  // Navigation requests: always network-first
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response for caching
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
-            // Only cache GET requests for same origin
-            if (event.request.method === 'GET') {
-              cache.put(event.request, responseToCache);
-            }
-          });
-
           return response;
         })
         .catch(() => {
-          // If both cache and network fail, show offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
-          }
-        });
+          // Network failed, serve offline page
+          return caches.match(OFFLINE_URL);
+        })
+    );
+    return;
+  }
+
+  // Static assets: cache-first with network fallback
+  const url = new URL(event.request.url);
+  const isStaticAsset = /\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/i.test(url.pathname);
+
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(event.request)
+          .then((response) => {
+            // Don't cache non-successful responses
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // Clone the response for caching
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+
+            return response;
+          })
+          .catch(() => {
+            // Static asset not available offline
+            return new Response('', { status: 404 });
+          });
+      })
+    );
+    return;
+  }
+
+  // API and other requests: network-only (no caching)
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return new Response(JSON.stringify({ error: 'Offline' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
     })
   );
 });
@@ -134,7 +168,7 @@ async function syncGamificationEvents() {
   try {
     const db = await openDB();
     const events = await getAllPendingEvents(db);
-    
+
     for (const event of events) {
       try {
         const response = await fetch('/api/gamification/events', {
@@ -142,7 +176,7 @@ async function syncGamificationEvents() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(event)
         });
-        
+
         if (response.ok) {
           await removePendingEvent(db, event.id);
         }
@@ -159,10 +193,10 @@ async function syncGamificationEvents() {
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('MusicDottDB', 1);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-    
+
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains('pendingEvents')) {
@@ -177,7 +211,7 @@ function getAllPendingEvents(db) {
     const transaction = db.transaction(['pendingEvents'], 'readonly');
     const store = transaction.objectStore('pendingEvents');
     const request = store.getAll();
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
   });
@@ -188,7 +222,7 @@ function removePendingEvent(db, eventId) {
     const transaction = db.transaction(['pendingEvents'], 'readwrite');
     const store = transaction.objectStore('pendingEvents');
     const request = store.delete(eventId);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
   });
