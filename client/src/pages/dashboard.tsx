@@ -10,7 +10,7 @@ import GrooveDisplay from "@/components/groove-display";
 import { StudentProgressWidget, PracticeTimer } from "@/components/gamification/student-progress";
 import { ClassLeaderboard } from "@/components/gamification/leaderboard";
 import { apiRequest } from "@/lib/queryClient";
-import RequireRole, { RequireTeacher, RequireSchoolOwner } from "@/components/rbac/require-role";
+import RequireRole, { RequireTeacher, RequireSchoolOwner, RequirePlatformOwner } from "@/components/rbac/require-role";
 import RoleIndicator from "@/components/rbac/role-indicator";
 import { useLocation } from "wouter";
 
