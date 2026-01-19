@@ -524,6 +524,7 @@ class StorageWrapper implements IStorage {
   
   // Lesson Categories
   async getLessonCategories(userId: number) { return this.actualStorage.getLessonCategories(userId); }
+  async getLessonCategoriesBySchool(schoolId: number) { return this.actualStorage.getLessonCategoriesBySchool(schoolId); }
   async getLessonCategory(id: number) { return this.actualStorage.getLessonCategory(id); }
   async createLessonCategory(category: any) { return this.actualStorage.createLessonCategory(category); }
   async updateLessonCategory(id: number, category: any) { return this.actualStorage.updateLessonCategory(id, category); }

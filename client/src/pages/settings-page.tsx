@@ -102,7 +102,10 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, canManageSchool } = useAuth();
+
+  // Only school owners and platform owners can edit school settings
+  const canEditSchool = canManageSchool();
 
   // Fetch current settings
   const { data: userProfile } = useQuery({
@@ -290,15 +293,17 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${canEditSchool ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="school" className="flex items-center gap-2">
-            <School className="h-4 w-4" />
-            School
-          </TabsTrigger>
+          {canEditSchool && (
+            <TabsTrigger value="school" className="flex items-center gap-2">
+              <School className="h-4 w-4" />
+              School
+            </TabsTrigger>
+          )}
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notifications
@@ -403,7 +408,8 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* School Settings */}
+        {/* School Settings - Only visible to school owners and platform owners */}
+        {canEditSchool && (
         <TabsContent value="school">
           <Card>
             <CardHeader>
@@ -535,6 +541,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
         {/* Notification Settings */}
         <TabsContent value="notifications">

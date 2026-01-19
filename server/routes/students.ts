@@ -23,7 +23,7 @@ function requireStudentAccess(studentIdParam: string = 'id') {
 
       const studentId = parseInt(req.params[studentIdParam]);
       const student = await storage.getStudent(studentId);
-      
+
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
@@ -33,58 +33,39 @@ function requireStudentAccess(studentIdParam: string = 'id') {
         return next();
       }
 
-      // School owners have access to students in their school
-      if (req.school.isSchoolOwner()) {
-        // Check if student belongs to this school through assigned teacher or creator
-        if (student.assignedTeacherId) {
-          const teacher = await storage.getUser(student.assignedTeacherId);
-          if (teacher && teacher.schoolId === req.school.id) {
-            return next();
-          }
-        }
-        
-        // Check if student creator belongs to this school
-        if (student.userId) {
-          const studentCreator = await storage.getUser(student.userId);
-          if (studentCreator && studentCreator.schoolId === req.school.id) {
-            return next();
-          }
-        }
+      // SECURITY: Primary school isolation check - student must belong to user's school
+      const userSchoolId = req.school.id;
+      if (student.schoolId && student.schoolId !== userSchoolId) {
+        return res.status(403).json({
+          message: "Access denied. Student belongs to a different school."
+        });
       }
 
-      // Teachers have access to students they created or are assigned to in their school
+      // School owners have access to all students in their school
+      if (req.school.isSchoolOwner()) {
+        return next();
+      }
+
+      // Teachers have access to students they created or are assigned to
       if (req.school.isTeacher()) {
         const hasAccess = (
-          student.assignedTeacherId === req.user.id || 
+          student.assignedTeacherId === req.user.id ||
           student.userId === req.user.id
         );
-        
+
         if (hasAccess) {
-          // Additional check: ensure teacher and student are in same school
-          if (student.assignedTeacherId) {
-            const teacher = await storage.getUser(student.assignedTeacherId);
-            if (teacher && teacher.schoolId === req.school.id) {
-              return next();
-            }
-          }
-          
-          if (student.userId) {
-            const studentCreator = await storage.getUser(student.userId);
-            if (studentCreator && studentCreator.schoolId === req.school.id) {
-              return next();
-            }
-          }
+          return next();
         }
       }
 
-      // Students can access their own profile (separate endpoint should be used)
+      // Students can access their own profile
       if (req.school.isStudent() && req.user.id === student.accountId) {
         return next();
       }
 
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "You don't have access to this student",
-        reason: "Student not in your school or not assigned to you"
+        reason: "Student not assigned to you"
       });
     } catch (error) {
       console.error("Error in student access middleware:", error);
@@ -138,10 +119,13 @@ export function registerStudentRoutes(app: Express) {
         }
         
         // CRITICAL SECURITY: Enforce school context for multi-tenant isolation
-        if (!req.school || !req.school.id) {
-          return res.status(400).json({ 
+        console.log(`🔍 Student creation check - user: ${req.user.id}, role: ${req.user.role}, schoolId: ${req.user.schoolId}, req.school:`, req.school ? { id: req.school.id, role: req.school.role } : 'undefined');
+
+        if (!req.school || req.school.id === undefined || req.school.id === null) {
+          return res.status(400).json({
             message: "School context required for student creation",
-            reason: "No school association found for authenticated user"
+            reason: "No school association found for authenticated user",
+            debug: { userSchoolId: req.user.schoolId, schoolContext: req.school ? { id: req.school.id, role: req.school.role } : null }
           });
         }
         

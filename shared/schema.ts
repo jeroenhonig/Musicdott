@@ -304,7 +304,7 @@ export type InsertTeacherAssignment = typeof teacherAssignments.$inferInsert;
 export const schools = pgTable("schools", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  ownerId: integer("owner_id").notNull().references(() => users.id), // School owner reference
+  ownerId: integer("owner_id").references(() => users.id), // School owner reference (nullable - can assign later)
   address: text("address"),
   city: text("city"),
   phone: text("phone"),

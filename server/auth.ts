@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, RequestHandler } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -10,6 +10,9 @@ import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { EmailNotificationService } from "./services/email-notifications";
 import { authRateLimit } from "./middleware/security";
+
+// Exported session middleware for Socket.IO integration
+export let sessionMiddleware: RequestHandler;
 
 declare global {
   namespace Express {
@@ -101,7 +104,8 @@ export function setupAuth(app: Express) {
   
   // Initialize session with error handling
   try {
-    app.use(session(sessionSettings));
+    sessionMiddleware = session(sessionSettings);
+    app.use(sessionMiddleware);
     console.log('✅ Session middleware initialized successfully');
   } catch (error) {
     console.error('❌ Session middleware initialization failed:', error);

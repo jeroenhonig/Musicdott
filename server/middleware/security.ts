@@ -64,14 +64,24 @@ export const cspMiddleware = (req: Request, res: Response, next: NextFunction) =
 // Enhanced HTTPS redirect middleware
 export const httpsRedirect = (req: Request, res: Response, next: NextFunction) => {
   if (process.env.NODE_ENV === 'production') {
+    const host = req.header('host') || '';
+
+    // Skip HTTPS redirect for localhost/local development
+    const isLocalhost = host.startsWith('localhost') ||
+                        host.startsWith('127.0.0.1') ||
+                        host.startsWith('0.0.0.0');
+
+    if (isLocalhost) {
+      return next();
+    }
+
     // Check various headers that proxies might use
     const isHttps = req.header('x-forwarded-proto') === 'https' ||
                    req.header('x-forwarded-ssl') === 'on' ||
                    req.header('x-url-scheme') === 'https' ||
                    req.secure;
-    
+
     if (!isHttps) {
-      const host = req.header('host');
       if (host) {
         return res.redirect(301, `https://${host}${req.url}`);
       }

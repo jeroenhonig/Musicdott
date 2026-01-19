@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Music, Star, Users, Calendar, Award, ArrowRight, CheckCircle, MessageCircle, BarChart, Settings, Trophy, CreditCard } from "lucide-react";
 import musicdottLogo from "../assets/musicdott-logo.png";
-import { DevelopmentNotice } from "@/components/dev-notice";
 import { getPricingText } from "@/lib/currency-utils";
 import { useTranslation } from "@/lib/i18n";
 import { CompactLanguageSelector } from "@/components/language/language-selector";
@@ -101,7 +100,6 @@ export default function AuthPage() {
 
   return (
     <>
-      <DevelopmentNotice />
       <div className="flex min-h-screen">
         {/* Left column: Login form */}
         <div className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">

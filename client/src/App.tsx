@@ -52,6 +52,7 @@ import GrooveConverterPage from "@/pages/groove-converter";
 import CollaborativeNotationPage from "@/pages/collaborative-notation";
 import SchoolBrandingPage from "@/pages/SchoolBranding";
 import SchoolMembers from "@/pages/school/members";
+import TeachersPage from "@/pages/teachers";
 import { PWAInstallPrompt, PWAServiceWorker } from "@/components/pwa/install-prompt";
 
 // New enhancement pages
@@ -149,6 +150,7 @@ function Router() {
       
       {/* School Management Routes */}
       <ProtectedRoute path="/school/members" component={SchoolMembers} />
+      <ProtectedRoute path="/teachers" component={TeachersPage} />
       
       {/* Special hidden owner route */}
       <Route path="/owner" component={OwnerLogin} />

@@ -26,7 +26,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [location, setLocation] = useLocation();
 
-  // Redirect platform owners to their dedicated dashboard
+  // Redirect platform owners to their dedicated admin panel
   useEffect(() => {
     if (user && isPlatformOwner()) {
       setLocation("/owners-dashboard");

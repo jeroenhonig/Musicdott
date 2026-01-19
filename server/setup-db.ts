@@ -1,5 +1,5 @@
 import { pool, db, isDatabaseAvailable } from './db';
-import { users, schools, students, lessons, songs, achievementDefinitions } from '@shared/schema';
+import { users, schools, students, lessons, songs, achievementDefinitions, schoolMemberships } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
@@ -80,6 +80,21 @@ async function createTables() {
   const createTablesSQL = `
     -- Set search_path
     SET search_path TO public;
+
+    -- Migration: Make owner_id nullable (if it was NOT NULL before)
+    DO $$
+    BEGIN
+      -- Check if column exists and has NOT NULL constraint, if so remove it
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'schools'
+        AND column_name = 'owner_id'
+        AND is_nullable = 'NO'
+      ) THEN
+        ALTER TABLE schools ALTER COLUMN owner_id DROP NOT NULL;
+        RAISE NOTICE 'Made owner_id nullable in schools table';
+      END IF;
+    END $$;
 
     -- 1. Schools table (no dependencies)
     CREATE TABLE IF NOT EXISTS schools (
@@ -467,69 +482,169 @@ async function createTables() {
 
 /**
  * Seed admin user and default school
+ * Creates accounts in logical order:
+ * 1. Admin (platform_owner) - manages the platform
+ * 2. School Owner - will own the school
+ * 3. School - created with owner reference
+ * 4. Teacher - assigned to the school
+ * 5. Student - assigned to the school and teacher
  */
 async function seedAdminAndSchool() {
-  // Check if admin exists
-  const existingAdmin = await db.select().from(users).where(eq(users.role, 'platform_owner')).limit(1);
+  // 1. Get or create admin (platform_owner) - FIRST, they manage the platform
+  console.log('  Step 1: Creating platform admin...');
+  let admin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1).then(r => r[0]);
 
-  if (existingAdmin.length > 0) {
-    console.log('  Admin already exists, skipping');
-    return;
+  if (!admin) {
+    const adminPassword = await hashPassword(process.env.ADMIN_PASSWORD || 'admin123');
+    [admin] = await db.insert(users).values({
+      username: process.env.ADMIN_USERNAME || 'admin',
+      password: adminPassword,
+      name: process.env.ADMIN_NAME || 'Admin User',
+      email: process.env.ADMIN_EMAIL || 'admin@musicdott.local',
+      role: 'platform_owner',
+      schoolId: null, // Platform owner doesn't belong to a specific school
+      bio: 'System administrator',
+    }).returning();
+    console.log(`    ✅ Created admin: ${admin.username} (ID: ${admin.id})`);
+  } else {
+    console.log(`    ℹ️  Admin exists: ${admin.username} (ID: ${admin.id})`);
   }
 
-  // Create default school first
-  const [school] = await db.insert(schools).values({
-    name: process.env.DEFAULT_SCHOOL_NAME || 'MusicDott Demo School',
-    address: process.env.DEFAULT_SCHOOL_ADDRESS || 'Music Street 1',
-    city: process.env.DEFAULT_SCHOOL_CITY || 'Amsterdam',
-    phone: process.env.DEFAULT_SCHOOL_PHONE || '+31 20 123 4567',
-    description: 'Demo drumschool voor MusicDott',
-    instruments: 'drums,percussion',
-  }).returning();
+  // 2. Get or create school_owner (stefan) - SECOND, before creating the school
+  console.log('  Step 2: Creating school owner...');
+  let schoolOwner = await db.select().from(users).where(eq(users.username, 'stefan')).limit(1).then(r => r[0]);
 
-  console.log(`  Created school: ${school.name} (ID: ${school.id})`);
+  if (!schoolOwner) {
+    const schoolOwnerPassword = await hashPassword('schoolowner123');
+    [schoolOwner] = await db.insert(users).values({
+      username: 'stefan',
+      password: schoolOwnerPassword,
+      name: 'Stefan van de Brug',
+      email: 'stefan@stefanvandebrug.nl',
+      role: 'school_owner',
+      schoolId: null, // Will be updated after school creation
+      instruments: 'drums,percussion',
+      bio: 'Eigenaar en hoofddocent van Muziekschool Stefan van de Brug',
+    }).returning();
+    console.log(`    ✅ Created school_owner: ${schoolOwner.username} (ID: ${schoolOwner.id})`);
+  } else {
+    console.log(`    ℹ️  School owner exists: ${schoolOwner.username} (ID: ${schoolOwner.id})`);
+  }
 
-  // Create admin user
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  const hashedPassword = await hashPassword(adminPassword);
+  // 3. Get or create school - THIRD, now we can link to the owner
+  console.log('  Step 3: Creating school with owner...');
+  let school = await db.select().from(schools).limit(1).then(r => r[0]);
 
-  const [admin] = await db.insert(users).values({
-    username: process.env.ADMIN_USERNAME || 'admin',
-    password: hashedPassword,
-    name: process.env.ADMIN_NAME || 'Admin User',
-    email: process.env.ADMIN_EMAIL || 'admin@musicdott.local',
-    role: 'platform_owner',
-    schoolId: school.id,
-    bio: 'System administrator',
-  }).returning();
+  if (!school) {
+    [school] = await db.insert(schools).values({
+      name: process.env.DEFAULT_SCHOOL_NAME || 'Muziekschool Stefan van de Brug',
+      ownerId: schoolOwner.id, // Link to the school owner we just created
+      address: process.env.DEFAULT_SCHOOL_ADDRESS || 'Muziekstraat 1',
+      city: process.env.DEFAULT_SCHOOL_CITY || 'Utrecht',
+      phone: process.env.DEFAULT_SCHOOL_PHONE || '+31 30 123 4567',
+      website: 'https://www.stefanvandebrug.nl',
+      description: 'Professionele drumschool met persoonlijke begeleiding',
+      instruments: 'drums,percussion,cajon',
+    }).returning();
+    console.log(`    ✅ Created school: ${school.name} (ID: ${school.id}) with owner: ${schoolOwner.name}`);
 
-  console.log(`  Created admin: ${admin.username} (ID: ${admin.id})`);
+    // Update school owner's schoolId to link back to the school
+    await db.update(users).set({ schoolId: school.id }).where(eq(users.id, schoolOwner.id));
+    console.log(`    ✅ Linked school owner to school`);
 
-  // Update school owner
-  await db.update(schools).set({ ownerId: admin.id }).where(eq(schools.id, school.id));
+    // Create school membership for the owner
+    await db.insert(schoolMemberships).values({
+      schoolId: school.id,
+      userId: schoolOwner.id,
+      role: 'owner',
+    }).onConflictDoNothing();
+    console.log(`    ✅ Created school membership for owner`);
+  } else {
+    console.log(`    ℹ️  School exists: ${school.name} (ID: ${school.id})`);
 
-  // Create a teacher account for testing
-  const teacherPassword = await hashPassword('teacher123');
-  const [teacher] = await db.insert(users).values({
-    username: 'teacher',
-    password: teacherPassword,
-    name: 'Demo Teacher',
-    email: 'teacher@musicdott.local',
-    role: 'teacher',
-    schoolId: school.id,
-    instruments: 'drums',
-    bio: 'Demo teacher account',
-  }).returning();
+    // Ensure school owner is linked if school exists but owner isn't linked
+    if (!school.ownerId && schoolOwner) {
+      await db.update(schools).set({ ownerId: schoolOwner.id }).where(eq(schools.id, school.id));
+      await db.update(users).set({ schoolId: school.id }).where(eq(users.id, schoolOwner.id));
+      console.log(`    ✅ Fixed: Linked existing school to owner`);
+    }
+  }
 
-  console.log(`  Created teacher: ${teacher.username} (ID: ${teacher.id})`);
+  // 4. Get or create teacher (mark) - FOURTH, assigned to the school
+  console.log('  Step 4: Creating teacher...');
+  let teacher = await db.select().from(users).where(eq(users.username, 'mark')).limit(1).then(r => r[0]);
+
+  if (!teacher) {
+    const teacherPassword = await hashPassword('teacher123');
+    [teacher] = await db.insert(users).values({
+      username: 'mark',
+      password: teacherPassword,
+      name: 'Mark Jansen',
+      email: 'mark@stefanvandebrug.nl',
+      role: 'teacher',
+      schoolId: school.id,
+      instruments: 'drums,cajon',
+      bio: 'Drumdocent bij Muziekschool Stefan van de Brug',
+    }).returning();
+    console.log(`    ✅ Created teacher: ${teacher.username} (ID: ${teacher.id})`);
+
+    // Create school membership for the teacher
+    await db.insert(schoolMemberships).values({
+      schoolId: school.id,
+      userId: teacher.id,
+      role: 'teacher',
+    }).onConflictDoNothing();
+    console.log(`    ✅ Created school membership for teacher`);
+  } else {
+    console.log(`    ℹ️  Teacher exists: ${teacher.username} (ID: ${teacher.id})`);
+  }
+
+  // 5. Get or create student user (tim) - FIFTH, assigned to school and teacher
+  console.log('  Step 5: Creating student...');
+  let studentUser = await db.select().from(users).where(eq(users.username, 'tim')).limit(1).then(r => r[0]);
+
+  if (!studentUser) {
+    const studentPassword = await hashPassword('student123');
+    [studentUser] = await db.insert(users).values({
+      username: 'tim',
+      password: studentPassword,
+      name: 'Tim de Vries',
+      email: 'tim@student.stefanvandebrug.nl',
+      role: 'student',
+      schoolId: school.id,
+      bio: 'Leerling drums - beginner niveau',
+    }).returning();
+    console.log(`    ✅ Created student user: ${studentUser.username} (ID: ${studentUser.id})`);
+
+    // Create corresponding student record linked to the student user
+    const [studentRecord] = await db.insert(students).values({
+      schoolId: school.id,
+      userId: teacher.id, // Creator is the teacher
+      accountId: studentUser.id, // Linked user account
+      name: studentUser.name,
+      email: studentUser.email,
+      phone: '+31 6 12345678',
+      instrument: 'drums',
+      level: 'beginner',
+      assignedTeacherId: teacher.id,
+      notes: 'Leeftijd: 14 jaar\nOuder: Jan de Vries\nOuder Email: jan.devries@example.nl',
+      isActive: true,
+    }).returning();
+    console.log(`    ✅ Created student record (ID: ${studentRecord.id}) linked to user: ${studentUser.username}`);
+  } else {
+    console.log(`    ℹ️  Student user exists: ${studentUser.username} (ID: ${studentUser.id})`);
+  }
 
   // Print login info
-  console.log('\n╔════════════════════════════════════════════════════════════╗');
-  console.log('║                    LOGIN CREDENTIALS                       ║');
-  console.log('╠════════════════════════════════════════════════════════════╣');
-  console.log('║ Admin:   admin / admin123                                  ║');
-  console.log('║ Teacher: teacher / teacher123                              ║');
-  console.log('╚════════════════════════════════════════════════════════════╝\n');
+  console.log('\n╔════════════════════════════════════════════════════════════════════╗');
+  console.log('║                    LOGIN CREDENTIALS                               ║');
+  console.log('║         Muziekschool Stefan van de Brug                            ║');
+  console.log('╠════════════════════════════════════════════════════════════════════╣');
+  console.log('║ Platform Owner: admin / admin123                                   ║');
+  console.log('║ School Owner:   stefan / schoolowner123 (Stefan van de Brug)       ║');
+  console.log('║ Teacher:        mark / teacher123 (Mark Jansen)                    ║');
+  console.log('║ Student:        tim / student123 (Tim de Vries)                    ║');
+  console.log('╚════════════════════════════════════════════════════════════════════╝\n');
 }
 
 /**
@@ -575,21 +690,24 @@ async function seedTestData() {
     return;
   }
 
-  // Create test students
+  // Create test students with realistic Dutch names
   const studentData = [
-    { name: 'Jan de Drummer', email: 'jan@test.nl', instrument: 'drums', level: 'beginner' },
-    { name: 'Lisa Beats', email: 'lisa@test.nl', instrument: 'drums', level: 'intermediate' },
-    { name: 'Pieter Rhythm', email: 'pieter@test.nl', instrument: 'drums', level: 'advanced' },
+    { name: 'Sophie Bakker', email: 'sophie.bakker@test.nl', phone: '+31 6 11111111', instrument: 'drums', level: 'beginner', notes: 'Leeftijd: 12 jaar\nOuder: Petra Bakker' },
+    { name: 'Lars van den Berg', email: 'lars.vdberg@test.nl', phone: '+31 6 22222222', instrument: 'drums', level: 'intermediate', notes: 'Leeftijd: 16 jaar\nOuder: Marco van den Berg' },
+    { name: 'Emma Visser', email: 'emma.visser@test.nl', phone: '+31 6 33333333', instrument: 'cajon', level: 'advanced', notes: 'Leeftijd: 18 jaar\nSpeelt al 5 jaar' },
   ];
 
   for (const s of studentData) {
     await db.insert(students).values({
       schoolId: school.id,
+      userId: teacher.id, // Creator is the teacher
       name: s.name,
       email: s.email,
+      phone: s.phone,
       instrument: s.instrument,
       level: s.level,
       assignedTeacherId: teacher.id,
+      notes: s.notes,
       isActive: true,
     });
   }

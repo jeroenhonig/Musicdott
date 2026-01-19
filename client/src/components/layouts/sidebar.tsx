@@ -2,13 +2,13 @@ import React from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Home, 
-  Users, 
-  Music, 
-  BookOpen, 
-  Calendar, 
-  BarChart, 
+import {
+  Home,
+  Users,
+  Music,
+  BookOpen,
+  Calendar,
+  BarChart,
   Settings,
   LogOut,
   CreditCard,
@@ -25,7 +25,8 @@ import {
   Building,
   Crown,
   UserCog,
-  Database
+  Database,
+  Briefcase
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -225,6 +226,9 @@ export default function Sidebar({ isMobile = false, closeMobileMenu }: SidebarPr
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
                 School Management
               </p>
+              <NavLink href="/teachers" icon={<Briefcase size={20} />}>
+                Teachers
+              </NavLink>
               <NavLink href="/school/members" icon={<UserCog size={20} />}>
                 Manage Members
               </NavLink>

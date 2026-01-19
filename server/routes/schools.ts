@@ -1122,7 +1122,7 @@ export function registerSchoolRoutes(app: Express) {
       }
       
       // Get schoolId from context or directly from user
-      const schoolId = req.school?.currentSchool?.id || user.schoolId;
+      const schoolId = req.school?.id || user.schoolId;
       
       if (!schoolId) {
         return res.status(400).json({ message: "No school context available" });
@@ -1167,7 +1167,7 @@ export function registerSchoolRoutes(app: Express) {
    */
   app.post("/api/school/members/invite", requireSchoolOwner(), async (req: Request, res: Response) => {
     try {
-      if (!req.school?.currentSchool) {
+      if (!req.school?.id) {
         return res.status(400).json({ message: "No school context available" });
       }
 
@@ -1181,7 +1181,7 @@ export function registerSchoolRoutes(app: Express) {
       });
 
       const { email, firstName, lastName, role } = inviteSchema.parse(req.body);
-      const schoolId = req.school.currentSchool.id;
+      const schoolId = req.school.id;
 
       // Check if user already exists
       let user = await storage.getUserByEmail(email);
@@ -1244,17 +1244,17 @@ export function registerSchoolRoutes(app: Express) {
    */
   app.delete("/api/school/members/:memberId", requireSchoolOwner(), async (req: Request, res: Response) => {
     try {
-      if (!req.school?.currentSchool) {
+      if (!req.school?.id) {
         return res.status(400).json({ message: "No school context available" });
       }
 
       const memberId = parseInt(req.params.memberId);
-      
+
       if (isNaN(memberId)) {
         return res.status(400).json({ message: "Invalid member ID" });
       }
 
-      const schoolId = req.school.currentSchool.id;
+      const schoolId = req.school.id;
 
       // Get membership details
       const membership = await storage.getSchoolMembership(memberId);

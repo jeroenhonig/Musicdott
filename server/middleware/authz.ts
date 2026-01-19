@@ -106,9 +106,13 @@ export const loadSchoolContext: RequestHandler = asyncHandler(async (req: Reques
       }
     }
 
+    // Log school context setup for debugging
+    console.log(`🏫 loadSchoolContext - user: ${user.id}, role: ${user.role}, userSchoolId: ${user.schoolId}, primarySchoolId: ${primarySchoolId}, memberships: ${memberships.length}`);
+
     // Create school context
+    // Platform owners can have id=0 (they access all schools), others need a real schoolId
     const schoolContext: SchoolContext = {
-      id: primarySchoolId || 0,
+      id: primarySchoolId ?? (primaryRole === 'platform_owner' ? 0 : 0),
       role: primaryRole,
       userId: user.id,
       memberships,

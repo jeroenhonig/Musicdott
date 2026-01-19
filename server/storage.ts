@@ -126,6 +126,7 @@ export interface IStorage {
   
   // Lesson categories
   getLessonCategories(userId: number): Promise<any[]>;
+  getLessonCategoriesBySchool(schoolId: number): Promise<any[]>;
   getLessonCategory(id: number): Promise<any | undefined>;
   createLessonCategory(category: any): Promise<any>;
   updateLessonCategory(id: number, category: any): Promise<any>;
@@ -1293,8 +1294,11 @@ export class MemStorage implements IStorage {
   async getUnreadMessageCount(userId: number, userType: string): Promise<number> { return 0; }
   
   // Lesson Categories
-  async getLessonCategories(userId: number): Promise<any[]> { 
+  async getLessonCategories(userId: number): Promise<any[]> {
     return Array.from(this.lessonCategories.values()).filter(category => category.userId === userId);
+  }
+  async getLessonCategoriesBySchool(schoolId: number): Promise<any[]> {
+    return Array.from(this.lessonCategories.values()).filter(category => category.schoolId === schoolId);
   }
   async getLessonCategory(id: number): Promise<any | undefined> { 
     return this.lessonCategories.get(id);

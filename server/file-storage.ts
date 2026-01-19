@@ -816,6 +816,11 @@ export class FileStorage implements IStorage {
     return categories.filter(c => c.schoolId === user.schoolId);
   }
 
+  async getLessonCategoriesBySchool(schoolId: number): Promise<any[]> {
+    const categories = this.getCollection('lessonCategories');
+    return categories.filter(c => c.schoolId === schoolId);
+  }
+
   async getLessonCategory(id: number): Promise<any | undefined> {
     const categories = this.getCollection('lessonCategories');
     return categories.find(c => c.id === id);

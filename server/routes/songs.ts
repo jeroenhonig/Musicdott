@@ -86,15 +86,36 @@ function requireRole(roles: string[]) {
 }
 
 export function registerSongRoutes(app: Express) {
-  // Get all songs - SIMPLIFIED role-based access
+  // Get all songs - role-based access with school scoping
   app.get(
-    "/api/songs", 
+    "/api/songs",
     requireAuth,
+    loadSchoolContext,
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
       try {
-        // SIMPLIFIED: Just get songs for the authenticated user
-        const songs = await storage.getSongs(req.user!.id);
+        let songs;
+        const schoolId = req.school?.id || req.user!.schoolId;
+
+        // Platform owners see all songs
+        if (req.school?.isPlatformOwner()) {
+          songs = await storage.getSongs(req.user!.id);
+        }
+        // School owners see ALL songs in their school
+        else if (req.school?.isSchoolOwner() && schoolId) {
+          songs = await storage.getSongsBySchool(schoolId);
+        }
+        // Teachers see only their own songs
+        else if (req.school?.isTeacher()) {
+          songs = await storage.getSongs(req.user!.id);
+        }
+        else {
+          return res.status(403).json({
+            message: "Insufficient permissions to view songs",
+            role: req.school?.role
+          });
+        }
+
         console.log(`Songs retrieved for user ${req.user!.id} (${req.user!.role}):`, songs.length);
         res.json(songs);
       } catch (error) {

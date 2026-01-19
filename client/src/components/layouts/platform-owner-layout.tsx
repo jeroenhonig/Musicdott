@@ -1,12 +1,10 @@
 import { ReactNode, useState } from "react";
-import { Link, useLocation } from "wouter";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  CreditCard, 
-  Activity, 
-  Settings,
+import { useLocation } from "wouter";
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
   LogOut,
   Menu,
   X,
@@ -45,7 +43,7 @@ export default function PlatformOwnerLayout({
 
   const handleLogout = async () => {
     try {
-      await apiRequest("/api/auth/logout", { method: "POST" });
+      await apiRequest("POST", "/api/logout");
       queryClient.clear();
       setLocation("/auth");
     } catch (error) {
@@ -96,14 +94,8 @@ export default function PlatformOwnerLayout({
             </nav>
 
             <div className="p-4 border-t border-slate-700">
-              <Link href="/dashboard">
-                <Button variant="outline" className="w-full mb-2 border-slate-600 text-slate-300 hover:bg-slate-700" data-testid="btn-back-to-app">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Back to App
-                </Button>
-              </Link>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full text-slate-400 hover:text-white hover:bg-slate-700"
                 onClick={handleLogout}
                 data-testid="btn-logout"
@@ -150,14 +142,6 @@ export default function PlatformOwnerLayout({
                   </button>
                 );
               })}
-              <div className="border-t border-slate-700 mt-2 pt-2">
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="w-full justify-start text-slate-300" onClick={() => setMobileMenuOpen(false)}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Back to App
-                  </Button>
-                </Link>
-              </div>
             </div>
           )}
 

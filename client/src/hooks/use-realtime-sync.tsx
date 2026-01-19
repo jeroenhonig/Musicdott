@@ -604,8 +604,11 @@ export function useRealtimeSync(options: RealtimeSyncOptions = {}): UseRealtimeS
         ...prev,
         connected: false,
         connecting: false,
-        error: 'Authentication failed',
+        error: 'auth_error', // Use specific error code to prevent auto-reconnect
+        reconnectAttempts: opts.maxReconnectAttempts || 5, // Prevent further reconnect attempts
       }));
+      // Disconnect cleanly on auth error - user needs to re-authenticate
+      socket.disconnect();
     });
 
     socket.on('connection_established', (data) => {
@@ -720,19 +723,25 @@ export function useRealtimeSync(options: RealtimeSyncOptions = {}): UseRealtimeS
 
   // Auto-reconnect logic
   useEffect(() => {
-    if (!connectionInfo.connected && 
-        !connectionInfo.connecting && 
-        connectionInfo.error && 
+    // Don't reconnect on authentication errors - user needs to log in again
+    if (connectionInfo.error === 'auth_error') {
+      debugLog('Not reconnecting due to authentication error');
+      return;
+    }
+
+    if (!connectionInfo.connected &&
+        !connectionInfo.connecting &&
+        connectionInfo.error &&
         connectionInfo.reconnectAttempts < opts.maxReconnectAttempts! &&
         user) {
-      
+
       const delay = Math.min(1000 * Math.pow(2, connectionInfo.reconnectAttempts), 30000);
       debugLog(`Attempting reconnect in ${delay}ms (attempt ${connectionInfo.reconnectAttempts + 1})`);
-      
+
       const timer = setTimeout(() => {
         connect();
       }, delay);
-      
+
       return () => clearTimeout(timer);
     }
   }, [connectionInfo, user, connect, opts.maxReconnectAttempts, debugLog]);

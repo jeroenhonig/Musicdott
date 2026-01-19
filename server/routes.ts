@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage-wrapper";
-import { setupAuth, requireAuth, enforcePasswordChange } from "./auth";
-import { WebSocketManager } from "./websocket";
+import { setupAuth, requireAuth, enforcePasswordChange, sessionMiddleware } from "./auth";
+// WebSocketManager removed - using RealtimeBus instead (set up in index.ts)
 import { db, executeQuery } from "./db";
 import { eq, and, desc, or, inArray, ne, not, sql } from "drizzle-orm";
 import { EmailNotificationService } from "./services/email-notifications";
@@ -130,7 +130,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup authentication routes
   setupAuth(app);
-  
+
+  // Configure RealtimeBus with session middleware (must be after setupAuth)
+  if ((app as any).realtimeBus && sessionMiddleware) {
+    (app as any).realtimeBus.configureSessionMiddleware(sessionMiddleware);
+  }
+
   // Apply password change enforcement to all API routes
   app.use('/api', enforcePasswordChange);
   
@@ -169,7 +174,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       console.log("Fetching categories (lesson-categories) for user:", req.user!.id, "school:", req.school?.id);
-      const categories = await storage.getLessonCategories(req.user!.id);
+      let categories;
+      const schoolId = req.school?.id || req.user!.schoolId;
+
+      // School owners see ALL categories in their school
+      if (req.school?.isSchoolOwner() && schoolId) {
+        categories = await storage.getLessonCategoriesBySchool(schoolId);
+      } else {
+        categories = await storage.getLessonCategories(req.user!.id);
+      }
       console.log("Categories retrieved with secure scoping:", categories);
       res.json(categories);
     } catch (error) {
@@ -217,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reportType = type as string;
       
       // Use school-scoped data for school owners/teachers
-      const schoolId = req.school?.currentSchool?.id || req.user!.schoolId;
+      const schoolId = req.school?.id || req.user!.schoolId;
       
       console.log(`Generating reports for user ${req.user!.id}, school: ${schoolId}, range: ${dateRange} days, type: ${reportType}`);
       
@@ -400,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let students;
         
         // Get schoolId from context or user
-        const schoolId = req.school?.currentSchool?.id || req.user!.schoolId;
+        const schoolId = req.school?.id || req.user!.schoolId;
         
         // Platform owners can see all students across all schools
         if (req.school!.isPlatformOwner()) {
@@ -439,7 +452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: All song routes are now handled in server/routes/songs.ts
 
   // Lessons - role-based access with proper multi-tenant filtering
-  app.get("/api/lessons", 
+  app.get("/api/lessons",
     requireAuth,
     loadSchoolContext,
     requireTeacherOrOwner(),
@@ -447,28 +460,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         let lessons;
-        
-        // FIXED: Use consistent user-scoped retrieval like songs for better reliability
+        const schoolId = req.school?.id || req.user!.schoolId;
+
         // Platform owners can see all lessons across all schools
         if (req.school!.isPlatformOwner()) {
           lessons = await storage.getLessons(req.user!.id);
         }
-        // School owners and teachers see lessons they created (user-scoped)
-        else if (req.school!.isSchoolOwner() || req.school!.isTeacher()) {
+        // School owners see ALL lessons in their school
+        else if (req.school!.isSchoolOwner() && schoolId) {
+          lessons = await storage.getLessonsBySchool(schoolId);
+        }
+        // Teachers see only their own lessons
+        else if (req.school!.isTeacher()) {
           lessons = await storage.getLessons(req.user!.id);
         }
         else {
-          return res.status(403).json({ 
+          return res.status(403).json({
             message: "Insufficient permissions to view lessons",
             role: req.school!.role
           });
         }
-        
+
         // Log for debugging multi-tenant access
         if (process.env.NODE_ENV !== 'production') {
           console.log(`Lessons access: User ${req.user!.id} with role ${req.school!.role} in school ${req.school!.id} retrieved ${lessons.length} lessons`);
         }
-        
+
         res.json(lessons);
       } catch (error) {
         console.error("Error fetching lessons with authorization:", error);
@@ -477,21 +494,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.get("/api/lessons/:id", 
+  app.get("/api/lessons/:id",
     requireAuth,
     loadSchoolContext,
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
-    
+
     try {
       const id = parseInt(req.params.id);
       const lesson = await storage.getLesson(id);
-      
+
       if (!lesson) {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
-      // Following MusicDott 1.0 pattern: all authenticated users can access lessons
+
+      // SECURITY: School isolation - verify lesson belongs to user's school
+      if (!req.school?.isPlatformOwner()) {
+        const userSchoolId = req.school?.id || req.user!.schoolId;
+        if (lesson.schoolId && lesson.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Access denied. Lesson belongs to a different school." });
+        }
+      }
+
       res.json(lesson);
     } catch (error) {
       console.error("Error fetching lesson:", error);
@@ -532,27 +556,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/lessons/:id", 
+  app.put("/api/lessons/:id",
     requireAuth,
     loadSchoolContext,
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
-    
+
     try {
       const id = parseInt(req.params.id);
       const lesson = await storage.getLesson(id);
-      
+
       if (!lesson) {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
-      if (lesson.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // SECURITY: School isolation and ownership check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+
+      // Platform owners can edit any lesson
+      if (req.school?.isPlatformOwner()) {
+        // Allow
       }
-      
+      // School owners can edit lessons in their school
+      else if (req.school?.isSchoolOwner() && lesson.schoolId === userSchoolId) {
+        // Allow
+      }
+      // Teachers can only edit their own lessons
+      else if (lesson.userId === req.user!.id) {
+        // Allow
+      }
+      else {
+        return res.status(403).json({ message: "You don't have permission to edit this lesson" });
+      }
+
       const validatedData = insertLessonSchema.partial().parse(req.body);
       const updatedLesson = await storage.updateLesson(id, validatedData);
-      
+
       res.json(updatedLesson);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -562,24 +601,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/lessons/:id", 
+  app.delete("/api/lessons/:id",
     requireAuth,
     loadSchoolContext,
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
-    
+
     try {
       const id = parseInt(req.params.id);
       const lesson = await storage.getLesson(id);
-      
+
       if (!lesson) {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
-      if (lesson.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // SECURITY: School isolation and ownership check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+
+      // Platform owners can delete any lesson
+      if (req.school?.isPlatformOwner()) {
+        // Allow
       }
-      
+      // School owners can delete lessons in their school
+      else if (req.school?.isSchoolOwner() && lesson.schoolId === userSchoolId) {
+        // Allow
+      }
+      // Teachers can only delete their own lessons
+      else if (lesson.userId === req.user!.id) {
+        // Allow
+      }
+      else {
+        return res.status(403).json({ message: "You don't have permission to delete this lesson" });
+      }
+
       await storage.deleteLesson(id);
       res.status(204).end();
     } catch (error) {
@@ -591,7 +645,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/lesson-categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       console.log("Fetching lesson categories for user:", req.user!.id, "school:", req.school?.id);
-      const categories = await storage.getLessonCategories(req.user!.id);
+      let categories;
+      const schoolId = req.school?.id || req.user!.schoolId;
+
+      // School owners see ALL categories in their school
+      if (req.school?.isSchoolOwner() && schoolId) {
+        categories = await storage.getLessonCategoriesBySchool(schoolId);
+      } else {
+        categories = await storage.getLessonCategories(req.user!.id);
+      }
       console.log("Lesson categories retrieved:", categories);
       res.json(categories);
     } catch (error) {
@@ -765,11 +827,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assignments
-  app.get("/api/assignments", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.get("/api/assignments",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
-      const assignments = await storage.getAssignments(req.user!.id);
+      let assignments;
+      const schoolId = req.school?.id || req.user!.schoolId;
+
+      // Platform owners see all assignments
+      if (req.school?.isPlatformOwner()) {
+        assignments = await storage.getAssignments(req.user!.id);
+      }
+      // School owners see ALL assignments in their school
+      else if (req.school?.isSchoolOwner() && schoolId) {
+        assignments = await storage.getAssignmentsBySchool(schoolId);
+      }
+      // Teachers see only their own assignments
+      else {
+        assignments = await storage.getAssignments(req.user!.id);
+      }
+
       res.json(assignments);
     } catch (error) {
       console.error("Error fetching assignments:", error);
@@ -779,35 +858,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // NOTE: Student assignments route moved to server/routes/students.ts with proper security
 
-  app.post("/api/assignments", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.post("/api/assignments",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
       const validatedData = insertAssignmentSchema.parse({
         ...req.body,
         userId: req.user!.id,
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
       });
-      
-      // Verify the student belongs to this user
+
+      // Verify the student belongs to user's school
       const student = await storage.getStudent(validatedData.studentId);
-      if (!student || student.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Student does not belong to this user" });
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      // SECURITY: School isolation check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+      if (!req.school?.isPlatformOwner() && student.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Student belongs to a different school" });
+      }
+
+      // Teachers can only assign to their own students
+      if (req.school?.isTeacher() && student.userId !== req.user!.id && student.assignedTeacherId !== req.user!.id) {
+        return res.status(403).json({ message: "Student is not assigned to you" });
       }
       
-      // If a song is specified, verify it belongs to this user
+      // If a song is specified, verify it belongs to user's school
       if (validatedData.songId) {
         const song = await storage.getSong(validatedData.songId);
-        if (!song || song.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Song does not belong to this user" });
+        if (!song) {
+          return res.status(404).json({ message: "Song not found" });
+        }
+        // School isolation: song must be from same school
+        if (!req.school?.isPlatformOwner() && song.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Song belongs to a different school" });
         }
       }
-      
-      // If a lesson is specified, verify it belongs to this user
+
+      // If a lesson is specified, verify it belongs to user's school
       if (validatedData.lessonId) {
         const lesson = await storage.getLesson(validatedData.lessonId);
-        if (!lesson || lesson.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Lesson does not belong to this user" });
+        if (!lesson) {
+          return res.status(404).json({ message: "Lesson not found" });
+        }
+        // School isolation: lesson must be from same school
+        if (!req.school?.isPlatformOwner() && lesson.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Lesson belongs to a different school" });
         }
       }
       
@@ -840,55 +940,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/assignments/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.put("/api/assignments/:id",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const assignment = await storage.getAssignment(id);
-      
+
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
-      
-      if (assignment.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // SECURITY: School isolation and ownership check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+
+      // Get student to verify school
+      const existingStudent = await storage.getStudent(assignment.studentId);
+      if (!req.school?.isPlatformOwner() && existingStudent?.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Assignment belongs to a different school" });
       }
-      
+
+      // Platform owners can edit any assignment
+      if (req.school?.isPlatformOwner()) {
+        // Allow
+      }
+      // School owners can edit assignments in their school
+      else if (req.school?.isSchoolOwner()) {
+        // Allow (already verified school above)
+      }
+      // Teachers can only edit their own assignments
+      else if (assignment.userId === req.user!.id) {
+        // Allow
+      }
+      else {
+        return res.status(403).json({ message: "You don't have permission to edit this assignment" });
+      }
+
       const validatedData = insertAssignmentSchema.partial().parse(req.body);
-      
-      // If updating the student, verify the student belongs to this user
+
+      // If updating the student, verify school isolation
       if (validatedData.studentId) {
         const student = await storage.getStudent(validatedData.studentId);
-        if (!student || student.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Student does not belong to this user" });
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (!req.school?.isPlatformOwner() && student.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Student belongs to a different school" });
         }
       }
-      
-      // If updating the song, verify it belongs to this user
+
+      // If updating the song, verify school isolation
       if (validatedData.songId) {
         const song = await storage.getSong(validatedData.songId);
-        if (!song || song.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Song does not belong to this user" });
+        if (!song) {
+          return res.status(404).json({ message: "Song not found" });
+        }
+        if (!req.school?.isPlatformOwner() && song.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Song belongs to a different school" });
         }
       }
-      
-      // If updating the lesson, verify it belongs to this user
+
+      // If updating the lesson, verify school isolation
       if (validatedData.lessonId) {
         const lesson = await storage.getLesson(validatedData.lessonId);
-        if (!lesson || lesson.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Lesson does not belong to this user" });
+        if (!lesson) {
+          return res.status(404).json({ message: "Lesson not found" });
+        }
+        if (!req.school?.isPlatformOwner() && lesson.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Lesson belongs to a different school" });
         }
       }
-      
+
       const updatedAssignment = await storage.updateAssignment(id, validatedData);
-      
+
       // If the assignment is being marked as completed, check for achievements
       if (validatedData.completedDate && assignment.studentId) {
-        // Check and award any new achievements
         await storage.checkAndAwardAchievements(assignment.studentId);
       }
-      
+
       res.json(updatedAssignment);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -898,21 +1029,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/assignments/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.delete("/api/assignments/:id",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const assignment = await storage.getAssignment(id);
-      
+
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
-      
-      if (assignment.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // SECURITY: School isolation and ownership check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+
+      // Get student to verify school
+      const existingStudent = await storage.getStudent(assignment.studentId);
+      if (!req.school?.isPlatformOwner() && existingStudent?.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Assignment belongs to a different school" });
       }
-      
+
+      // Platform owners can delete any assignment
+      if (req.school?.isPlatformOwner()) {
+        // Allow
+      }
+      // School owners can delete assignments in their school
+      else if (req.school?.isSchoolOwner()) {
+        // Allow
+      }
+      // Teachers can only delete their own assignments
+      else if (assignment.userId === req.user!.id) {
+        // Allow
+      }
+      else {
+        return res.status(403).json({ message: "You don't have permission to delete this assignment" });
+      }
+
       await storage.deleteAssignment(id);
       res.status(204).end();
     } catch (error) {
@@ -921,18 +1075,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Sessions (schedule)
-  app.get("/api/sessions", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.get("/api/sessions",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
-      try {
-        const sessions = await storage.getSessions(req.user!.id);
-        res.json(sessions);
-      } catch (error) {
-        console.error("Error fetching sessions:", error);
-        // Return empty array instead of error
-        res.json([]);
+      let sessions;
+      const schoolId = req.school?.id || req.user!.schoolId;
+
+      // Platform owners see all sessions
+      if (req.school?.isPlatformOwner()) {
+        sessions = await storage.getSessions(req.user!.id);
       }
+      // School owners see ALL sessions in their school
+      else if (req.school?.isSchoolOwner() && schoolId) {
+        sessions = await storage.getSessionsBySchool(schoolId);
+      }
+      // Teachers see only their own sessions
+      else {
+        sessions = await storage.getSessions(req.user!.id);
+      }
+
+      res.json(sessions);
     } catch (error) {
       console.error("Sessions endpoint error:", error);
       res.json([]); // Always return an empty array instead of 500 error
@@ -941,21 +1106,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // NOTE: Student sessions route moved to server/routes/students.ts with proper security
 
-  app.post("/api/sessions", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.post("/api/sessions",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
       const validatedData = insertSessionSchema.parse({
         ...req.body,
         userId: req.user!.id
       });
-      
-      // Verify the student belongs to this user
+
+      // Verify the student exists and belongs to user's school
       const student = await storage.getStudent(validatedData.studentId);
-      if (!student || student.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Student does not belong to this user" });
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
       }
-      
+
+      // SECURITY: School isolation check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+      if (!req.school?.isPlatformOwner() && student.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Student belongs to a different school" });
+      }
+
+      // Teachers can only create sessions for their own students
+      if (req.school?.isTeacher() && student.userId !== req.user!.id && student.assignedTeacherId !== req.user!.id) {
+        return res.status(403).json({ message: "Student is not assigned to you" });
+      }
+
       const session = await storage.createSession(validatedData);
       res.status(201).json(session);
     } catch (error) {
@@ -966,31 +1144,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/sessions/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.put("/api/sessions/:id",
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
+    async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const session = await storage.getSession(id);
-      
+
       if (!session) {
         return res.status(404).json({ message: "Session not found" });
       }
-      
-      if (session.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // SECURITY: School isolation check via student
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+      const existingStudent = await storage.getStudent(session.studentId);
+      if (!req.school?.isPlatformOwner() && existingStudent?.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Session belongs to a different school" });
       }
-      
+
+      // Platform owners can edit any session
+      if (req.school?.isPlatformOwner()) {
+        // Allow
+      }
+      // School owners can edit sessions in their school
+      else if (req.school?.isSchoolOwner()) {
+        // Allow
+      }
+      // Teachers can only edit their own sessions
+      else if (session.userId === req.user!.id) {
+        // Allow
+      }
+      else {
+        return res.status(403).json({ message: "You don't have permission to edit this session" });
+      }
+
       const validatedData = insertSessionSchema.partial().parse(req.body);
-      
-      // If updating the student, verify the student belongs to this user
+
+      // If updating the student, verify school isolation
       if (validatedData.studentId) {
         const student = await storage.getStudent(validatedData.studentId);
-        if (!student || student.userId !== req.user!.id) {
-          return res.status(403).json({ message: "Student does not belong to this user" });
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (!req.school?.isPlatformOwner() && student.schoolId !== userSchoolId) {
+          return res.status(403).json({ message: "Student belongs to a different school" });
         }
       }
-      
+
       const updatedSession = await storage.updateSession(id, validatedData);
       res.json(updatedSession);
     } catch (error) {
@@ -1001,42 +1203,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/sessions/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  app.delete("/api/sessions/:id",
+    requireAuth,
+    loadSchoolContext,
+    async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const session = await storage.getSession(id);
-      
+
       if (!session) {
         return res.status(404).json({ message: "Session not found" });
       }
-      
-      // Check if user is authorized (teacher owns the session OR student belongs to the session)
-      const isTeacher = session.userId === req.user!.id;
-      let isStudent = false;
-      let student = null;
-      
-      if (req.user!.role === 'student') {
-        // Get all students for this user to find the matching one
-        const userStudents = await storage.getStudents(req.user!.id);
-        student = userStudents.find(s => s.id === session.studentId);
-        isStudent = student !== undefined;
-      } else {
-        // For teachers, get the student to include in cancellation message
-        student = await storage.getStudent(session.studentId);
+
+      // Get the student for school isolation check
+      const student = await storage.getStudent(session.studentId);
+
+      // SECURITY: School isolation check
+      const userSchoolId = req.school?.id || req.user!.schoolId;
+      if (!req.school?.isPlatformOwner() && student?.schoolId !== userSchoolId) {
+        return res.status(403).json({ message: "Session belongs to a different school" });
       }
-      
-      if (!isTeacher && !isStudent) {
-        return res.status(403).json({ message: "Forbidden" });
+
+      // Check authorization based on role
+      let canDelete = false;
+      let isStudentCancelling = false;
+
+      // Platform owners can delete any session
+      if (req.school?.isPlatformOwner()) {
+        canDelete = true;
       }
-      
+      // School owners can delete sessions in their school
+      else if (req.school?.isSchoolOwner()) {
+        canDelete = true;
+      }
+      // Teachers can delete their own sessions
+      else if (req.school?.isTeacher() && session.userId === req.user!.id) {
+        canDelete = true;
+      }
+      // Students can cancel their own sessions
+      else if (req.school?.isStudent() && student?.accountId === req.user!.id) {
+        canDelete = true;
+        isStudentCancelling = true;
+      }
+
+      if (!canDelete) {
+        return res.status(403).json({ message: "You don't have permission to delete this session" });
+      }
+
       // If student is cancelling, send notification message to teacher
-      if (isStudent && student) {
+      if (isStudentCancelling && student) {
         try {
           const { db } = await import("./db");
           const { studentMessages } = await import("@shared/schema");
-          
+
           const startTime = new Date(session.startTime).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -1045,8 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             hour: '2-digit',
             minute: '2-digit'
           });
-          
-          // Create cancellation notification message directly in database
+
           await db.insert(studentMessages).values({
             studentId: session.studentId,
             teacherId: session.userId,
@@ -1059,10 +1277,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (messageError) {
           console.error("Failed to send cancellation notification:", messageError);
-          // Continue with deletion even if message fails
         }
       }
-      
+
       await storage.deleteSession(id);
       res.status(204).end();
     } catch (error) {
@@ -1500,16 +1717,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dashboard stats endpoint
-  app.get("/api/dashboard/stats", requireAuth, async (req: any, res) => {
+  app.get("/api/dashboard/stats",
+    requireAuth,
+    loadSchoolContext,
+    async (req: Request, res: Response) => {
     try {
-      const userId = req.user.id;
-      
-      // Get counts from storage
-      const students = await storage.getStudents(userId);
-      const songs = await storage.getSongs(userId);
-      const lessons = await storage.getLessons(userId);
-      const categories = await storage.getLessonCategories(userId);
-      
+      const userId = req.user!.id;
+      const schoolId = req.school?.id || req.user!.schoolId;
+
+      let students, songs, lessons, categories;
+
+      // Platform owners see all data
+      if (req.school?.isPlatformOwner()) {
+        students = await storage.getStudents(userId);
+        songs = await storage.getSongs(userId);
+        lessons = await storage.getLessons(userId);
+        categories = await storage.getLessonCategories(userId);
+      }
+      // School owners see ALL data in their school
+      else if (req.school?.isSchoolOwner() && schoolId) {
+        students = await storage.getStudentsBySchool(schoolId);
+        songs = await storage.getSongsBySchool(schoolId);
+        lessons = await storage.getLessonsBySchool(schoolId);
+        categories = await storage.getLessonCategoriesBySchool(schoolId);
+      }
+      // Teachers see only their own data
+      else if (req.school?.isTeacher()) {
+        students = await storage.getStudentsForTeacher(userId);
+        songs = await storage.getSongs(userId);
+        lessons = await storage.getLessons(userId);
+        categories = await storage.getLessonCategories(userId);
+      }
+      // Students see limited data
+      else {
+        students = [];
+        songs = await storage.getSongs(userId);
+        lessons = await storage.getLessons(userId);
+        categories = await storage.getLessonCategories(userId);
+      }
+
       res.json({
         students: students.length,
         songs: songs.length,
@@ -2769,11 +3015,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to log admin actions for audit trail
   const logAdminAction = async (req: any, action: string, targetType: string, targetId: number | null, metadata: any = {}) => {
     try {
+      // Get user from Passport session (req.user) or direct session (req.session.user)
+      const user = req.user || req.session?.user;
+      if (!user?.id) {
+        console.warn("No user found for audit log");
+        return;
+      }
+
       await storage.executeQuery(`
         INSERT INTO admin_actions (actor_id, target_type, target_id, action, metadata, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
-        req.session.user.id,
+        user.id,
         targetType,
         targetId,
         action,
@@ -3187,13 +3440,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/owners/all-schools", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
       const schoolsData = await executeQuery(`
-        SELECT 
+        SELECT
           s.id,
           s.name,
           s.city,
           s.address,
           s.phone,
           s.website,
+          s.owner_id,
+          owner.name as owner_name,
           s.created_at,
           COUNT(DISTINCT CASE WHEN u.role IN ('teacher', 'school_owner') THEN u.id END) as total_teachers,
           COUNT(DISTINCT CASE WHEN u.role = 'student' THEN u.id END) as total_students,
@@ -3201,11 +3456,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           COUNT(DISTINCT sg.id) as total_songs,
           COALESCE(ss.status, 'inactive') as subscription_status
         FROM schools s
+        LEFT JOIN users owner ON s.owner_id = owner.id
         LEFT JOIN users u ON s.id = u.school_id
         LEFT JOIN lessons l ON u.id = l.user_id
         LEFT JOIN songs sg ON u.id = sg.user_id
         LEFT JOIN school_subscriptions ss ON s.id = ss.school_id
-        GROUP BY s.id, ss.status
+        GROUP BY s.id, owner.name, ss.status
         ORDER BY s.created_at DESC
       `);
 
@@ -3353,6 +3609,293 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Create new user (school owner or other roles) - Platform owner only
+  app.post("/api/platform/users", requirePlatformOwner, async (req: Request, res: Response) => {
+    try {
+      const { username, email, name, password, role, schoolId } = req.body;
+
+      // Validate required fields
+      if (!username || !email || !name || !password) {
+        return res.status(400).json({ message: "Username, email, name, and password are required" });
+      }
+
+      // Validate role
+      const validRoles = ['school_owner', 'teacher', 'student'];
+      if (role && !validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role. Must be one of: school_owner, teacher, student" });
+      }
+
+      // Check if username already exists
+      const existingUserByUsername = await storage.executeQuery(
+        'SELECT id FROM users WHERE username = $1',
+        [username]
+      );
+      if (existingUserByUsername.rows.length > 0) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Check if email already exists
+      const existingUserByEmail = await storage.executeQuery(
+        'SELECT id FROM users WHERE email = $1',
+        [email]
+      );
+      if (existingUserByEmail.rows.length > 0) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create the user
+      const result = await storage.executeQuery(`
+        INSERT INTO users (username, email, name, password, role, school_id, must_change_password)
+        VALUES ($1, $2, $3, $4, $5, $6, true)
+        RETURNING id, username, email, name, role, school_id
+      `, [username, email, name, hashedPassword, role || 'school_owner', schoolId || null]);
+
+      const newUser = result.rows[0];
+
+      // If schoolId is provided and user is school_owner, create school membership
+      if (schoolId && (role === 'school_owner' || role === 'teacher')) {
+        await storage.executeQuery(`
+          INSERT INTO school_memberships (school_id, user_id, role)
+          VALUES ($1, $2, $3)
+          ON CONFLICT DO NOTHING
+        `, [schoolId, newUser.id, role === 'school_owner' ? 'owner' : 'teacher']);
+      }
+
+      // Log admin action
+      await logAdminAction(req, 'user_create', 'user', newUser.id, {
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+        schoolId: newUser.school_id
+      });
+
+      res.status(201).json({
+        message: "User created successfully",
+        user: newUser
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Create new school - Platform owner only
+  app.post("/api/platform/schools", requirePlatformOwner, async (req: Request, res: Response) => {
+    try {
+      const { name, ownerId, city, address, phone, website, instruments, description } = req.body;
+
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ message: "School name is required" });
+      }
+
+      // If ownerId is provided, validate it exists and is a school_owner
+      if (ownerId) {
+        const ownerResult = await storage.executeQuery(
+          'SELECT id, role FROM users WHERE id = $1',
+          [ownerId]
+        );
+        if (ownerResult.rows.length === 0) {
+          return res.status(400).json({ message: "Owner user not found" });
+        }
+        if (ownerResult.rows[0].role !== 'school_owner') {
+          return res.status(400).json({ message: "Assigned owner must have school_owner role" });
+        }
+      }
+
+      // Create the school
+      const result = await storage.executeQuery(`
+        INSERT INTO schools (name, owner_id, city, address, phone, website, instruments, description, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING *
+      `, [name, ownerId || null, city || null, address || null, phone || null, website || null, instruments || null, description || null]);
+
+      const newSchool = result.rows[0];
+
+      // If ownerId is provided, create school membership and update user's schoolId
+      if (ownerId) {
+        await storage.executeQuery(`
+          INSERT INTO school_memberships (school_id, user_id, role)
+          VALUES ($1, $2, 'owner')
+          ON CONFLICT DO NOTHING
+        `, [newSchool.id, ownerId]);
+
+        // Update the owner's schoolId
+        await storage.executeQuery(`
+          UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
+        `, [newSchool.id, ownerId]);
+      }
+
+      // Log admin action
+      await logAdminAction(req, 'school_create', 'school', newSchool.id, {
+        name: newSchool.name,
+        ownerId: newSchool.owner_id,
+        city: newSchool.city
+      });
+
+      res.status(201).json({
+        message: "School created successfully",
+        school: newSchool
+      });
+    } catch (error) {
+      console.error("Error creating school:", error);
+      res.status(500).json({ message: "Failed to create school" });
+    }
+  });
+
+  // Assign owner to school - Platform owner only
+  app.post("/api/platform/schools/:id/assign-owner", requirePlatformOwner, async (req: Request, res: Response) => {
+    try {
+      const schoolId = parseInt(req.params.id);
+      const { ownerId } = req.body;
+
+      if (isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+
+      if (!ownerId) {
+        return res.status(400).json({ message: "Owner ID is required" });
+      }
+
+      // Validate school exists
+      const schoolResult = await storage.executeQuery(
+        'SELECT * FROM schools WHERE id = $1',
+        [schoolId]
+      );
+      if (schoolResult.rows.length === 0) {
+        return res.status(404).json({ message: "School not found" });
+      }
+
+      // Validate owner exists and is school_owner
+      const ownerResult = await storage.executeQuery(
+        'SELECT id, role, name FROM users WHERE id = $1',
+        [ownerId]
+      );
+      if (ownerResult.rows.length === 0) {
+        return res.status(400).json({ message: "Owner user not found" });
+      }
+      if (ownerResult.rows[0].role !== 'school_owner') {
+        return res.status(400).json({ message: "Assigned user must have school_owner role" });
+      }
+
+      // Update school's owner_id
+      await storage.executeQuery(`
+        UPDATE schools SET owner_id = $1, updated_at = NOW() WHERE id = $2
+      `, [ownerId, schoolId]);
+
+      // Create school membership for the owner
+      await storage.executeQuery(`
+        INSERT INTO school_memberships (school_id, user_id, role)
+        VALUES ($1, $2, 'owner')
+        ON CONFLICT DO NOTHING
+      `, [schoolId, ownerId]);
+
+      // Update owner's schoolId if not set
+      await storage.executeQuery(`
+        UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
+      `, [schoolId, ownerId]);
+
+      const owner = ownerResult.rows[0];
+
+      // Log admin action
+      await logAdminAction(req, 'school_assign_owner', 'school', schoolId, {
+        schoolName: schoolResult.rows[0].name,
+        newOwnerId: ownerId,
+        newOwnerName: owner.name
+      });
+
+      res.json({
+        message: "Owner assigned to school successfully",
+        schoolId,
+        ownerId,
+        ownerName: owner.name
+      });
+    } catch (error) {
+      console.error("Error assigning owner to school:", error);
+      res.status(500).json({ message: "Failed to assign owner" });
+    }
+  });
+
+  // Delete user - Platform owner only
+  app.delete("/api/platform/users/:id", requirePlatformOwner, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Get user details for logging
+      const userResult = await storage.executeQuery(
+        'SELECT id, username, email, role FROM users WHERE id = $1',
+        [userId]
+      );
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const user = userResult.rows[0];
+
+      // Prevent deleting platform owners
+      if (user.role === 'platform_owner') {
+        return res.status(403).json({ message: "Cannot delete platform owner accounts" });
+      }
+
+      // Delete user (cascades will handle related records)
+      await storage.executeQuery('DELETE FROM users WHERE id = $1', [userId]);
+
+      // Log admin action
+      await logAdminAction(req, 'user_delete', 'user', userId, {
+        username: user.username,
+        email: user.email,
+        role: user.role
+      });
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Delete school - Platform owner only
+  app.delete("/api/platform/schools/:id", requirePlatformOwner, async (req: Request, res: Response) => {
+    try {
+      const schoolId = parseInt(req.params.id);
+
+      if (isNaN(schoolId)) {
+        return res.status(400).json({ message: "Invalid school ID" });
+      }
+
+      // Get school details for logging
+      const schoolResult = await storage.executeQuery(
+        'SELECT id, name FROM schools WHERE id = $1',
+        [schoolId]
+      );
+      if (schoolResult.rows.length === 0) {
+        return res.status(404).json({ message: "School not found" });
+      }
+
+      const school = schoolResult.rows[0];
+
+      // Delete school (cascades will handle related records)
+      await storage.executeQuery('DELETE FROM schools WHERE id = $1', [schoolId]);
+
+      // Log admin action
+      await logAdminAction(req, 'school_delete', 'school', schoolId, {
+        schoolName: school.name
+      });
+
+      res.json({ message: "School deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting school:", error);
+      res.status(500).json({ message: "Failed to delete school" });
     }
   });
 
@@ -4944,10 +5487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // END CRON HEALTH MONITORING API ENDPOINTS
   // ========================================
 
-  const wsManager = new WebSocketManager(httpServer, storage);
-  
-  // Make WebSocketManager available for the rest of the application
-  (app as any).wsManager = wsManager;
-  
+  // WebSocketManager removed - RealtimeBus is configured in index.ts and available as (app as any).realtimeBus
+  // For backward compatibility, alias realtimeBus as wsManager
+  (app as any).wsManager = (app as any).realtimeBus;
+
   return httpServer;
 }

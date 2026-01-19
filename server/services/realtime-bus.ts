@@ -9,14 +9,15 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import type { Server as HTTPServer } from "http";
 import { parse } from "url";
 import { storage } from "../storage-wrapper";
-import session from "express-session";
 import passport from "passport";
 import { IStorage } from "../storage";
-import { 
+import {
   EVENT_TYPES,
   validateRealtimeEvent,
+  createRealtimeEvent,
   type RealtimeEvent
 } from "@shared/events";
+import type { RequestHandler } from "express";
 
 // Interface for authenticated socket clients
 interface AuthenticatedSocket extends Socket {
@@ -53,10 +54,11 @@ export class RealtimeBus {
   private clients: Map<string, ClientInfo> = new Map();
   private storage: IStorage;
   private eventHandlers = new Map<string, Function[]>();
-  
+  private sessionMiddlewareConfigured = false;
+
   constructor(server: HTTPServer, storage: IStorage) {
     this.storage = storage;
-    
+
     // Initialize Socket.IO server with proper CORS and path configuration
     this.io = new SocketIOServer(server, {
       path: "/ws",
@@ -68,25 +70,39 @@ export class RealtimeBus {
       allowEIO3: true
     });
 
-    // Apply session middleware to Socket.IO for authentication
-    this.setupSessionMiddleware();
-    
-    // Setup Socket.IO event handlers
-    this.setupConnectionHandlers();
-    
     // Setup periodic health checks for connected clients
     this.setupHealthChecks();
-    
-    console.log('🚀 RealtimeBus initialized successfully');
+
+    console.log('🚀 RealtimeBus initialized - waiting for session middleware configuration');
   }
 
   /**
-   * Apply session middleware integration to Socket.IO for proper authentication
+   * Configure session middleware for Socket.IO authentication
+   * Must be called after Express session middleware is set up
    */
-  private setupSessionMiddleware() {
-    // Session middleware will be inherited from Express app setup
-    // We'll check for session data in socket.request.session
-    console.log('🔌 Setting up Socket.IO session integration...');
+  public configureSessionMiddleware(sessionMiddleware: RequestHandler): void {
+    if (this.sessionMiddlewareConfigured) {
+      console.log('⚠️ Session middleware already configured for Socket.IO');
+      return;
+    }
+
+    // Wrap Express session middleware for Socket.IO
+    this.io.use((socket, next) => {
+      sessionMiddleware(socket.request as any, {} as any, next as any);
+    });
+
+    // Wrap passport middleware for Socket.IO
+    this.io.use((socket, next) => {
+      passport.initialize()(socket.request as any, {} as any, () => {
+        passport.session()(socket.request as any, {} as any, next as any);
+      });
+    });
+
+    // Now set up connection handlers (after middleware is configured)
+    this.setupConnectionHandlers();
+
+    this.sessionMiddlewareConfigured = true;
+    console.log('✅ Socket.IO session middleware configured successfully');
   }
 
   /**

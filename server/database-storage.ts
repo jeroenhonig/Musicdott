@@ -1369,6 +1369,11 @@ export class DatabaseStorage implements IStorage {
     return [];
   }
 
+  async getLessonCategoriesBySchool(schoolId: number): Promise<any[]> {
+    // Return empty array for now - lesson categories not fully implemented
+    return [];
+  }
+
   async getLessonCategory(id: number): Promise<any | undefined> {
     // Return undefined for now - lesson categories not fully implemented
     return undefined;
