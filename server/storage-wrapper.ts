@@ -70,49 +70,20 @@ class StorageWrapper implements IStorage {
       this.initialized = false;
       await this.initializeFileStorage();
       this.storageInitialized = true;
-      // Still check for database in background for potential upgrade
-      this.waitForDatabaseUpgrade();
     }
     
     // Monitor database availability for runtime switching (only after initial setup)
     setInterval(() => {
-      if (isDatabaseAvailable && !(this.actualStorage instanceof DatabaseStorage)) {
+      if (isDatabaseAvailable && this.actualStorage instanceof MemStorage) {
         console.log("🔄 Switching to DatabaseStorage (database became available)");
         this.actualStorage = new DatabaseStorage();
         this.initialized = true;
-      } else if (!isDatabaseAvailable && !(this.actualStorage instanceof FileStorage)) {
+      } else if (!isDatabaseAvailable && this.actualStorage instanceof DatabaseStorage) {
         console.log("🔄 Switching to FileStorage fallback (database unavailable)");
         this.actualStorage = new FileStorage('./data');
         this.initializeFileStorage();
       }
     }, 5000);
-  }
-
-  private async waitForDatabaseUpgrade() {
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    // Keep checking for database availability to upgrade storage
-    const checkForUpgrade = async () => {
-      attempts++;
-      if (attempts % 5 === 0) {
-        console.log(`🔄 Background database check attempt ${attempts}...`);
-      }
-      
-      if (isDatabaseAvailable && !(this.actualStorage instanceof DatabaseStorage)) {
-        console.log("✅ Database became available! Upgrading to DatabaseStorage");
-        this.actualStorage = new DatabaseStorage();
-        this.initialized = true;
-        return;
-      }
-      
-      if (attempts < maxAttempts) {
-        setTimeout(checkForUpgrade, 2000);
-      }
-    };
-    
-    // Start checking after 2 seconds to give system time
-    setTimeout(checkForUpgrade, 2000);
   }
 
   private async initializeFileStorage() {
@@ -511,15 +482,14 @@ class StorageWrapper implements IStorage {
     await this.broadcastEvent('message', 'update', result, schoolId);
     return result;
   }
-  async deleteMessage(id: number) { 
+  async deleteMessage(id: number) {
     // Get message data before deletion for broadcasting
     const messageData = await this.actualStorage.getMessage(id);
-    const result = await this.actualStorage.deleteMessage(id);
-    if (result && messageData) {
+    await this.actualStorage.deleteMessage(id);
+    if (messageData) {
       const schoolId = this.currentUserContext?.schoolId || messageData.schoolId;
       await this.broadcastEvent('message', 'delete', { id, ...messageData }, schoolId);
     }
-    return result;
   }
   
   // Lesson Categories
@@ -756,6 +726,54 @@ class StorageWrapper implements IStorage {
   // Password change operations
   async changeUserPassword(userId: number, currentPassword: string, newPassword: string) {
     return this.actualStorage.changeUserPassword(userId, currentPassword, newPassword);
+  }
+
+  // Message count
+  async getUnreadMessageCount(userId: number, userType: string) {
+    return this.actualStorage.getUnreadMessageCount(userId, userType);
+  }
+
+  // Video operations
+  async getStudentPracticeVideos(studentId: number) {
+    return this.actualStorage.getStudentPracticeVideos(studentId);
+  }
+
+  async createPracticeVideo(video: any) {
+    return this.actualStorage.createPracticeVideo(video);
+  }
+
+  async updatePracticeVideo(videoId: string, video: Partial<any>) {
+    return this.actualStorage.updatePracticeVideo(videoId, video);
+  }
+
+  async deletePracticeVideo(videoId: string) {
+    return this.actualStorage.deletePracticeVideo(videoId);
+  }
+
+  // Video comments
+  async getVideoComments(videoId: string) {
+    return this.actualStorage.getVideoComments(videoId);
+  }
+
+  async createVideoComment(comment: any) {
+    return this.actualStorage.createVideoComment(comment);
+  }
+
+  async updateVideoComment(commentId: string, comment: Partial<any>) {
+    return this.actualStorage.updateVideoComment(commentId, comment);
+  }
+
+  async deleteVideoComment(commentId: string) {
+    return this.actualStorage.deleteVideoComment(commentId);
+  }
+
+  // Birthday and teacher operations
+  async getStudentsWithBirthdayToday() {
+    return this.actualStorage.getStudentsWithBirthdayToday();
+  }
+
+  async getSchoolTeachers(schoolId: number) {
+    return this.actualStorage.getSchoolTeachers(schoolId);
   }
 }
 

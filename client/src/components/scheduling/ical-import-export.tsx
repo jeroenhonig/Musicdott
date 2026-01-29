@@ -285,7 +285,7 @@ export default function ICalImportExport({ onImportComplete }: ICalImportExportP
                 </CardContent>
               </Card>
               
-              {importPreviewMutation.isLoading && (
+              {importPreviewMutation.isPending && (
                 <div className="text-center py-4">
                   <p className="text-muted-foreground">Processing calendar file...</p>
                 </div>
@@ -492,13 +492,13 @@ export default function ICalImportExport({ onImportComplete }: ICalImportExportP
               <Button
                 onClick={handleImportConfirm}
                 disabled={
-                  importConfirmMutation.isLoading ||
+                  importConfirmMutation.isPending ||
                   (importPreviewData.requiresStudentMapping && 
                    Object.keys(studentMappings).length !== importPreviewData.events.length)
                 }
                 data-testid="button-confirm-import"
               >
-                {importConfirmMutation.isLoading ? "Importing..." : "Import Schedules"}
+                {importConfirmMutation.isPending ? "Importing..." : "Import Schedules"}
               </Button>
             )}
           </DialogFooter>
@@ -578,10 +578,10 @@ export default function ICalImportExport({ onImportComplete }: ICalImportExportP
             </Button>
             <Button
               onClick={handleExport}
-              disabled={exportMutation.isLoading}
+              disabled={exportMutation.isPending}
               data-testid="button-confirm-export"
             >
-              {exportMutation.isLoading ? "Exporting..." : "Export Calendar"}
+              {exportMutation.isPending ? "Exporting..." : "Export Calendar"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,9 +1,9 @@
 import { db } from "../db";
-import { 
-  subscriptionPlans, 
-  schoolSubscriptions, 
-  teacherSubscriptions,
+import {
+  subscriptionPlans,
+  subscriptions,
   paymentHistory as paymentHistoryTable,
+  schoolBillingSummary,
   users,
   students,
   schools
@@ -11,14 +11,31 @@ import {
 import { eq, and, count, desc } from "drizzle-orm";
 import { addDays, addMonths, startOfDay, format } from "date-fns";
 
+// Helper to get plan details from the constant subscriptionPlans object
+function getPlanByType(planType: string) {
+  if (planType === 'pro') return subscriptionPlans.pro;
+  return subscriptionPlans.standard; // default
+}
+
+// Helper to get plan price from plan type
+function getPlanPrice(planType: string): number {
+  return getPlanByType(planType).price;
+}
+
+// Helper to get student limit for a plan
+function getStudentLimit(planType: string): number {
+  return planType === 'pro' ? 999999 : 25; // Standard: 25, Pro: unlimited
+}
+
+// Helper to get teacher limit for a plan (-1 means unlimited)
+function getTeacherLimit(planType: string): number {
+  return planType === 'pro' ? -1 : 1; // Standard: 1 teacher, Pro: unlimited
+}
+
 export class SubscriptionService {
   // Get all available subscription plans
   async getSubscriptionPlans() {
-    return await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.isActive, true))
-      .orderBy(subscriptionPlans.priceMonthly);
+    return Object.values(subscriptionPlans);
   }
 
   // Check if user has access to platform features
@@ -34,7 +51,7 @@ export class SubscriptionService {
     }
 
     const userData = user[0];
-    
+
     // Special unlimited access for drumschoolstefanvandebrug (owner account)
     if (userData.username === 'Drumschoolstefanvandebrug') {
       return {
@@ -68,12 +85,12 @@ export class SubscriptionService {
         },
       };
     }
-    
+
     // If user belongs to a school, check school subscription
     if (userData.schoolId) {
       return await this.checkSchoolSubscription(userData.schoolId);
     }
-    
+
     // If independent teacher, check individual subscription
     if (userData.role === 'teacher') {
       return await this.checkTeacherSubscription(userId);
@@ -103,21 +120,18 @@ export class SubscriptionService {
   async checkSchoolSubscription(schoolId: number) {
     const subscription = await db
       .select({
-        id: schoolSubscriptions.id,
-        status: schoolSubscriptions.status,
-        planId: schoolSubscriptions.planId,
-        trialEndDate: schoolSubscriptions.trialEndDate,
-        totalStudentLicenses: schoolSubscriptions.totalStudentLicenses,
-        currentTeacherCount: schoolSubscriptions.currentTeacherCount,
-        currentStudentCount: schoolSubscriptions.currentStudentCount,
-        planName: subscriptionPlans.name,
-        teacherLicenses: subscriptionPlans.teacherLicenses,
-        planPrice: subscriptionPlans.priceMonthly,
+        id: subscriptions.id,
+        status: subscriptions.status,
+        planType: subscriptions.planType,
+        currentPeriodEnd: subscriptions.currentPeriodEnd,
+        stripeCustomerId: subscriptions.stripeCustomerId,
+        stripeSubscriptionId: subscriptions.stripeSubscriptionId,
+        cancelAtPeriodEnd: subscriptions.cancelAtPeriodEnd,
+        createdAt: subscriptions.createdAt,
       })
-      .from(schoolSubscriptions)
-      .innerJoin(subscriptionPlans, eq(schoolSubscriptions.planId, subscriptionPlans.id))
-      .where(eq(schoolSubscriptions.schoolId, schoolId))
-      .orderBy(desc(schoolSubscriptions.createdAt))
+      .from(subscriptions)
+      .where(eq(subscriptions.schoolId, schoolId))
+      .orderBy(desc(subscriptions.createdAt))
       .limit(1);
 
     if (!subscription.length) {
@@ -125,15 +139,31 @@ export class SubscriptionService {
     }
 
     const sub = subscription[0];
-    
+    const plan = getPlanByType(sub.planType);
+    const teacherLicenses = getTeacherLimit(sub.planType);
+    const studentLicenses = getStudentLimit(sub.planType);
+
+    // Get current usage counts from billing summary
+    const billingSummary = await db
+      .select({
+        teacherCount: schoolBillingSummary.teacherCount,
+        studentCount: schoolBillingSummary.studentCount,
+      })
+      .from(schoolBillingSummary)
+      .where(eq(schoolBillingSummary.schoolId, schoolId))
+      .limit(1);
+
+    const currentTeacherCount = billingSummary[0]?.teacherCount ?? 0;
+    const currentStudentCount = billingSummary[0]?.studentCount ?? 0;
+
     // Update current usage counts
     await this.updateLicenseUsage(sub.id, 'school');
-    
+
     const now = new Date();
-    const trialEnd = new Date(sub.trialEndDate);
-    const isTrialActive = sub.status === 'trial' && now < trialEnd;
-    const trialDaysRemaining = isTrialActive 
-      ? Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : now;
+    const isTrialActive = sub.status === 'trial' && now < periodEnd;
+    const trialDaysRemaining = isTrialActive
+      ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : 0;
 
     // Calculate automatic pricing based on actual usage
@@ -143,20 +173,20 @@ export class SubscriptionService {
       hasAccess: sub.status === 'active' || isTrialActive,
       subscriptionType: 'school',
       status: sub.status,
-      planName: sub.planName,
+      planName: plan.name,
       isTrialActive,
       trialDaysRemaining,
       pricing: currentMonthlyPrice,
       licenseStatus: {
         teachers: {
-          used: sub.currentTeacherCount,
-          available: sub.teacherLicenses,
-          hasCapacity: sub.teacherLicenses === -1 || sub.currentTeacherCount < sub.teacherLicenses,
+          used: currentTeacherCount,
+          available: teacherLicenses,
+          hasCapacity: teacherLicenses === -1 || currentTeacherCount < teacherLicenses,
         },
         students: {
-          used: sub.currentStudentCount,
-          available: sub.totalStudentLicenses,
-          hasCapacity: sub.currentStudentCount < sub.totalStudentLicenses,
+          used: currentStudentCount,
+          available: studentLicenses,
+          hasCapacity: currentStudentCount < studentLicenses,
         },
       },
     };
@@ -166,18 +196,11 @@ export class SubscriptionService {
   async calculateSchoolMonthlyPrice(schoolId: number) {
     const subscription = await db
       .select({
-        planId: schoolSubscriptions.planId,
-        currentTeacherCount: schoolSubscriptions.currentTeacherCount,
-        currentStudentCount: schoolSubscriptions.currentStudentCount,
-        planPrice: subscriptionPlans.priceMonthly,
-        planName: subscriptionPlans.name,
-        teacherLicenses: subscriptionPlans.teacherLicenses,
-        studentLicenses: subscriptionPlans.studentLicenses,
+        planType: subscriptions.planType,
       })
-      .from(schoolSubscriptions)
-      .innerJoin(subscriptionPlans, eq(schoolSubscriptions.planId, subscriptionPlans.id))
-      .where(eq(schoolSubscriptions.schoolId, schoolId))
-      .orderBy(desc(schoolSubscriptions.createdAt))
+      .from(subscriptions)
+      .where(eq(subscriptions.schoolId, schoolId))
+      .orderBy(desc(subscriptions.createdAt))
       .limit(1);
 
     if (!subscription.length) {
@@ -185,20 +208,39 @@ export class SubscriptionService {
     }
 
     const sub = subscription[0];
-    let totalPrice = sub.planPrice; // Base plan price
+    const plan = getPlanByType(sub.planType);
+    const planPrice = plan.price;
+    const planName = plan.name;
+    const teacherLicenses = getTeacherLimit(sub.planType);
+    const studentLicenses = getStudentLimit(sub.planType);
+
+    // Get current counts from billing summary
+    const billingSummary = await db
+      .select({
+        teacherCount: schoolBillingSummary.teacherCount,
+        studentCount: schoolBillingSummary.studentCount,
+      })
+      .from(schoolBillingSummary)
+      .where(eq(schoolBillingSummary.schoolId, schoolId))
+      .limit(1);
+
+    const currentTeacherCount = billingSummary[0]?.teacherCount ?? 0;
+    const currentStudentCount = billingSummary[0]?.studentCount ?? 0;
+
+    let totalPrice = planPrice; // Base plan price
     let breakdown = {
       basePlan: {
-        name: sub.planName,
-        price: sub.planPrice,
-        includedTeachers: sub.teacherLicenses,
-        includedStudents: sub.studentLicenses,
+        name: planName,
+        price: planPrice,
+        includedTeachers: teacherLicenses,
+        includedStudents: studentLicenses,
       },
       additionalCosts: [] as any[],
-      total: sub.planPrice,
+      total: planPrice,
     };
 
     // Calculate extra student licenses needed beyond plan limits
-    const extraStudentsNeeded = Math.max(0, sub.currentStudentCount - sub.studentLicenses);
+    const extraStudentsNeeded = Math.max(0, currentStudentCount - studentLicenses);
     if (extraStudentsNeeded > 0) {
       const extraStudentCost = this.calculateExtraStudentPrice(extraStudentsNeeded);
       totalPrice += extraStudentCost;
@@ -206,47 +248,50 @@ export class SubscriptionService {
         type: 'extra_students',
         description: `${extraStudentsNeeded} extra student licenses`,
         quantity: extraStudentsNeeded,
-        unitPrice: 450, // €4.50 per 5 students
+        unitPrice: 450, // per 5 students
         totalPrice: extraStudentCost,
       });
     }
 
-    // For Standaard plan, check if teacher count exceeds limit
-    if (sub.teacherLicenses !== -1 && sub.currentTeacherCount > sub.teacherLicenses) {
+    // For Standard plan, check if teacher count exceeds limit
+    if (teacherLicenses !== -1 && currentTeacherCount > teacherLicenses) {
       // Automatically upgrade to Pro if teacher limit exceeded
-      const proPlans = await db
-        .select()
-        .from(subscriptionPlans)
-        .where(and(
-          eq(subscriptionPlans.name, 'pro'),
-          eq(subscriptionPlans.isActive, true)
-        ))
-        .limit(1);
-
-      if (proPlans.length) {
-        const proPlan = proPlans[0];
-        totalPrice = proPlan.priceMonthly;
-        breakdown.basePlan = {
-          name: proPlan.name,
-          price: proPlan.priceMonthly,
-          includedTeachers: -1, // Unlimited
-          includedStudents: proPlan.studentLicenses,
-        };
-        breakdown.additionalCosts.push({
-          type: 'auto_upgrade',
-          description: `Automatic upgrade to Pro (${sub.currentTeacherCount} teachers exceed Standaard limit)`,
-          totalPrice: proPlan.priceMonthly - sub.planPrice,
-        });
-      }
+      const proPlan = subscriptionPlans.pro;
+      const proPlanPrice = proPlan.price;
+      totalPrice = proPlanPrice;
+      breakdown.basePlan = {
+        name: proPlan.name,
+        price: proPlanPrice,
+        includedTeachers: -1, // Unlimited
+        includedStudents: getStudentLimit('pro'),
+      };
+      breakdown.additionalCosts.push({
+        type: 'auto_upgrade',
+        description: `Automatic upgrade to Pro (${currentTeacherCount} teachers exceed Standard limit)`,
+        totalPrice: proPlanPrice - planPrice,
+      });
     }
 
     breakdown.total = totalPrice;
-    return breakdown;
+
+    // Add convenience properties for compatibility with enhanced-stripe-service
+    const extraStudentsForReturn = Math.max(0, currentStudentCount - studentLicenses);
+    return {
+      ...breakdown,
+      // Convenience properties for backwards compatibility
+      plan: breakdown.basePlan.name.toLowerCase().includes('pro') ? 'pro' : 'standard',
+      planName: breakdown.basePlan.name,
+      teacherCount: currentTeacherCount,
+      studentCount: currentStudentCount,
+      totalPrice: totalPrice,
+      basePrice: breakdown.basePlan.price,
+      extraStudents: extraStudentsForReturn,
+    };
   }
 
-  // Calculate pricing for extra student licenses (€4.50 per 5 students)
+  // Calculate pricing for extra student licenses
   calculateExtraStudentPrice(extraLicenses: number): number {
-    const pricePerBlock = 450; // €4.50 in cents
+    const pricePerBlock = 450; // in cents
     const studentsPerBlock = 5;
     const blocks = Math.ceil(extraLicenses / studentsPerBlock);
     return blocks * pricePerBlock;
@@ -263,9 +308,9 @@ export class SubscriptionService {
       // School subscription billing
       const schoolSub = await db
         .select()
-        .from(schoolSubscriptions)
-        .where(eq(schoolSubscriptions.schoolId, schoolId))
-        .orderBy(desc(schoolSubscriptions.createdAt))
+        .from(subscriptions)
+        .where(eq(subscriptions.schoolId, schoolId))
+        .orderBy(desc(subscriptions.createdAt))
         .limit(1);
 
       if (!schoolSub.length || schoolSub[0].status === 'trial') {
@@ -278,12 +323,23 @@ export class SubscriptionService {
       subscriptionId = subscription.stripeSubscriptionId;
 
     } else if (userId) {
-      // Individual teacher billing
+      // Individual teacher billing - find subscription by school association
+      const teacherUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!teacherUser.length || !teacherUser[0].schoolId) {
+        return null;
+      }
+
+      const teacherSchoolId = teacherUser[0].schoolId;
       const teacherSub = await db
         .select()
-        .from(teacherSubscriptions)
-        .where(eq(teacherSubscriptions.userId, userId))
-        .orderBy(desc(teacherSubscriptions.createdAt))
+        .from(subscriptions)
+        .where(eq(subscriptions.schoolId, teacherSchoolId))
+        .orderBy(desc(subscriptions.createdAt))
         .limit(1);
 
       if (!teacherSub.length || teacherSub[0].status === 'trial') {
@@ -301,7 +357,7 @@ export class SubscriptionService {
     }
 
     const billingMonth = format(new Date(), 'yyyy-MM');
-    const description = schoolId 
+    const description = schoolId
       ? `MusicDott subscription for ${billingMonth}`
       : `MusicDott teacher subscription for ${billingMonth}`;
 
@@ -314,14 +370,10 @@ export class SubscriptionService {
     const [paymentRecord] = await db
       .insert(paymentHistoryTable)
       .values({
-        schoolId: schoolId || null,
-        userId: userId || null,
+        schoolId: schoolId || subscription.schoolId,
         amount: pricing.total,
-        currency: 'eur',
         status: 'pending',
         description,
-        billingMonth,
-        paymentDate: new Date(),
       })
       .returning();
 
@@ -347,17 +399,16 @@ export class SubscriptionService {
 
     const userData = user[0];
 
-    // Get payment history
-    const payments = await db
-      .select()
-      .from(paymentHistoryTable)
-      .where(
-        userData.schoolId 
-          ? eq(paymentHistoryTable.schoolId, userData.schoolId)
-          : eq(paymentHistoryTable.userId, userId)
-      )
-      .orderBy(desc(paymentHistoryTable.paymentDate))
-      .limit(12);
+    // Get payment history for the school
+    let payments: any[] = [];
+    if (userData.schoolId) {
+      payments = await db
+        .select()
+        .from(paymentHistoryTable)
+        .where(eq(paymentHistoryTable.schoolId, userData.schoolId))
+        .orderBy(desc(paymentHistoryTable.createdAt))
+        .limit(12);
+    }
 
     return {
       paymentHistory: payments,
@@ -367,18 +418,25 @@ export class SubscriptionService {
 
   // Calculate teacher subscription pricing
   async calculateTeacherMonthlyPrice(userId: number) {
+    // Find the teacher's school to get subscription info
+    const teacherUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!teacherUser.length || !teacherUser[0].schoolId) {
+      throw new Error("No subscription found for teacher");
+    }
+
+    const teacherSchoolId = teacherUser[0].schoolId;
     const subscription = await db
       .select({
-        planId: teacherSubscriptions.planId,
-        currentStudentCount: teacherSubscriptions.currentStudentCount,
-        planPrice: subscriptionPlans.priceMonthly,
-        planName: subscriptionPlans.name,
-        studentLicenses: subscriptionPlans.studentLicenses,
+        planType: subscriptions.planType,
       })
-      .from(teacherSubscriptions)
-      .innerJoin(subscriptionPlans, eq(teacherSubscriptions.planId, subscriptionPlans.id))
-      .where(eq(teacherSubscriptions.userId, userId))
-      .orderBy(desc(teacherSubscriptions.createdAt))
+      .from(subscriptions)
+      .where(eq(subscriptions.schoolId, teacherSchoolId))
+      .orderBy(desc(subscriptions.createdAt))
       .limit(1);
 
     if (!subscription.length) {
@@ -386,19 +444,31 @@ export class SubscriptionService {
     }
 
     const sub = subscription[0];
-    let totalPrice = sub.planPrice;
+    const plan = getPlanByType(sub.planType);
+    const planPrice = plan.price;
+    const studentLicenses = getStudentLimit(sub.planType);
+
+    // Count students assigned to this teacher
+    const [studentCountResult] = await db
+      .select({ count: count() })
+      .from(students)
+      .where(eq(students.assignedTeacherId, userId));
+
+    const currentStudentCount = studentCountResult?.count ?? 0;
+
+    let totalPrice = planPrice;
     const breakdown = {
       basePlan: {
-        name: sub.planName,
-        price: sub.planPrice,
-        includedStudents: sub.studentLicenses,
+        name: plan.name,
+        price: planPrice,
+        includedStudents: studentLicenses,
       },
       additionalCosts: [] as any[],
-      total: sub.planPrice,
+      total: planPrice,
     };
 
     // Calculate extra student licenses if needed
-    const extraStudentsNeeded = Math.max(0, sub.currentStudentCount - sub.studentLicenses);
+    const extraStudentsNeeded = Math.max(0, currentStudentCount - studentLicenses);
     if (extraStudentsNeeded > 0) {
       const extraStudentCost = this.calculateExtraStudentPrice(extraStudentsNeeded);
       totalPrice += extraStudentCost;
@@ -419,9 +489,9 @@ export class SubscriptionService {
   async updateLicenseUsage(subscriptionId: number, type: 'school' | 'teacher') {
     if (type === 'school') {
       const subscription = await db
-        .select({ schoolId: schoolSubscriptions.schoolId })
-        .from(schoolSubscriptions)
-        .where(eq(schoolSubscriptions.id, subscriptionId))
+        .select({ schoolId: subscriptions.schoolId })
+        .from(subscriptions)
+        .where(eq(subscriptions.id, subscriptionId))
         .limit(1);
 
       if (!subscription.length) return;
@@ -450,66 +520,94 @@ export class SubscriptionService {
           )
         );
 
-      await db
-        .update(schoolSubscriptions)
-        .set({
-          currentTeacherCount: teacherCount.count,
-          currentStudentCount: studentCount.count,
-          updatedAt: new Date(),
-        })
-        .where(eq(schoolSubscriptions.id, subscriptionId));
+      // Update billing summary with current counts
+      const existingSummary = await db
+        .select()
+        .from(schoolBillingSummary)
+        .where(eq(schoolBillingSummary.schoolId, schoolId))
+        .limit(1);
+
+      if (existingSummary.length) {
+        await db
+          .update(schoolBillingSummary)
+          .set({
+            teacherCount: teacherCount.count,
+            studentCount: studentCount.count,
+            updatedAt: new Date(),
+          })
+          .where(eq(schoolBillingSummary.schoolId, schoolId));
+      } else {
+        await db
+          .insert(schoolBillingSummary)
+          .values({
+            schoolId,
+            teacherCount: teacherCount.count,
+            studentCount: studentCount.count,
+          });
+      }
 
     } else {
+      // For teacher type, find their school and update
+      // Since subscriptions are school-based, look up the school
       const subscription = await db
-        .select({ userId: teacherSubscriptions.userId })
-        .from(teacherSubscriptions)
-        .where(eq(teacherSubscriptions.id, subscriptionId))
+        .select({ schoolId: subscriptions.schoolId })
+        .from(subscriptions)
+        .where(eq(subscriptions.id, subscriptionId))
         .limit(1);
 
       if (!subscription.length) return;
 
-      const userId = subscription[0].userId;
+      const schoolId = subscription[0].schoolId;
 
-      // Count students assigned to this teacher
+      // Count students in the school
       const [studentCount] = await db
         .select({ count: count() })
         .from(students)
-        .where(eq(students.assignedTeacherId, userId));
+        .where(eq(students.schoolId, schoolId));
 
-      await db
-        .update(teacherSubscriptions)
-        .set({
-          currentStudentCount: studentCount.count,
-          updatedAt: new Date(),
-        })
-        .where(eq(teacherSubscriptions.id, subscriptionId));
+      // Update billing summary with student count
+      const existingSummary = await db
+        .select()
+        .from(schoolBillingSummary)
+        .where(eq(schoolBillingSummary.schoolId, schoolId))
+        .limit(1);
+
+      if (existingSummary.length) {
+        await db
+          .update(schoolBillingSummary)
+          .set({
+            studentCount: studentCount.count,
+            updatedAt: new Date(),
+          })
+          .where(eq(schoolBillingSummary.schoolId, schoolId));
+      } else {
+        await db
+          .insert(schoolBillingSummary)
+          .values({
+            schoolId,
+            studentCount: studentCount.count,
+          });
+      }
     }
   }
 
   // Create 30-day trial for new school
   async createSchoolTrial(schoolId: number) {
-    const plans = await this.getSubscriptionPlans();
-    const standaardPlan = plans.find(p => p.name === 'standaard');
-    
-    if (!standaardPlan) {
-      throw new Error("Default subscription plan not found");
-    }
+    const plan = subscriptionPlans.standard;
+    const studentLicenses = getStudentLimit('standard');
+    const teacherLicenses = getTeacherLimit('standard');
 
     const trialStart = startOfDay(new Date());
     const trialEnd = addDays(trialStart, 30);
 
     const [subscription] = await db
-      .insert(schoolSubscriptions)
+      .insert(subscriptions)
       .values({
         schoolId,
-        planId: standaardPlan.id,
+        planType: 'standard',
         status: 'trial',
-        trialStartDate: trialStart,
-        trialEndDate: trialEnd,
-        totalStudentLicenses: standaardPlan.studentLicenses,
-        extraStudentLicenses: 0,
-        currentTeacherCount: 0,
-        currentStudentCount: 0,
+        currentPeriodStart: trialStart,
+        currentPeriodEnd: trialEnd,
       })
       .returning();
 
@@ -517,38 +615,47 @@ export class SubscriptionService {
       hasAccess: true,
       subscriptionType: 'school',
       status: 'trial',
-      planName: standaardPlan.name,
+      planName: plan.name,
       isTrialActive: true,
       trialDaysRemaining: 30,
       pricing: {
         basePlan: {
-          name: standaardPlan.name,
-          price: standaardPlan.priceMonthly,
-          includedTeachers: standaardPlan.teacherLicenses,
-          includedStudents: standaardPlan.studentLicenses,
+          name: plan.name,
+          price: plan.price,
+          includedTeachers: teacherLicenses,
+          includedStudents: studentLicenses,
         },
         additionalCosts: [],
-        total: standaardPlan.priceMonthly,
+        total: plan.price,
       },
     };
   }
 
   // Check individual teacher subscription
   async checkTeacherSubscription(userId: number) {
+    // Find teacher's school
+    const teacherUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!teacherUser.length || !teacherUser[0].schoolId) {
+      return await this.createTeacherTrial(userId);
+    }
+
+    const teacherSchoolId = teacherUser[0].schoolId;
+
     const subscription = await db
       .select({
-        id: teacherSubscriptions.id,
-        status: teacherSubscriptions.status,
-        planId: teacherSubscriptions.planId,
-        trialEndDate: teacherSubscriptions.trialEndDate,
-        totalStudentLicenses: teacherSubscriptions.totalStudentLicenses,
-        currentStudentCount: teacherSubscriptions.currentStudentCount,
-        planName: subscriptionPlans.name,
+        id: subscriptions.id,
+        status: subscriptions.status,
+        planType: subscriptions.planType,
+        currentPeriodEnd: subscriptions.currentPeriodEnd,
       })
-      .from(teacherSubscriptions)
-      .innerJoin(subscriptionPlans, eq(teacherSubscriptions.planId, subscriptionPlans.id))
-      .where(eq(teacherSubscriptions.userId, userId))
-      .orderBy(desc(teacherSubscriptions.createdAt))
+      .from(subscriptions)
+      .where(eq(subscriptions.schoolId, teacherSchoolId))
+      .orderBy(desc(subscriptions.createdAt))
       .limit(1);
 
     if (!subscription.length) {
@@ -556,13 +663,24 @@ export class SubscriptionService {
     }
 
     const sub = subscription[0];
+    const plan = getPlanByType(sub.planType);
+    const studentLicenses = getStudentLimit(sub.planType);
+
     await this.updateLicenseUsage(sub.id, 'teacher');
-    
+
+    // Count students assigned to this teacher
+    const [studentCountResult] = await db
+      .select({ count: count() })
+      .from(students)
+      .where(eq(students.assignedTeacherId, userId));
+
+    const currentStudentCount = studentCountResult?.count ?? 0;
+
     const now = new Date();
-    const trialEnd = new Date(sub.trialEndDate);
-    const isTrialActive = sub.status === 'trial' && now < trialEnd;
-    const trialDaysRemaining = isTrialActive 
-      ? Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : now;
+    const isTrialActive = sub.status === 'trial' && now < periodEnd;
+    const trialDaysRemaining = isTrialActive
+      ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : 0;
 
     const pricing = await this.calculateTeacherMonthlyPrice(userId);
@@ -571,15 +689,15 @@ export class SubscriptionService {
       hasAccess: sub.status === 'active' || isTrialActive,
       subscriptionType: 'teacher',
       status: sub.status,
-      planName: sub.planName,
+      planName: plan.name,
       isTrialActive,
       trialDaysRemaining,
       pricing,
       licenseStatus: {
         students: {
-          used: sub.currentStudentCount,
-          available: sub.totalStudentLicenses,
-          hasCapacity: sub.currentStudentCount < sub.totalStudentLicenses,
+          used: currentStudentCount,
+          available: studentLicenses,
+          hasCapacity: currentStudentCount < studentLicenses,
         },
       },
     };
@@ -587,44 +705,65 @@ export class SubscriptionService {
 
   // Create 30-day trial for independent teacher
   async createTeacherTrial(userId: number) {
-    const plans = await this.getSubscriptionPlans();
-    const standaardPlan = plans.find(p => p.name === 'standaard');
-    
-    if (!standaardPlan) {
-      throw new Error("Default subscription plan not found");
+    const plan = subscriptionPlans.standard;
+    const studentLicenses = getStudentLimit('standard');
+
+    // Find or create a school association for the teacher
+    const teacherUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!teacherUser.length || !teacherUser[0].schoolId) {
+      // Teacher has no school - return trial info without creating subscription
+      return {
+        hasAccess: true,
+        subscriptionType: 'teacher',
+        status: 'trial',
+        planName: plan.name,
+        isTrialActive: true,
+        trialDaysRemaining: 30,
+        pricing: {
+          basePlan: {
+            name: plan.name,
+            price: plan.price,
+            includedStudents: studentLicenses,
+          },
+          additionalCosts: [],
+          total: plan.price,
+        },
+      };
     }
 
     const trialStart = startOfDay(new Date());
     const trialEnd = addDays(trialStart, 30);
 
     await db
-      .insert(teacherSubscriptions)
+      .insert(subscriptions)
       .values({
-        userId,
-        planId: standaardPlan.id,
+        schoolId: teacherUser[0].schoolId,
+        planType: 'standard',
         status: 'trial',
-        trialStartDate: trialStart,
-        trialEndDate: trialEnd,
-        totalStudentLicenses: standaardPlan.studentLicenses,
-        extraStudentLicenses: 0,
-        currentStudentCount: 0,
+        currentPeriodStart: trialStart,
+        currentPeriodEnd: trialEnd,
       });
 
     return {
       hasAccess: true,
       subscriptionType: 'teacher',
       status: 'trial',
-      planName: standaardPlan.name,
+      planName: plan.name,
       isTrialActive: true,
       trialDaysRemaining: 30,
       pricing: {
         basePlan: {
-          name: standaardPlan.name,
-          price: standaardPlan.priceMonthly,
-          includedStudents: standaardPlan.studentLicenses,
+          name: plan.name,
+          price: plan.price,
+          includedStudents: studentLicenses,
         },
         additionalCosts: [],
-        total: standaardPlan.priceMonthly,
+        total: plan.price,
       },
     };
   }

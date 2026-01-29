@@ -2,12 +2,14 @@ import { subscriptionService } from "./subscription-service";
 import { BillingAuditService } from "./billing-audit-service";
 import { EmailNotificationService } from "./email-notifications";
 import { db, isDatabaseAvailable } from "../db";
-import { 
-  schoolSubscriptions, 
+import {
+  schoolSubscriptions,
   teacherSubscriptions,
   paymentHistory,
   users,
-  schools
+  schools,
+  billingAuditLog,
+  schoolBillingSummary
 } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { format, addMonths } from "date-fns";
@@ -27,7 +29,7 @@ class EnhancedStripeService {
     try {
       if (process.env.STRIPE_SECRET_KEY) {
         stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2023-10-16',
+          apiVersion: '2025-08-27.basil',
         });
         
         // Initialize webhook secret for verification
@@ -40,7 +42,7 @@ class EnhancedStripeService {
       } else {
         console.log("⚠️ STRIPE_SECRET_KEY not found. Stripe features will be unavailable.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn("⚠️ Stripe library not installed. Payment features will be unavailable:", error instanceof Error ? error.message : String(error));
     }
   }
@@ -96,8 +98,8 @@ class EnhancedStripeService {
 
       console.log("✅ Webhook signature verified successfully");
       return true;
-    } catch (error) {
-      console.error("❌ Webhook verification failed:", error.message);
+    } catch (error: any) {
+      console.error("❌ Webhook verification failed:", error?.message);
       return false;
     }
   }
@@ -121,7 +123,7 @@ class EnhancedStripeService {
         console.log(`✅ Stripe ${operationName} succeeded (${processingTime}ms)${schoolId ? ` for school ${schoolId}` : ''}`);
         
         return result;
-      } catch (error) {
+      } catch (error: any) {
         lastError = error;
         const isRetryable = this.isRetryableStripeError(error);
         
@@ -234,7 +236,7 @@ class EnhancedStripeService {
           } else {
             errors.push({ schoolId: schoolSub.schoolId, error: result.error });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Failed to process billing for school ${schoolSub.schoolId}:`, error);
           errors.push({ schoolId: schoolSub.schoolId, error: error.message });
           
@@ -261,7 +263,7 @@ class EnhancedStripeService {
           } else {
             errors.push({ userId: teacherSub.userId, error: result.error });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Failed to process billing for teacher ${teacherSub.userId}:`, error);
           errors.push({ userId: teacherSub.userId, error: error.message });
         }
@@ -288,7 +290,7 @@ class EnhancedStripeService {
       console.log(`✅ Enhanced monthly billing completed: ${schoolsProcessed} schools, €${(totalProcessed / 100).toFixed(2)} total`);
       
       return { schoolsProcessed, totalProcessed, errors };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Enhanced monthly billing failed:', error);
       
       await BillingAuditService.logBillingEvent({
@@ -364,7 +366,7 @@ class EnhancedStripeService {
         nextBillingDate: "2025-08-01T02:00:00Z",
         paymentStatus: "active"
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to get usage summary for school ${schoolId}:`, error);
       throw error;
     }
@@ -420,8 +422,8 @@ class EnhancedStripeService {
       // Get previous billing amount for comparison
       const summary = await db
         .select()
-        .from(BillingAuditService.schoolBillingSummary)
-        .where(eq(BillingAuditService.schoolBillingSummary.schoolId, schoolId))
+        .from(schoolBillingSummary)
+        .where(eq(schoolBillingSummary.schoolId, schoolId))
         .limit(1);
 
       const previousAmount = summary[0]?.lastBillingAmount ? parseFloat(summary[0].lastBillingAmount) : 0;
@@ -546,7 +548,7 @@ class EnhancedStripeService {
         );
 
         return { success: true, amount: amountInCents };
-      } catch (stripeError) {
+      } catch (stripeError: any) {
         // Log failed billing run
         await this.logSchoolBillingRun(schoolId, {
           planApplied: pricing.plan,
@@ -554,14 +556,14 @@ class EnhancedStripeService {
           studentCount: pricing.studentCount,
           amountCharged: amountInCents,
           success: false,
-          errorMessage: stripeError.message,
+          errorMessage: stripeError?.message,
           fallbackFlags: ["stripe_failure"]
         });
 
         throw stripeError;
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to process school billing for ${schoolId}:`, error);
       
       await BillingAuditService.handleFailedPayment(
@@ -604,7 +606,7 @@ class EnhancedStripeService {
       console.log(`💰 [MOCK] Would charge teacher ${userId}: €${pricing.totalPrice.toFixed(2)}`);
       
       return { success: true, amount: Math.round(pricing.totalPrice * 100) };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to process teacher billing for ${userId}:`, error);
       return { success: false, error: error.message, amount: 0 };
     }
@@ -660,7 +662,7 @@ class EnhancedStripeService {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Manual billing trigger failed for school ${schoolId}:`, error);
       throw error;
     }
@@ -676,10 +678,15 @@ class EnhancedStripeService {
         return [];
       }
 
-      const warnings = [];
-      const schools = await db.select().from(db.schools);
+      const warnings: Array<{
+        schoolId: number;
+        type: string;
+        message: string;
+        impact: string;
+      }> = [];
+      const allSchools = await db.select().from(schools);
 
-      for (const school of schools) {
+      for (const school of allSchools) {
         try {
           const currentUsage = await this.getSchoolUsageSummary(school.id);
           
@@ -731,7 +738,7 @@ class EnhancedStripeService {
             metadata: { checkDate: new Date().toISOString() }
           });
 
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error checking warnings for school ${school.id}:`, error);
         }
       }
@@ -753,7 +760,7 @@ class EnhancedStripeService {
       console.log(`🔍 Pre-billing check complete: ${warnings.length} warnings generated`);
       return warnings;
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to check pre-billing warnings:', error);
       return [];
     }
@@ -788,13 +795,13 @@ class EnhancedStripeService {
       // Get last billing run information
       const lastBillingEvent = await db
         .select()
-        .from(BillingAuditService.billingAuditLog)
-        .where(eq(BillingAuditService.billingAuditLog.eventType, 'monthly_billing_completed'))
-        .orderBy(desc(BillingAuditService.billingAuditLog.createdAt))
+        .from(billingAuditLog)
+        .where(eq(billingAuditLog.eventType, 'monthly_billing_completed'))
+        .orderBy(desc(billingAuditLog.createdAt))
         .limit(1);
 
       // Get current plans for all schools
-      const schoolSummaries = await db.select().from(BillingAuditService.schoolBillingSummary);
+      const schoolSummaries = await db.select().from(schoolBillingSummary);
       const schoolPlans = schoolSummaries.reduce((acc, summary) => {
         acc[summary.schoolId] = {
           plan: summary.currentPlan,
@@ -809,9 +816,9 @@ class EnhancedStripeService {
       // Get last successful charge
       const lastSuccess = await db
         .select()
-        .from(BillingAuditService.billingAuditLog)
-        .where(eq(BillingAuditService.billingAuditLog.eventType, 'payment_processed'))
-        .orderBy(desc(BillingAuditService.billingAuditLog.createdAt))
+        .from(billingAuditLog)
+        .where(eq(billingAuditLog.eventType, 'payment_processed'))
+        .orderBy(desc(billingAuditLog.createdAt))
         .limit(1);
       
       return {
@@ -831,7 +838,7 @@ class EnhancedStripeService {
           webhooks: stripeWebhookSecret ? 'configured' : 'not_configured'
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to get billing health status:", error);
       return {
         status: 'error',
@@ -1090,7 +1097,7 @@ class EnhancedStripeService {
       try {
         const customer = await stripe.customers.retrieve(subscription[0].stripeCustomerId) as Stripe.Customer;
         stripeBalance = (customer.balance || 0) / -100;
-      } catch (e) {
+      } catch (e: any) {
         console.warn('Could not fetch Stripe balance:', e);
       }
     }
@@ -1120,7 +1127,6 @@ class EnhancedStripeService {
       })
       .from(schoolSubscriptions);
 
-    const schoolIds = subscriptions.map(s => s.schoolId);
     const schoolsData = await db
       .select({ id: schools.id, name: schools.name })
       .from(schools);

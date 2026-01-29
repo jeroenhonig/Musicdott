@@ -1,6 +1,6 @@
 import { pool, db, isDatabaseAvailable } from './db';
 import { users, schools, students, lessons, songs, achievementDefinitions, schoolMemberships } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
 
@@ -23,7 +23,13 @@ export async function setupDatabase() {
   console.log('🔧 Starting database setup...');
 
   try {
-    // 1. Wait for database connection
+    // 1. Quick check - if no DATABASE_URL, skip immediately
+    if (!process.env.DATABASE_URL) {
+      console.warn('⚠️ DATABASE_URL not set, skipping database setup (using memory/file storage fallback)');
+      return { success: false, message: 'No DATABASE_URL configured' };
+    }
+
+    // 2. Wait for database connection (max 10 seconds)
     console.log('📡 Waiting for database connection...');
     let attempts = 0;
     while (!isDatabaseAvailable && attempts < 10) {
@@ -32,7 +38,7 @@ export async function setupDatabase() {
     }
 
     if (!isDatabaseAvailable) {
-      console.warn('⚠️ Database not available, skipping setup');
+      console.warn('⚠️ Database not available after 10 attempts, skipping setup');
       return { success: false, message: 'Database not available' };
     }
 
@@ -495,7 +501,13 @@ async function seedAdminAndSchool() {
   let admin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1).then(r => r[0]);
 
   if (!admin) {
-    const adminPassword = await hashPassword(process.env.ADMIN_PASSWORD || 'admin123');
+    const defaultPassword = randomBytes(16).toString('base64').slice(0, 20);
+    const adminPasswordRaw = process.env.ADMIN_PASSWORD || defaultPassword;
+    if (!process.env.ADMIN_PASSWORD) {
+      console.log(`    ⚠️  No ADMIN_PASSWORD set. Generated password: ${adminPasswordRaw}`);
+      console.log(`    ⚠️  Set ADMIN_PASSWORD in .env to use a fixed password.`);
+    }
+    const adminPassword = await hashPassword(adminPasswordRaw);
     [admin] = await db.insert(users).values({
       username: process.env.ADMIN_USERNAME || 'admin',
       password: adminPassword,
@@ -774,17 +786,17 @@ async function seedTestData() {
  */
 async function getDatabaseStatus() {
   try {
-    const [userCount] = await db.select({ count: eq(users.id, users.id) }).from(users);
-    const [studentCount] = await db.select({ count: eq(students.id, students.id) }).from(students);
-    const [lessonCount] = await db.select({ count: eq(lessons.id, lessons.id) }).from(lessons);
-    const [songCount] = await db.select({ count: eq(songs.id, songs.id) }).from(songs);
+    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const [studentCount] = await db.select({ count: sql<number>`count(*)` }).from(students);
+    const [lessonCount] = await db.select({ count: sql<number>`count(*)` }).from(lessons);
+    const [songCount] = await db.select({ count: sql<number>`count(*)` }).from(songs);
 
     return {
       connected: true,
-      users: userCount?.count || 0,
-      students: studentCount?.count || 0,
-      lessons: lessonCount?.count || 0,
-      songs: songCount?.count || 0,
+      users: Number(userCount?.count) || 0,
+      students: Number(studentCount?.count) || 0,
+      lessons: Number(lessonCount?.count) || 0,
+      songs: Number(songCount?.count) || 0,
     };
   } catch (error) {
     return { connected: false, error: String(error) };

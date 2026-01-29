@@ -87,7 +87,7 @@ export class DatabaseStorage implements IStorage {
       bio: users.bio,
       mustChangePassword: users.mustChangePassword,
       lastLoginAt: users.lastLoginAt
-    }).from(users).where(eq(users.schoolId, schoolId)) as Promise<User[]>;
+    }).from(users).where(eq(users.schoolId, schoolId)) as unknown as Promise<User[]>;
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
@@ -105,7 +105,7 @@ export class DatabaseStorage implements IStorage {
       bio: users.bio,
       mustChangePassword: users.mustChangePassword,
       lastLoginAt: users.lastLoginAt
-    }).from(users).where(eq(users.role, role)) as Promise<User[]>;
+    }).from(users).where(eq(users.role, role as any)) as unknown as Promise<User[]>;
   }
 
   async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
@@ -201,6 +201,7 @@ export class DatabaseStorage implements IStorage {
       id: students.id,
       userId: students.userId,
       accountId: students.accountId,
+      schoolId: students.schoolId,
       name: students.name,
       email: students.email,
       phone: students.phone,
@@ -208,6 +209,7 @@ export class DatabaseStorage implements IStorage {
       instrument: students.instrument,
       assignedTeacherId: students.assignedTeacherId,
       notes: students.notes,
+      birthdate: students.birthdate,
       createdAt: students.createdAt,
       updatedAt: students.updatedAt,
       isActive: students.isActive
@@ -226,6 +228,7 @@ export class DatabaseStorage implements IStorage {
       id: students.id,
       userId: students.userId,
       accountId: students.accountId,
+      schoolId: students.schoolId,
       name: students.name,
       email: students.email,
       phone: students.phone,
@@ -233,6 +236,7 @@ export class DatabaseStorage implements IStorage {
       instrument: students.instrument,
       assignedTeacherId: students.assignedTeacherId,
       notes: students.notes,
+      birthdate: students.birthdate,
       createdAt: students.createdAt,
       updatedAt: students.updatedAt,
       isActive: students.isActive
@@ -374,6 +378,7 @@ export class DatabaseStorage implements IStorage {
     // Use explicit column selection matching actual database columns
     return db.select({
       id: lessons.id,
+      schoolId: lessons.schoolId,
       title: lessons.title,
       description: lessons.description,
       contentType: lessons.contentType,
@@ -397,6 +402,7 @@ export class DatabaseStorage implements IStorage {
     // FIXED: Get lessons from ALL teachers in the school, not just school_owner
     return db.select({
       id: lessons.id,
+      schoolId: lessons.schoolId,
       title: lessons.title,
       description: lessons.description,
       contentType: lessons.contentType,
@@ -413,12 +419,13 @@ export class DatabaseStorage implements IStorage {
     })
       .from(lessons)
       .innerJoin(users, eq(lessons.userId, users.id))
-      .where(eq(users.schoolId, schoolId));
+      .where(eq(users.schoolId, schoolId)) as unknown as Promise<Lesson[]>;
   }
 
   async getLesson(id: number): Promise<Lesson | undefined> {
     const [lesson] = await db.select({
       id: lessons.id,
+      schoolId: lessons.schoolId,
       title: lessons.title,
       description: lessons.description,
       contentType: lessons.contentType,
@@ -483,6 +490,8 @@ export class DatabaseStorage implements IStorage {
       title: assignments.title,
       description: assignments.description,
       dueDate: assignments.dueDate,
+      completedDate: assignments.completedDate,
+      assignedDate: assignments.assignedDate,
       status: assignments.status
     })
       .from(assignments)
@@ -500,6 +509,8 @@ export class DatabaseStorage implements IStorage {
       title: assignments.title,
       description: assignments.description,
       dueDate: assignments.dueDate,
+      completedDate: assignments.completedDate,
+      assignedDate: assignments.assignedDate,
       status: assignments.status
     })
       .from(assignments)
@@ -517,6 +528,8 @@ export class DatabaseStorage implements IStorage {
       title: assignments.title,
       description: assignments.description,
       dueDate: assignments.dueDate,
+      completedDate: assignments.completedDate,
+      assignedDate: assignments.assignedDate,
       status: assignments.status
     })
       .from(assignments)
@@ -715,6 +728,7 @@ export class DatabaseStorage implements IStorage {
     return db.select({
       id: recurringSchedules.id,
       userId: recurringSchedules.userId,
+      schoolId: recurringSchedules.schoolId,
       studentId: recurringSchedules.studentId,
       dayOfWeek: recurringSchedules.dayOfWeek,
       startTime: recurringSchedules.startTime,
@@ -723,6 +737,9 @@ export class DatabaseStorage implements IStorage {
       notes: recurringSchedules.notes,
       timezone: recurringSchedules.timezone,
       frequency: recurringSchedules.frequency,
+      recurrenceType: recurringSchedules.recurrenceType,
+      instrument: recurringSchedules.instrument,
+      biWeeklyPattern: recurringSchedules.biWeeklyPattern,
       isActive: recurringSchedules.isActive,
       iCalDtStart: recurringSchedules.iCalDtStart,
       iCalRrule: recurringSchedules.iCalRrule,
@@ -738,6 +755,7 @@ export class DatabaseStorage implements IStorage {
     return db.select({
       id: recurringSchedules.id,
       userId: recurringSchedules.userId,
+      schoolId: recurringSchedules.schoolId,
       studentId: recurringSchedules.studentId,
       dayOfWeek: recurringSchedules.dayOfWeek,
       startTime: recurringSchedules.startTime,
@@ -746,6 +764,9 @@ export class DatabaseStorage implements IStorage {
       notes: recurringSchedules.notes,
       timezone: recurringSchedules.timezone,
       frequency: recurringSchedules.frequency,
+      recurrenceType: recurringSchedules.recurrenceType,
+      instrument: recurringSchedules.instrument,
+      biWeeklyPattern: recurringSchedules.biWeeklyPattern,
       isActive: recurringSchedules.isActive,
       iCalDtStart: recurringSchedules.iCalDtStart,
       iCalRrule: recurringSchedules.iCalRrule,
@@ -761,6 +782,7 @@ export class DatabaseStorage implements IStorage {
     const [schedule] = await db.select({
       id: recurringSchedules.id,
       userId: recurringSchedules.userId,
+      schoolId: recurringSchedules.schoolId,
       studentId: recurringSchedules.studentId,
       dayOfWeek: recurringSchedules.dayOfWeek,
       startTime: recurringSchedules.startTime,
@@ -769,6 +791,9 @@ export class DatabaseStorage implements IStorage {
       notes: recurringSchedules.notes,
       timezone: recurringSchedules.timezone,
       frequency: recurringSchedules.frequency,
+      recurrenceType: recurringSchedules.recurrenceType,
+      instrument: recurringSchedules.instrument,
+      biWeeklyPattern: recurringSchedules.biWeeklyPattern,
       isActive: recurringSchedules.isActive,
       iCalDtStart: recurringSchedules.iCalDtStart,
       iCalRrule: recurringSchedules.iCalRrule,
@@ -843,7 +868,8 @@ export class DatabaseStorage implements IStorage {
       startTime: practiceSessions.startTime,
       endTime: practiceSessions.endTime,
       duration: practiceSessions.duration,
-      notes: practiceSessions.notes
+      notes: practiceSessions.notes,
+      isActive: practiceSessions.isActive
     })
       .from(practiceSessions)
       .where(eq(practiceSessions.studentId, userId));
@@ -858,7 +884,8 @@ export class DatabaseStorage implements IStorage {
       startTime: practiceSessions.startTime,
       endTime: practiceSessions.endTime,
       duration: practiceSessions.duration,
-      notes: practiceSessions.notes
+      notes: practiceSessions.notes,
+      isActive: practiceSessions.isActive
     })
       .from(practiceSessions)
       .where(eq(practiceSessions.studentId, studentId));
@@ -873,7 +900,8 @@ export class DatabaseStorage implements IStorage {
       startTime: practiceSessions.startTime,
       endTime: practiceSessions.endTime,
       duration: practiceSessions.duration,
-      notes: practiceSessions.notes
+      notes: practiceSessions.notes,
+      isActive: practiceSessions.isActive
     })
       .from(practiceSessions)
       .where(eq(practiceSessions.isActive, true));
@@ -888,7 +916,8 @@ export class DatabaseStorage implements IStorage {
       startTime: practiceSessions.startTime,
       endTime: practiceSessions.endTime,
       duration: practiceSessions.duration,
-      notes: practiceSessions.notes
+      notes: practiceSessions.notes,
+      isActive: practiceSessions.isActive
     })
       .from(practiceSessions)
       .where(eq(practiceSessions.id, id));
@@ -1048,34 +1077,40 @@ export class DatabaseStorage implements IStorage {
     // The students.user_id = users.id where users.school_id = schoolId
     const result = await db.select({
       id: students.id,
+      schoolId: students.schoolId,
       userId: students.userId,
       accountId: students.accountId,
       name: students.name,
       email: students.email,
       phone: students.phone,
+      birthdate: students.birthdate,
       level: students.level,
       instrument: students.instrument,
       assignedTeacherId: students.assignedTeacherId,
       notes: students.notes,
       createdAt: students.createdAt,
+      updatedAt: students.updatedAt,
+      isActive: students.isActive
     })
       .from(students)
       .innerJoin(users, eq(students.userId, users.id))
       .where(eq(users.schoolId, schoolId))
       .orderBy(students.name);
-    
-    return result as Student[];
+
+    return result as unknown as Student[];
   }
 
   async getStudentsForTeacher(teacherId: number): Promise<Student[]> {
     // Use explicit column selection matching actual database columns
     return db.select({
       id: students.id,
+      schoolId: students.schoolId,
       userId: students.userId,
       accountId: students.accountId,
       name: students.name,
       email: students.email,
       phone: students.phone,
+      birthdate: students.birthdate,
       level: students.level,
       instrument: students.instrument,
       assignedTeacherId: students.assignedTeacherId,
@@ -1187,6 +1222,7 @@ export class DatabaseStorage implements IStorage {
   async getRecentLessons(limit: number): Promise<Lesson[]> {
     return db.select({
       id: lessons.id,
+      schoolId: lessons.schoolId,
       title: lessons.title,
       description: lessons.description,
       contentType: lessons.contentType,
@@ -1230,35 +1266,39 @@ export class DatabaseStorage implements IStorage {
     const schedulesData = await db.select({
       id: recurringSchedules.id,
       userId: recurringSchedules.userId,
+      schoolId: recurringSchedules.schoolId,
       studentId: recurringSchedules.studentId,
       dayOfWeek: recurringSchedules.dayOfWeek,
       startTime: recurringSchedules.startTime,
       endTime: recurringSchedules.endTime,
       location: recurringSchedules.location,
       notes: recurringSchedules.notes,
-      // timezone: recurringSchedules.timezone, // Column doesn't exist in database
+      timezone: recurringSchedules.timezone,
       frequency: recurringSchedules.frequency,
+      recurrenceType: recurringSchedules.recurrenceType,
+      instrument: recurringSchedules.instrument,
+      biWeeklyPattern: recurringSchedules.biWeeklyPattern,
       isActive: recurringSchedules.isActive,
       iCalDtStart: recurringSchedules.iCalDtStart,
       iCalRrule: recurringSchedules.iCalRrule,
       iCalTzid: recurringSchedules.iCalTzid,
       createdAt: recurringSchedules.createdAt,
-      updatedAt: recurringSchedules.updatedAt,
-      schoolId: users.schoolId
+      updatedAt: recurringSchedules.updatedAt
     })
       .from(recurringSchedules)
       .innerJoin(users, eq(recurringSchedules.userId, users.id))
       .where(eq(users.schoolId, schoolId));
-    
-    return schedulesData;
+
+    return schedulesData as unknown as RecurringSchedule[];
   }
 
   // Search functionality
   async searchContent(userId: number, searchTerm: string): Promise<{lessons: Lesson[], songs: Song[]}> {
     const searchPattern = `%${searchTerm.toLowerCase()}%`;
-    
+
     const lessonResults = await db.select({
       id: lessons.id,
+      schoolId: lessons.schoolId,
       title: lessons.title,
       description: lessons.description,
       contentType: lessons.contentType,

@@ -19,7 +19,9 @@ import cors from "cors";
 const app = express();
 
 // Security middleware - CSP enabled for production, disabled for development
+// HSTS disabled here - added conditionally via middleware for non-localhost hosts
 app.use(helmet({
+  hsts: false, // Disable HSTS globally, we add it conditionally for production domains
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
@@ -31,10 +33,19 @@ app.use(helmet({
       frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
       workerSrc: ["'self'", "blob:"],
       objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
+      upgradeInsecureRequests: null // Explicitly disable to allow HTTP on localhost
     }
   } : false // Disable CSP in development for easier debugging
 }));
+
+// Add HSTS only for production domains (not localhost)
+app.use((req, res, next) => {
+  const host = req.header('host') || '';
+  if (process.env.NODE_ENV === 'production' && !host.startsWith('localhost') && !host.startsWith('127.0.0.1')) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
@@ -50,6 +61,9 @@ app.use(securityHeaders);
 app.use(apiRateLimit);
 app.use(sanitizeInput);
 app.use(fileUploadSecurity);
+
+// Stripe webhooks require the raw body for signature verification
+app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
@@ -137,14 +151,14 @@ app.use((req, res, next) => {
   console.log("✅ Collaborative notation service initialized");
   
   // Register routes (auth setup and cron health routes will happen inside)
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     const { setupVite } = await import("./vite.js");
-    await setupVite(app, server);
+    await setupVite(app, httpServer);
   } else {
     // Serve static files in production (inline to avoid loading vite module)
     // @ts-ignore - __dirname is available in CJS (bundled)
@@ -166,17 +180,16 @@ app.use((req, res, next) => {
   }
 
   // Error handling middleware - must be after all routes
-  app.use(notFoundHandler);
+  // notFoundHandler only catches unmatched /api routes to avoid blocking the SPA catch-all
+  app.use('/api', notFoundHandler);
   app.use(errorHandler);
 
-  // ALWAYS serve the app on port 5000
+  // Serve the app on the configured port (default 5000)
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
     logger.info(`serving on port ${port}`);
     logger.info(`🚀 MusicDott 2.0 production server started on port ${port}`);

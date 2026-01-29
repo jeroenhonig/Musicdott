@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { storage } from "../storage";
+import { storage } from "../storage-wrapper";
 import { insertRecurringScheduleSchema } from "@shared/schema";
 
 const router = Router();

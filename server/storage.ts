@@ -318,7 +318,9 @@ export class MemStorage implements IStorage {
       role: "school_owner",
       instruments: "Drums & Percussion",
       avatar: null,
-      bio: null
+      bio: null,
+      mustChangePassword: null,
+      lastLoginAt: null
     };
     
     this.users.set(freshUser.id, freshUser);
@@ -336,7 +338,9 @@ export class MemStorage implements IStorage {
       role: "school_owner",
       instruments: "Drums & Percussion",
       avatar: null,
-      bio: null
+      bio: null,
+      mustChangePassword: null,
+      lastLoginAt: null
     };
     
     this.users.set(simpleUser.id, simpleUser);
@@ -347,13 +351,23 @@ export class MemStorage implements IStorage {
     const freshSchool: School = {
       id: 1,
       name: "Stefan van de Brug Drum School",
+      ownerId: null,
       address: "Music Street 1, Amsterdam",
       city: "Amsterdam",
       phone: "+31 20 123 4567",
       website: "https://drumschool.com",
       instruments: "Drums, Percussion",
       description: "Professional drum instruction",
-      logo: null
+      logo: null,
+      primaryColor: "#3b82f6",
+      secondaryColor: "#64748b",
+      accentColor: "#10b981",
+      backgroundImage: null,
+      fontFamily: "Inter",
+      customCss: null,
+      brandingEnabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     
     this.schools.set(freshSchool.id, freshSchool);
@@ -368,7 +382,7 @@ export class MemStorage implements IStorage {
     const samplePatterns: GroovePattern[] = [
       {
         id: "basic-rock-16th",
-        schoolId: "1",
+        schoolId: 1,
         title: "Basic Rock - 16th Notes",
         description: "Essential 16th note rock pattern perfect for beginners learning steady hi-hat work",
         grooveData: "TimeSig=4/4&Div=16&Tempo=120&Measures=1&H=|xxxxxxxxxxxxxxxx|&S=|----O-------O---|&K=|o-------o-------|",
@@ -385,7 +399,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "jazz-shuffle-triplet",
-        schoolId: "1", 
+        schoolId: 1,
         title: "Jazz Shuffle",
         description: "Classic jazz shuffle with triplet feel, ride cymbal pattern, and ghost notes",
         grooveData: "TimeSig=4/4&Div=12&Tempo=100&Measures=1&H=|r--r-rr--r-r|&S=|g-gO-gg-gO-g|&K=|o--X--o--X--|",
@@ -402,7 +416,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "train-beat-advanced",
-        schoolId: "1",
+        schoolId: 1,
         title: "Train Beat",
         description: "Advanced train beat with complex ghost note patterns and cross-stick work",
         grooveData: "TimeSig=4/4&Div=16&Swing=0&Tempo=95&Measures=1&H=|----------------|&S=|ggOgggOgggOggOOg|&K=|o-x-o-x-o-x-o-x-|",
@@ -419,7 +433,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "bossa-nova-pattern",
-        schoolId: "1",
+        schoolId: 1,
         title: "Bossa Nova",
         description: "Classic Brazilian bossa nova pattern with subtle cross-stick and kick variations",
         grooveData: "TimeSig=4/4&Div=8&Tempo=140&Measures=2&H=|xxxxxxxx|xxxxxxxx|&S=|x-x--x-x|-x--x-x-|&K=|o-xoo-xo|o-xoo-xo|",
@@ -436,7 +450,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "songo-cuban-advanced",
-        schoolId: "1",
+        schoolId: 1,
         title: "Cuban Songo",
         description: "Complex Cuban songo pattern with intricate snare work and authentic groove feel",
         grooveData: "TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=|x---x---x---x---|&S=|--O--g-O-gg--g-g|&K=|---o--o----o--o-|",
@@ -453,7 +467,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "basic-rock-8th",
-        schoolId: "1",
+        schoolId: 1,
         title: "8th Note Rock",
         description: "Fundamental 8th note rock beat - the foundation pattern every drummer should master",
         grooveData: "TimeSig=4/4&Div=8&Tempo=80&Measures=1&H=|xxxxxxxx|&S=|--O---O-|&K=|o---o---|",
@@ -666,12 +680,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
-      if (user.email === email) {
-        return user;
-      }
-    }
-    return undefined;
+    return Array.from(this.users.values()).find(user => user.email === email);
   }
   
   async createUser(userData: InsertUser): Promise<User> {
@@ -1338,6 +1347,14 @@ export class MemStorage implements IStorage {
       }));
   }
 
+  // SECURE - user-scoped version of getRecentSongs
+  async getRecentSongsForUser(userId: number, limit: number): Promise<Song[]> {
+    const userSongs = Array.from(this.songs.values()).filter(song => song.userId === userId);
+    return userSongs
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+  }
+
   async getRecentLessons(limit: number = 6): Promise<any[]> {
     const lessons = Array.from(this.lessons.values());
     const categories = Array.from(this.lessonCategories.values());
@@ -1716,10 +1733,14 @@ export class MemStorage implements IStorage {
     };
 
     this.users.set(userId, updatedUser);
-    
-    // Update username map if email changed
-    this.usersByUsername.delete(existingUser.email);
-    this.usersByUsername.set(updatedUser.email, updatedUser);
+
+    // Update username map if username changed
+    if (existingUser.username) {
+      this.usersByUsername.delete(existingUser.username);
+    }
+    if (updatedUser.username) {
+      this.usersByUsername.set(updatedUser.username, updatedUser);
+    }
     
     return updatedUser;
   }

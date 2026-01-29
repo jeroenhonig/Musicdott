@@ -51,12 +51,18 @@ export function LessonPerformanceDashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [alerts, setAlerts] = useState<PerformanceAlert[]>([]);
 
-  const { data: metrics, isLoading, error } = useQuery({
+  const { data: metrics, isLoading, error } = useQuery<PerformanceMetrics>({
     queryKey: ['/api/performance/lessons', refreshKey],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: realtimeStats } = useQuery({
+  interface RealtimeStats {
+    activeSessions?: number;
+    lessonsToday?: number;
+    avgResponseTime?: number;
+  }
+
+  const { data: realtimeStats } = useQuery<RealtimeStats>({
     queryKey: ['/api/performance/realtime'],
     refetchInterval: 5000, // Refresh every 5 seconds
   });

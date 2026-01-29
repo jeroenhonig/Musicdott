@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { getQueryFn } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,27 +104,32 @@ export default function AnalyticsPage() {
   const { user, isTeacher, isSchoolOwner, isPlatformOwner } = useAuth();
   
   // Only allow analytics queries for teachers and above - prevents students from hitting APIs
-  const canAccessAnalytics = user && (isTeacher() || isSchoolOwner() || isPlatformOwner());
+  const canAccessAnalytics = !!(user && (isTeacher() || isSchoolOwner() || isPlatformOwner()));
 
   // Fetch unified analytics data - SECURE: Only query if user has proper role
   const { data: reportData, isLoading: reportLoading } = useQuery<ReportData>({
     queryKey: ['/api/reports', dateRange, reportType, refreshKey],
+    queryFn: getQueryFn<ReportData>(),
     refetchInterval: 30000, // Refresh every 30 seconds
     enabled: canAccessAnalytics, // SECURITY: Prevent unauthorized queries
   });
 
   const { data: performanceData, isLoading: performanceLoading } = useQuery<PerformanceMetrics>({
     queryKey: ['/api/performance/lessons', refreshKey],
+    queryFn: getQueryFn<PerformanceMetrics>(),
     refetchInterval: 30000,
     enabled: canAccessAnalytics, // SECURITY: Prevent unauthorized queries
   });
 
-  const { data: realtimeStats } = useQuery<{
+  interface RealtimeStats {
     activeSessions?: number;
     lessonsToday?: number;
     avgResponseTime?: number;
-  }>({
+  }
+
+  const { data: realtimeStats } = useQuery<RealtimeStats>({
     queryKey: ['/api/performance/realtime'],
+    queryFn: getQueryFn<RealtimeStats>(),
     refetchInterval: 5000, // Refresh every 5 seconds for real-time data
     enabled: canAccessAnalytics, // SECURITY: Prevent unauthorized queries
   });

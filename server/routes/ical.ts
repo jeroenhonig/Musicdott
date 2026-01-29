@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
-import { storage } from "../storage";
+import { storage } from "../storage-wrapper";
 import { 
   parseICalFile, 
   generateICalFromSchedules, 

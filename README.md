@@ -3,8 +3,8 @@
 **Modern SaaS Platform voor Muziekschool Management**
 
 [![Production Ready](https://img.shields.io/badge/production-ready-brightgreen.svg)](https://github.com/jeroenhonig/Musicdott)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./DEPLOYMENT.md)
-[![Security](https://img.shields.io/badge/security-8.5%2F10-green.svg)](./DEPLOYMENT.md)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./docs/DEPLOYMENT.md)
+[![Security](https://img.shields.io/badge/security-8.5%2F10-green.svg)](./docs/DEPLOYMENT.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 MusicDott 2.0 is een complete full-stack SaaS applicatie voor muziekscholen en privé docenten. Het platform biedt tools voor student management, interactieve lessen, planning, facturering en veel meer.
@@ -129,7 +129,11 @@ npm run dev
 
 ## 📖 Documentatie
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide voor Linux/Docker
+- **[DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Complete deployment guide voor Linux/Docker
+- **[DEBIAN_INSTALL.md](./docs/DEBIAN_INSTALL.md)** - Debian installatie handleiding
+- **[DATABASE_FIXES_SUMMARY.md](./docs/DATABASE_FIXES_SUMMARY.md)** - Database migratie documentatie
+- **[Authorization Guide](./docs/authz-integration-examples.md)** - Autorisatie middleware integratie
+- **[QUALITY_SUMMARY.md](./docs/QUALITY_SUMMARY.md)** - Code quality audit rapport
 - **[.env.example](./.env.example)** - Environment variabelen configuratie
 
 ---
@@ -185,7 +189,7 @@ sudo cp /etc/letsencrypt/live/yourdomain.com/*.pem ssl/
 docker-compose --profile with-nginx up -d
 ```
 
-**Zie [DEPLOYMENT.md](./DEPLOYMENT.md) voor gedetailleerde instructies.**
+**Zie [DEPLOYMENT.md](./docs/DEPLOYMENT.md) voor gedetailleerde instructies.**
 
 ---
 
@@ -411,7 +415,7 @@ Voor vragen of problemen:
 
 - 📧 Email: support@musicdott.com
 - 🐛 Issues: [GitHub Issues](https://github.com/jeroenhonig/Musicdott/issues)
-- 📖 Docs: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- 📖 Docs: [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
 ---
 

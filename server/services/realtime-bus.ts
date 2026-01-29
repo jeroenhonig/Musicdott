@@ -237,9 +237,9 @@ export class RealtimeBus {
     if (socket.user!.role === 'student') {
       try {
         // Get student record to find studentId
-        const student = await this.storage.getStudentByUserId(socket.user!.id);
-        if (student) {
-          clientInfo.studentId = student.id;
+        const students = await this.storage.getStudents(socket.user!.id);
+        if (students.length > 0) {
+          clientInfo.studentId = students[0].id;
         }
       } catch (error) {
         console.warn('Failed to get student record for user:', socket.user!.id);

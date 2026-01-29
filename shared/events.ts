@@ -8,7 +8,7 @@
 // Standardized event entities
 export const EVENT_ENTITIES = {
   STUDENT: 'student',
-  LESSON: 'lesson', 
+  LESSON: 'lesson',
   ASSIGNMENT: 'assignment',
   SONG: 'song',
   SESSION: 'session',
@@ -18,7 +18,11 @@ export const EVENT_ENTITIES = {
   CHAT: 'chat',
   MESSAGE: 'message',
   RECURRING_SCHEDULE: 'recurring_schedule',
-  USER: 'user'
+  USER: 'user',
+  SCHOOL: 'school',
+  TEACHER: 'teacher',
+  NOTIFICATION: 'notification',
+  RESCHEDULE_REQUEST: 'reschedule_request'
 } as const;
 
 export type EventEntity = typeof EVENT_ENTITIES[keyof typeof EVENT_ENTITIES];
@@ -26,7 +30,7 @@ export type EventEntity = typeof EVENT_ENTITIES[keyof typeof EVENT_ENTITIES];
 // Standardized event actions
 export const EVENT_ACTIONS = {
   CREATE: 'create',
-  UPDATE: 'update', 
+  UPDATE: 'update',
   DELETE: 'delete',
   START: 'start',
   END: 'end',
@@ -44,7 +48,15 @@ export const EVENT_ACTIONS = {
   UNASSIGN: 'unassign',
   SCHEDULE: 'schedule',
   RESCHEDULE: 'reschedule',
-  CANCEL: 'cancel'
+  CANCEL: 'cancel',
+  FAVORITE: 'favorite',
+  ACTIVITY: 'activity',
+  IDLE: 'idle',
+  STARTED: 'started',
+  COMPLETED: 'completed',
+  PRACTICED: 'practiced',
+  FAVORITED: 'favorited',
+  ACTIVE: 'active'
 } as const;
 
 export type EventAction = typeof EVENT_ACTIONS[keyof typeof EVENT_ACTIONS];
@@ -127,7 +139,33 @@ export const EVENT_TYPES = {
   USER_UPDATE: 'user.update',
   USER_DELETE: 'user.delete',
   USER_ONLINE: 'user.online',
-  USER_OFFLINE: 'user.offline'
+  USER_OFFLINE: 'user.offline',
+
+  // Additional event types for backwards compatibility
+  LESSON_STARTED: 'lesson.started',
+  LESSON_COMPLETED: 'lesson.completed',
+  SONG_PRACTICED: 'song.practiced',
+  SONG_FAVORITED: 'song.favorited',
+  STUDENT_ACTIVE: 'student.active',
+  STUDENT_IDLE: 'student.idle',
+
+  // School events
+  SCHOOL_UPDATE: 'school.update',
+  SCHOOL_CREATE: 'school.create',
+
+  // Teacher events
+  TEACHER_UPDATE: 'teacher.update',
+  TEACHER_STATUS: 'teacher.status',
+  TEACHER_CREATE: 'teacher.create',
+  TEACHER_DELETE: 'teacher.delete',
+
+  // Notification events
+  NOTIFICATION: 'notification',
+  NOTIFICATION_CREATE: 'notification.create',
+
+  // Reschedule request events
+  RESCHEDULE_REQUEST: 'reschedule_request',
+  RESCHEDULE_REQUEST_CREATE: 'reschedule_request.create'
 } as const;
 
 export type EventType = typeof EVENT_TYPES[keyof typeof EVENT_TYPES];

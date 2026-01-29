@@ -159,8 +159,9 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
   // Control referrer information
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Disable unnecessary browser features
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  // Disable unnecessary browser features (payment enabled for Stripe integration)
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
+
   
   // Remove server information
   res.removeHeader('X-Powered-By');
@@ -221,24 +222,41 @@ function sanitizeString(str: string): string {
     .substring(0, 10000);
 }
 
-// Environment validation middleware
-export const validateEnvironment = (req: Request, res: Response, next: NextFunction) => {
+// Environment validation - runs once at startup, not per-request
+let environmentValidated = false;
+let environmentValid = true;
+
+function performEnvironmentValidation(): boolean {
   const requiredEnvVars = ['SESSION_SECRET'];
-  
+
   for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
       console.error(`Missing required environment variable: ${envVar}`);
-      return res.status(500).json({ error: 'Server configuration error' });
+      return false;
     }
   }
-  
+
   // Validate session secret strength in production
   if (process.env.NODE_ENV === 'production' && process.env.SESSION_SECRET) {
     if (process.env.SESSION_SECRET.length < 32) {
       console.error('SESSION_SECRET is too short for production use');
-      return res.status(500).json({ error: 'Server configuration error' });
+      return false;
     }
   }
-  
+
+  return true;
+}
+
+// Middleware that checks cached validation result (no per-request overhead)
+export const validateEnvironment = (req: Request, res: Response, next: NextFunction) => {
+  if (!environmentValidated) {
+    environmentValid = performEnvironmentValidation();
+    environmentValidated = true;
+  }
+
+  if (!environmentValid) {
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
   next();
 };

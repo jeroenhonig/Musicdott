@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { getQueryFn } from '@/lib/queryClient';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,23 +109,27 @@ export default function SettingsPage() {
   const canEditSchool = canManageSchool();
 
   // Fetch current settings
-  const { data: userProfile } = useQuery({
+  const { data: userProfile } = useQuery<ProfileFormValues>({
     queryKey: ['/api/user/profile'],
+    queryFn: getQueryFn<ProfileFormValues>(),
     enabled: !!user
   });
 
-  const { data: schoolSettings } = useQuery({
+  const { data: schoolSettings } = useQuery<SchoolFormValues>({
     queryKey: ['/api/school/settings'],
+    queryFn: getQueryFn<SchoolFormValues>(),
     enabled: !!user
   });
 
-  const { data: notifications } = useQuery({
+  const { data: notifications } = useQuery<NotificationFormValues>({
     queryKey: ['/api/user/notifications'],
+    queryFn: getQueryFn<NotificationFormValues>(),
     enabled: !!user
   });
 
-  const { data: preferences } = useQuery({
+  const { data: preferences } = useQuery<PreferencesFormValues>({
     queryKey: ['/api/user/preferences'],
+    queryFn: getQueryFn<PreferencesFormValues>(),
     enabled: !!user
   });
 

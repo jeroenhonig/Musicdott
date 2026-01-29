@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db, isDatabaseAvailable } from "../db";
 import { cronJobHealth, type CronJobHealth } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
@@ -18,6 +18,10 @@ interface JobExecutionResult {
 
 class CronHealthMonitor {
   async registerJob(jobName: string, cronSchedule: string): Promise<void> {
+    if (!db || !isDatabaseAvailable) {
+      console.log(`⚠️ Database not available, skipping cron job registration: ${jobName}`);
+      return;
+    }
     try {
       const existing = await db
         .select()

@@ -370,6 +370,8 @@ export const assignments = pgTable("assignments", {
   title: text("title").notNull(),
   description: text("description"),
   dueDate: timestamp("due_date"),
+  completedDate: timestamp("completed_date"),
+  assignedDate: timestamp("assigned_date").defaultNow(),
   status: text("status").default("pending"),
 });
 
@@ -412,6 +414,7 @@ export type InsertAchievementDefinition = typeof achievementDefinitions.$inferIn
 export const recurringSchedules = pgTable("recurring_schedules", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  schoolId: integer("school_id"),
   studentId: integer("student_id").notNull(),
   dayOfWeek: text("day_of_week").notNull(),
   startTime: text("start_time").notNull(),
@@ -420,6 +423,9 @@ export const recurringSchedules = pgTable("recurring_schedules", {
   notes: text("notes"),
   timezone: text("timezone").default("Europe/Amsterdam"),
   frequency: text("frequency").default("WEEKLY"),
+  recurrenceType: text("recurrence_type").default("weekly"),
+  instrument: text("instrument"),
+  biWeeklyPattern: text("bi_weekly_pattern"),
   isActive: boolean("is_active").default(true),
   // iCal integration fields
   iCalDtStart: text("ical_dtstart"), // Format: "20250915T194500"
@@ -441,6 +447,7 @@ export const practiceSessions = pgTable("practice_sessions", {
   endTime: timestamp("end_time"),
   duration: integer("duration"),
   notes: text("notes"),
+  isActive: boolean("is_active").default(true),
 });
 
 export type PracticeSession = typeof practiceSessions.$inferSelect;
@@ -654,6 +661,7 @@ export type InsertBadge = typeof badges.$inferInsert;
 
 // User badges (earned)
 export const userBadges = pgTable("user_badges", {
+  id: serial("id").primaryKey(),
   userId: uuid("user_id").notNull(),
   badgeKey: text("badge_key").notNull(),
   earnedAt: timestamp("earned_at").defaultNow().notNull(),
@@ -682,6 +690,7 @@ export type InsertAssignmentV2 = typeof assignmentsV2.$inferInsert;
 
 // Assignment targets (classes or individuals)
 export const assignmentTargets = pgTable("assignment_targets", {
+  id: serial("id").primaryKey(),
   assignmentId: uuid("assignment_id").notNull(),
   classId: uuid("class_id"),
   studentId: uuid("student_id"),
@@ -825,6 +834,7 @@ export type InsertClass = typeof classes.$inferInsert;
 
 // Class enrollments
 export const classEnrollments = pgTable("class_enrollments", {
+  id: serial("id").primaryKey(),
   classId: uuid("class_id").notNull(),
   studentId: uuid("student_id").notNull(),
   enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
@@ -918,6 +928,30 @@ export const billingAlerts = pgTable("billing_alerts", {
 
 export type BillingAlert = typeof billingAlerts.$inferSelect;
 export type InsertBillingAlert = typeof billingAlerts.$inferInsert;
+
+export const educationalContent = pgTable("educational_content", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id"),
+  title: text("title").notNull(),
+  description: text("description"),
+  contentType: text("content_type").notNull(), // 'article', 'video', 'tutorial'
+  content: text("content"),
+  category: text("category"),
+  level: text("level"),
+  instrument: text("instrument"),
+  isPublished: boolean("is_published").default(false),
+  authorId: integer("author_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type EducationalContent = typeof educationalContent.$inferSelect;
+export type InsertEducationalContent = typeof educationalContent.$inferInsert;
+export const insertEducationalContentSchema = createInsertSchema(educationalContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // Student-specific messages table with proper camelCase to snake_case mapping
 export const studentMessages = pgTable("student_messages", {

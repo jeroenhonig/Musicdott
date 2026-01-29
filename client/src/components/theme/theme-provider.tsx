@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { getQueryFn } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import type { SchoolBranding } from '@shared/schema';
 
@@ -46,13 +47,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [loadedFonts, setLoadedFonts] = useState<Set<string>>(new Set(['Inter'])); // Default font
 
   // Fetch school branding
-  const { 
-    data: branding, 
-    isLoading, 
-    error, 
-    refetch: refreshBranding 
-  } = useQuery({
+  const {
+    data: branding,
+    isLoading,
+    error,
+    refetch: refreshBranding
+  } = useQuery<SchoolBranding>({
     queryKey: ['/api/schools', user?.schoolId, 'branding'],
+    queryFn: getQueryFn<SchoolBranding>(),
     enabled: !!user?.schoolId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2
@@ -87,7 +89,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       // Check if font link already exists
       const existingLink = document.querySelector(`link[href*="${fontFamily.replace(/\s+/g, '+')}"]`);
       if (existingLink) {
-        setLoadedFonts(prev => new Set([...prev, fontFamily]));
+        setLoadedFonts(prev => new Set([...Array.from(prev), fontFamily]));
         return;
       }
 
@@ -103,7 +105,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         document.head.appendChild(link);
       });
 
-      setLoadedFonts(prev => new Set([...prev, fontFamily]));
+      setLoadedFonts(prev => new Set([...Array.from(prev), fontFamily]));
     } catch (error) {
       console.warn(`Failed to load font: ${fontFamily}`, error);
     }
@@ -111,9 +113,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // Apply CSS variables for theming
   useEffect(() => {
+    const schoolId = user?.schoolId ?? undefined;
     if (!effectiveBranding || !effectiveBranding.brandingEnabled) {
       // Reset to default theme
-      applyThemeVariables(DEFAULT_BRANDING, user?.schoolId);
+      applyThemeVariables(DEFAULT_BRANDING, schoolId);
       return;
     }
 
@@ -123,13 +126,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
 
     // Apply theme variables
-    applyThemeVariables(effectiveBranding, user?.schoolId);
-    
+    applyThemeVariables(effectiveBranding, schoolId);
+
     // Apply custom CSS if provided
     if (effectiveBranding.customCss) {
-      applyCustomCSS(effectiveBranding.customCss, user?.schoolId);
+      applyCustomCSS(effectiveBranding.customCss, schoolId);
     } else {
-      removeCustomCSS(user?.schoolId);
+      removeCustomCSS(schoolId);
     }
 
   }, [effectiveBranding, user?.schoolId, loadFont]);

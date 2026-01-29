@@ -1,5 +1,4 @@
 import type { Express, Request, Response } from "express";
-import { createServer, type Server } from "http";
 import { storage } from "./storage-wrapper";
 import { setupAuth, requireAuth, enforcePasswordChange, sessionMiddleware } from "./auth";
 // WebSocketManager removed - using RealtimeBus instead (set up in index.ts)
@@ -27,6 +26,7 @@ import {
   insertStudentAchievementSchema,
   studentMessages,
   messageReplies,
+  messages,
   students,
   sessions,
   users,
@@ -41,11 +41,21 @@ import {
   loadSchoolContext, 
   requireTeacherOrOwner,
   requireSchoolOwner as authzRequireSchoolOwner,
+  requireResourceAccess,
   applySchoolFiltering 
 } from "./middleware/authz";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 import { execSync } from "child_process";
 import ImportUtility from "./import-utility";
 import { importStudents } from "./importStudents";
@@ -53,7 +63,7 @@ import { importSchedule } from "./importSchedule";
 import { resetStudentPassword } from "./services/student-accounts";
 import { fixExistingCorruptedSongs } from "./utils/optimized-import";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // Health check endpoint for deployment verification
   app.get("/health", (req: Request, res: Response) => {
     res.status(200).json({ 
@@ -311,34 +321,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Student lessons endpoint for today window
-  app.get("/api/student/lessons/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
-    try {
-      const studentId = parseInt(req.params.id);
-      // Get lessons assigned to this student
-      const lessons = await storage.getStudentLessons(studentId);
-      res.json(lessons);
-    } catch (error) {
-      console.error("Error fetching student lessons:", error);
-      res.status(500).json({ message: "Failed to fetch student lessons" });
+  app.get("/api/student/lessons/:id",
+    requireAuth,
+    loadSchoolContext,
+    requireResourceAccess({ resourceType: 'student', allowOwner: true, allowTeacher: true, allowStudent: true }),
+    async (req: Request, res: Response) => {
+      try {
+        const studentId = parseInt(req.params.id);
+        // Get lessons assigned to this student
+        const lessons = await storage.getStudentLessons(studentId);
+        res.json(lessons);
+      } catch (error) {
+        console.error("Error fetching student lessons:", error);
+        res.status(500).json({ message: "Failed to fetch student lessons" });
+      }
     }
-  });
+  );
 
   // Student songs endpoint for today window
-  app.get("/api/student/songs/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
-    try {
-      const studentId = parseInt(req.params.id);
-      // Get songs assigned to this student
-      const songs = await storage.getStudentSongs(studentId);
-      res.json(songs);
-    } catch (error) {
-      console.error("Error fetching student songs:", error);
-      res.status(500).json({ message: "Failed to fetch student songs" });
+  app.get("/api/student/songs/:id",
+    requireAuth,
+    loadSchoolContext,
+    requireResourceAccess({ resourceType: 'student', allowOwner: true, allowTeacher: true, allowStudent: true }),
+    async (req: Request, res: Response) => {
+      try {
+        const studentId = parseInt(req.params.id);
+        // Get songs assigned to this student
+        const songs = await storage.getStudentSongs(studentId);
+        res.json(songs);
+      } catch (error) {
+        console.error("Error fetching student songs:", error);
+        res.status(500).json({ message: "Failed to fetch student songs" });
+      }
     }
-  });
+  );
 
   // NOTE: Student progress routes moved to server/routes/students.ts with proper security
 
@@ -391,18 +407,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API routes - all routes are prefixed with /api
   
-  // Teachers endpoint for teacher assignment
-  app.get("/api/teachers", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
-    try {
-      const teachers = await storage.getUsersByRole('teacher');
-      res.json(teachers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch teachers" });
-    }
-  });
-
   // Students - role-based access with proper multi-tenant filtering
   app.get("/api/students", 
     requireAuth,
@@ -1410,22 +1414,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch achievement definitions for all student achievements
       for (const achievement of achievements) {
         try {
-          const achievementDef = await storage.getAchievementDefinition(achievement.achievementId);
+          const achievementDef = await storage.getAchievementDefinition(achievement.id);
           if (!achievementDef) continue;
-          
+
           const type = achievementDef.type;
           if (!achievementsByType[type]) achievementsByType[type] = [];
-          
+
           achievementsByType[type].push({
             id: achievement.id,
             name: achievementDef.name,
             description: achievementDef.description,
             iconName: achievementDef.iconName,
-            dateEarned: achievement.dateEarned,
-            isNew: achievement.isNew
+            dateEarned: achievement.earnedAt,
           });
         } catch (error) {
-          console.error(`Error fetching achievement definition ${achievement.achievementId}:`, error);
+          console.error(`Error fetching achievement definition ${achievement.id}:`, error);
         }
       }
       
@@ -1465,7 +1468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: achievements.length,
           byType: achievementsByType,
           recent: achievements
-            .sort((a, b) => new Date(b.dateEarned).getTime() - new Date(a.dateEarned).getTime())
+            .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime())
             .slice(0, 5) // Get the 5 most recent achievements
         },
         assignmentDetails: {
@@ -1885,7 +1888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv')) {
         cb(null, true);
       } else {
-        cb(new Error('Only CSV files are allowed'), false);
+        cb(new Error('Only CSV files are allowed') as any, false);
       }
     }
   });
@@ -2255,10 +2258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register subscription routes
   app.use("/api/subscriptions", subscriptionsRouter);
-  
-  const httpServer = createServer(app);
-  
-  // Initialize WebSocket server for real-time communication
+
   // Teacher Messages API routes - removed duplicate, using enhanced version below
 
   app.patch("/api/teacher/respond-message/:messageId", requireAuth, async (req: any, res) => {
@@ -2324,7 +2324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userRole = req.user.role;
       
       // Get messages for this user (both sent and received) using storage interface
-      const userMessages = await storage.getMessages(userId, userRole);
+      const userMessages = await storage.getMessages(userId);
       
       res.json(userMessages);
     } catch (error) {
@@ -2572,7 +2572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messageId: messageId,
           senderId: userId,
           senderType: "student",
-          reply: reply.trim(),
+          content: reply.trim(),
           isRead: false
         })
         .returning();
@@ -2804,7 +2804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin debug endpoints
-  app.get('/api/admin/storage-status', async (req, res) => {
+  app.get('/api/admin/storage-status', requireAuth, authzRequireSchoolOwner(), async (req, res) => {
     try {
       // Check if we're using database or memory storage
       const isDatabaseConnected = req.app.locals.databaseConnected || false;
@@ -2874,10 +2874,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isDatabaseConnected = false; // Memory storage fallback active
       
       // Get counts from storage
-      const students = await storage.getStudents(currentUserId);
-      const lessons = await storage.getLessons(currentUserId);
-      const songs = await storage.getSongs(currentUserId);
-      const categories = await storage.getLessonCategories(currentUserId);
+      const students = await storage.getStudents(currentUserId!);
+      const lessons = await storage.getLessons(currentUserId!);
+      const songs = await storage.getSongs(currentUserId!);
+      const categories = await storage.getLessonCategories(currentUserId!);
       
       res.json({
         currentUserId,
@@ -3022,7 +3022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
 
-      await storage.executeQuery(`
+      await executeQuery(`
         INSERT INTO admin_actions (actor_id, target_type, target_id, action, metadata, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
@@ -3054,24 +3054,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         activeSubscriptions,
         monthlyRevenue
       ] = await Promise.all([
-        storage.executeQuery("SELECT COUNT(*) as count FROM users"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM schools"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM students"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM users WHERE role IN ('teacher', 'school_owner')"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM lessons"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM songs"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM sessions"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM school_subscriptions WHERE status = 'active'"),
-        storage.executeQuery("SELECT COALESCE(SUM(amount), 0) as total FROM payment_history WHERE status = 'paid' AND billing_month = date_trunc('month', CURRENT_DATE)")
+        executeQuery("SELECT COUNT(*) as count FROM users"),
+        executeQuery("SELECT COUNT(*) as count FROM schools"),
+        executeQuery("SELECT COUNT(*) as count FROM students"),
+        executeQuery("SELECT COUNT(*) as count FROM users WHERE role IN ('teacher', 'school_owner')"),
+        executeQuery("SELECT COUNT(*) as count FROM lessons"),
+        executeQuery("SELECT COUNT(*) as count FROM songs"),
+        executeQuery("SELECT COUNT(*) as count FROM sessions"),
+        executeQuery("SELECT COUNT(*) as count FROM school_subscriptions WHERE status = 'active'"),
+        executeQuery("SELECT COALESCE(SUM(amount), 0) as total FROM payment_history WHERE status = 'paid' AND billing_month = date_trunc('month', CURRENT_DATE)")
       ]);
 
       // Calculate new users this month
-      const newUsersThisMonth = await storage.executeQuery(
+      const newUsersThisMonth = await executeQuery(
         "SELECT COUNT(*) as count FROM users WHERE created_at >= date_trunc('month', CURRENT_DATE)"
       );
 
       // Calculate growth rate (simplified)
-      const lastMonthRevenue = await storage.executeQuery(
+      const lastMonthRevenue = await executeQuery(
         "SELECT COALESCE(SUM(amount), 0) as total FROM payment_history WHERE status = 'paid' AND billing_month = date_trunc('month', CURRENT_DATE - interval '1 month')"
       );
 
@@ -3104,7 +3104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get revenue analytics over time
   app.get("/api/owners/revenue-analytics", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
-      const revenueData = await storage.executeQuery(`
+      const revenueData = await executeQuery(`
         SELECT 
           TO_CHAR(billing_month, 'Mon YYYY') as month,
           COALESCE(SUM(amount), 0) as revenue,
@@ -3126,7 +3126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user growth analytics
   app.get("/api/owners/user-growth", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
-      const userGrowthData = await storage.executeQuery(`
+      const userGrowthData = await executeQuery(`
         WITH monthly_users AS (
           SELECT 
             DATE_TRUNC('month', created_at) as month,
@@ -3172,7 +3172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get top performing schools
   app.get("/api/owners/top-schools", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
-      const topSchools = await storage.executeQuery(`
+      const topSchools = await executeQuery(`
         SELECT 
           s.id,
           s.name,
@@ -3226,7 +3226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/owners/recent-activities", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
       // Get recent registrations and activities from database
-      const activities = await storage.executeQuery(`
+      const activities = await executeQuery(`
         SELECT 
           'user_registration' as type,
           users.name || ' (' || users.role || ')' as description,
@@ -3261,7 +3261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all schools with detailed information
   app.get("/api/owners/schools", requirePlatformOwner, async (req: Request, res: Response) => {
     try {
-      const schoolsData = await storage.executeQuery(`
+      const schoolsData = await executeQuery(`
         SELECT 
           s.*,
           COUNT(DISTINCT u.id) as total_users,
@@ -3304,7 +3304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get school users (teachers and school owners)
-      const users = await storage.executeQuery(`
+      const users = await executeQuery(`
         SELECT id, username, name, email, role, instruments, created_at, last_login_at
         FROM users 
         WHERE school_id = $1
@@ -3312,7 +3312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [schoolId]);
 
       // Get school students
-      const students = await storage.executeQuery(`
+      const students = await executeQuery(`
         SELECT s.*, u.username, u.email, u.last_login_at
         FROM students s
         LEFT JOIN users u ON s.user_id = u.id
@@ -3321,7 +3321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [schoolId]);
 
       // Get subscription info
-      const subscription = await storage.executeQuery(`
+      const subscription = await executeQuery(`
         SELECT * FROM school_subscriptions 
         WHERE school_id = $1 
         ORDER BY created_at DESC 
@@ -3329,7 +3329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [schoolId]);
 
       // Get usage statistics
-      const stats = await storage.executeQuery(`
+      const stats = await executeQuery(`
         SELECT 
           COUNT(DISTINCT l.id) as total_lessons,
           COUNT(DISTINCT sg.id) as total_songs,
@@ -3407,7 +3407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-      const usersData = await storage.executeQuery(`
+      const usersData = await executeQuery(`
         SELECT 
           u.*,
           s.name as school_name,
@@ -3512,7 +3512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get user details for logging
-      const userResult = await storage.executeQuery(`
+      const userResult = await executeQuery(`
         SELECT id, username, email, role FROM users WHERE id = $1
       `, [userId]);
 
@@ -3526,7 +3526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update password and set must_change_password flag
-      await storage.executeQuery(`
+      await executeQuery(`
         UPDATE users 
         SET password = $1, must_change_password = true, updated_at = NOW()
         WHERE id = $2
@@ -3558,7 +3558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = req.body;
 
       // Get current user data for audit
-      const currentUserResult = await storage.executeQuery(`
+      const currentUserResult = await executeQuery(`
         SELECT * FROM users WHERE id = $1
       `, [userId]);
 
@@ -3589,7 +3589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       paramCount++;
       updateValues.push(userId);
 
-      await storage.executeQuery(`
+      await executeQuery(`
         UPDATE users 
         SET ${updateFields.join(', ')}, updated_at = NOW()
         WHERE id = $${paramCount}
@@ -3629,7 +3629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if username already exists
-      const existingUserByUsername = await storage.executeQuery(
+      const existingUserByUsername = await executeQuery(
         'SELECT id FROM users WHERE username = $1',
         [username]
       );
@@ -3638,7 +3638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if email already exists
-      const existingUserByEmail = await storage.executeQuery(
+      const existingUserByEmail = await executeQuery(
         'SELECT id FROM users WHERE email = $1',
         [email]
       );
@@ -3650,7 +3650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create the user
-      const result = await storage.executeQuery(`
+      const result = await executeQuery(`
         INSERT INTO users (username, email, name, password, role, school_id, must_change_password)
         VALUES ($1, $2, $3, $4, $5, $6, true)
         RETURNING id, username, email, name, role, school_id
@@ -3660,7 +3660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If schoolId is provided and user is school_owner, create school membership
       if (schoolId && (role === 'school_owner' || role === 'teacher')) {
-        await storage.executeQuery(`
+        await executeQuery(`
           INSERT INTO school_memberships (school_id, user_id, role)
           VALUES ($1, $2, $3)
           ON CONFLICT DO NOTHING
@@ -3697,7 +3697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If ownerId is provided, validate it exists and is a school_owner
       if (ownerId) {
-        const ownerResult = await storage.executeQuery(
+        const ownerResult = await executeQuery(
           'SELECT id, role FROM users WHERE id = $1',
           [ownerId]
         );
@@ -3710,7 +3710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create the school
-      const result = await storage.executeQuery(`
+      const result = await executeQuery(`
         INSERT INTO schools (name, owner_id, city, address, phone, website, instruments, description, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         RETURNING *
@@ -3720,14 +3720,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If ownerId is provided, create school membership and update user's schoolId
       if (ownerId) {
-        await storage.executeQuery(`
+        await executeQuery(`
           INSERT INTO school_memberships (school_id, user_id, role)
           VALUES ($1, $2, 'owner')
           ON CONFLICT DO NOTHING
         `, [newSchool.id, ownerId]);
 
         // Update the owner's schoolId
-        await storage.executeQuery(`
+        await executeQuery(`
           UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
         `, [newSchool.id, ownerId]);
       }
@@ -3764,7 +3764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate school exists
-      const schoolResult = await storage.executeQuery(
+      const schoolResult = await executeQuery(
         'SELECT * FROM schools WHERE id = $1',
         [schoolId]
       );
@@ -3773,7 +3773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate owner exists and is school_owner
-      const ownerResult = await storage.executeQuery(
+      const ownerResult = await executeQuery(
         'SELECT id, role, name FROM users WHERE id = $1',
         [ownerId]
       );
@@ -3785,19 +3785,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update school's owner_id
-      await storage.executeQuery(`
+      await executeQuery(`
         UPDATE schools SET owner_id = $1, updated_at = NOW() WHERE id = $2
       `, [ownerId, schoolId]);
 
       // Create school membership for the owner
-      await storage.executeQuery(`
+      await executeQuery(`
         INSERT INTO school_memberships (school_id, user_id, role)
         VALUES ($1, $2, 'owner')
         ON CONFLICT DO NOTHING
       `, [schoolId, ownerId]);
 
       // Update owner's schoolId if not set
-      await storage.executeQuery(`
+      await executeQuery(`
         UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
       `, [schoolId, ownerId]);
 
@@ -3832,7 +3832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get user details for logging
-      const userResult = await storage.executeQuery(
+      const userResult = await executeQuery(
         'SELECT id, username, email, role FROM users WHERE id = $1',
         [userId]
       );
@@ -3848,7 +3848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Delete user (cascades will handle related records)
-      await storage.executeQuery('DELETE FROM users WHERE id = $1', [userId]);
+      await executeQuery('DELETE FROM users WHERE id = $1', [userId]);
 
       // Log admin action
       await logAdminAction(req, 'user_delete', 'user', userId, {
@@ -3874,7 +3874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get school details for logging
-      const schoolResult = await storage.executeQuery(
+      const schoolResult = await executeQuery(
         'SELECT id, name FROM schools WHERE id = $1',
         [schoolId]
       );
@@ -3885,7 +3885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const school = schoolResult.rows[0];
 
       // Delete school (cascades will handle related records)
-      await storage.executeQuery('DELETE FROM schools WHERE id = $1', [schoolId]);
+      await executeQuery('DELETE FROM schools WHERE id = $1', [schoolId]);
 
       // Log admin action
       await logAdminAction(req, 'school_delete', 'school', schoolId, {
@@ -3922,7 +3922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-      const billingData = await storage.executeQuery(`
+      const billingData = await executeQuery(`
         SELECT 
           sbs.*,
           s.name as school_name,
@@ -3956,7 +3956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current billing data
-      const currentBilling = await storage.executeQuery(`
+      const currentBilling = await executeQuery(`
         SELECT * FROM school_billing_summary WHERE id = $1
       `, [billingId]);
 
@@ -3965,7 +3965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update status
-      await storage.executeQuery(`
+      await executeQuery(`
         UPDATE school_billing_summary 
         SET payment_status = $1, updated_at = NOW()
         WHERE id = $2
@@ -3999,7 +3999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         params.push(target_type);
       }
 
-      const auditLog = await storage.executeQuery(`
+      const auditLog = await executeQuery(`
         SELECT 
           aa.*,
           u.username as actor_username,
@@ -4446,16 +4446,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { enhancedStripeService } = require("./services/enhanced-stripe-service");
       const signature = req.headers['stripe-signature'] as string;
-      const payload = JSON.stringify(req.body);
+      const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
       
       // Verify webhook signature
-      const isValid = enhancedStripeService.verifyWebhookSignature(payload, signature);
+      const isValid = enhancedStripeService.verifyWebhookSignature(rawBody, signature);
       if (!isValid) {
         return res.status(400).json({ error: "Invalid webhook signature" });
       }
 
       // Process the webhook event
-      const event = req.body;
+      const event = Buffer.isBuffer(req.body) ? JSON.parse(rawBody) : req.body;
       console.log(`📨 Stripe webhook received: ${event.type}`);
 
       switch (event.type) {
@@ -5490,6 +5490,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocketManager removed - RealtimeBus is configured in index.ts and available as (app as any).realtimeBus
   // For backward compatibility, alias realtimeBus as wsManager
   (app as any).wsManager = (app as any).realtimeBus;
-
-  return httpServer;
 }

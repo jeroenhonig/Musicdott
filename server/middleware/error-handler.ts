@@ -100,10 +100,11 @@ export const errorHandler = (
   });
 };
 
-// Not found handler for undefined routes
+// Not found handler for undefined API routes
+// Mounted at /api so only catches unmatched API endpoints (not SPA routes)
 export const notFoundHandler = (req: Request, res: Response) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.method} ${req.path} not found`
+    message: `Route ${req.method} ${req.originalUrl} not found`
   });
 };

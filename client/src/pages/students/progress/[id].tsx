@@ -2,6 +2,79 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { getQueryFn } from "@/lib/queryClient";
+
+// Progress data interface
+interface PracticeSession {
+  id: number;
+  date: string;
+  minutes: number;
+  songsCount: number;
+  startTime?: string;
+  endTime?: string;
+  notes?: string;
+}
+
+interface Assignment {
+  id: number;
+  title: string;
+  dueDate: string;
+  status: string;
+  lessonTitle?: string;
+  completed?: boolean;
+  completedDate?: string;
+  songId?: number;
+}
+
+interface Achievement {
+  id: number;
+  title: string;
+  name?: string;
+  description: string;
+  earnedAt: string;
+  dateEarned?: string;
+  type?: string;
+  isNew?: boolean;
+}
+
+interface SkillMastery {
+  skill: string;
+  mastery: number;
+  completedLessons?: number;
+  totalLessons?: number;
+}
+
+interface StudentProgressData {
+  practiceStats: {
+    totalMinutes: number;
+    weeklyMinutes: number;
+    byDay: Record<string, number>;
+    recentSessions: PracticeSession[];
+  };
+  skillsMastery: SkillMastery[];
+  overallProgress: {
+    lessonsCompleted: number;
+    totalLessons: number;
+    completedAssignments: number;
+    totalAssignments: number;
+    xpEarned: number;
+    level: number;
+    lessonProgress: number;
+    completionRate?: number;
+    totalPracticeTime?: number;
+    totalPracticeSessions?: number;
+    averagePracticeTimePerSession?: number;
+    totalScheduledSessions?: number;
+  };
+  achievements: {
+    total?: number;
+    recent?: Achievement[];
+    byType?: Record<string, Achievement[]>;
+  };
+  assignmentDetails: {
+    completed?: Assignment[];
+  } & Assignment[];
+}
 import {
   ResponsiveContainer,
   BarChart,
@@ -63,21 +136,23 @@ export default function StudentProgressPage() {
   const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
   
   // Fetch the student details
-  const { 
-    data: student, 
+  const {
+    data: student,
     isLoading: isLoadingStudent,
     error: studentError
   } = useQuery<Student>({
     queryKey: [`/api/students/${studentId}`],
+    queryFn: getQueryFn<Student>(),
   });
   
   // Fetch the student progress data
-  const { 
-    data: progressData, 
+  const {
+    data: progressData,
     isLoading: isLoadingProgress,
     error: progressError
-  } = useQuery({
+  } = useQuery<StudentProgressData>({
     queryKey: [`/api/students/${studentId}/progress`],
+    queryFn: getQueryFn<StudentProgressData>(),
     enabled: !!studentId
   });
   
