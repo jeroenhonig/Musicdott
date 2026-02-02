@@ -10,7 +10,8 @@
 import { pgTable, serial, integer, text, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { schools } from "./schema";
+// Note: Foreign key references to schools table are omitted to avoid circular imports
+// The schoolId field is still enforced at the application level
 
 // ============================================
 // 1. Notations table (from POS_Notatie.csv)

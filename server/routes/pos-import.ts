@@ -17,6 +17,13 @@ import {
   validateCSV,
 } from "../services/pos-csv-import";
 import { parseNotation, validateNotation, notationToText } from "../services/notation-parser";
+import {
+  generateRandomPattern,
+  generatePatternFromBlocks,
+  generateProgressivePattern,
+  analyzePattern,
+  getSuggestedBlocks,
+} from "../services/block-generator";
 
 const router = Router();
 
@@ -744,6 +751,231 @@ router.post(
       console.error("Notation parse error:", error);
       res.status(500).json({
         message: "Failed to parse notation",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+// ============================================
+// Generator Endpoints
+// ============================================
+
+/**
+ * POST /api/generator/random
+ * Generate a random pattern from drumblocks
+ */
+router.post(
+  "/generator/random",
+  requireAuth,
+  loadSchoolContext,
+  requireTeacherOrOwner(),
+  async (req: Request, res: Response) => {
+    try {
+      const schoolId = req.school?.id || req.user!.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ message: "School ID required" });
+      }
+
+      const {
+        blockCount = 4,
+        maxDifficulty,
+        limbBalance,
+        density,
+        tempoRange,
+        tags,
+        excludeTags,
+      } = req.body;
+
+      const constraints = {
+        maxDifficulty,
+        limbBalance,
+        density,
+        tempoRange,
+        tags,
+        excludeTags,
+      };
+
+      const pattern = await generateRandomPattern(schoolId, blockCount, constraints);
+
+      // Add analysis
+      const analysis = pattern.playable ? analyzePattern(pattern) : null;
+
+      res.json({
+        ...pattern,
+        analysis,
+      });
+    } catch (error) {
+      console.error("Random pattern generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate pattern",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/generator/constrained
+ * Generate a pattern with specific constraints
+ */
+router.post(
+  "/generator/constrained",
+  requireAuth,
+  loadSchoolContext,
+  requireTeacherOrOwner(),
+  async (req: Request, res: Response) => {
+    try {
+      const schoolId = req.school?.id || req.user!.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ message: "School ID required" });
+      }
+
+      const { constraints, blockCount = 4 } = req.body;
+
+      if (!constraints) {
+        return res.status(400).json({ message: "Constraints required" });
+      }
+
+      const pattern = await generateRandomPattern(schoolId, blockCount, constraints);
+      const analysis = pattern.playable ? analyzePattern(pattern) : null;
+
+      res.json({
+        ...pattern,
+        analysis,
+      });
+    } catch (error) {
+      console.error("Constrained pattern generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate pattern",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/generator/from-blocks
+ * Generate a pattern from specific block IDs
+ */
+router.post(
+  "/generator/from-blocks",
+  requireAuth,
+  loadSchoolContext,
+  requireTeacherOrOwner(),
+  async (req: Request, res: Response) => {
+    try {
+      const schoolId = req.school?.id || req.user!.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ message: "School ID required" });
+      }
+
+      const { blockIds, tempo = 120 } = req.body;
+
+      if (!blockIds || !Array.isArray(blockIds) || blockIds.length === 0) {
+        return res.status(400).json({ message: "blockIds array required" });
+      }
+
+      const pattern = await generatePatternFromBlocks(schoolId, blockIds, tempo);
+      const analysis = pattern.playable ? analyzePattern(pattern) : null;
+
+      res.json({
+        ...pattern,
+        analysis,
+      });
+    } catch (error) {
+      console.error("Pattern from blocks error:", error);
+      res.status(500).json({
+        message: "Failed to generate pattern",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/generator/progressive
+ * Generate progressive patterns for practice
+ */
+router.post(
+  "/generator/progressive",
+  requireAuth,
+  loadSchoolContext,
+  requireTeacherOrOwner(),
+  async (req: Request, res: Response) => {
+    try {
+      const schoolId = req.school?.id || req.user!.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ message: "School ID required" });
+      }
+
+      const {
+        startDifficulty = 1,
+        endDifficulty = 3,
+        blocksPerLevel = 2,
+      } = req.body;
+
+      const patterns = await generateProgressivePattern(
+        schoolId,
+        startDifficulty,
+        endDifficulty,
+        blocksPerLevel
+      );
+
+      // Add analysis to each pattern
+      const patternsWithAnalysis = patterns.map((pattern) => ({
+        ...pattern,
+        analysis: pattern.playable ? analyzePattern(pattern) : null,
+      }));
+
+      res.json({
+        patterns: patternsWithAnalysis,
+        totalPatterns: patterns.length,
+        difficultyRange: { start: startDifficulty, end: endDifficulty },
+      });
+    } catch (error) {
+      console.error("Progressive pattern generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate progressive patterns",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/generator/suggestions/:blockId
+ * Get suggested blocks based on a seed block
+ */
+router.get(
+  "/generator/suggestions/:blockId",
+  requireAuth,
+  loadSchoolContext,
+  requireTeacherOrOwner(),
+  async (req: Request, res: Response) => {
+    try {
+      const schoolId = req.school?.id || req.user!.schoolId;
+      if (!schoolId) {
+        return res.status(400).json({ message: "School ID required" });
+      }
+
+      const { blockId } = req.params;
+      const count = parseInt(req.query.count as string) || 4;
+
+      const suggestions = await getSuggestedBlocks(schoolId, blockId, count);
+
+      // Parse JSON fields for response
+      const suggestionsWithParsedFields = suggestions.map((block) => ({
+        ...block,
+        events: block.events ? JSON.parse(block.events) : [],
+        tags: block.tags ? JSON.parse(block.tags) : [],
+      }));
+
+      res.json(suggestionsWithParsedFields);
+    } catch (error) {
+      console.error("Block suggestions error:", error);
+      res.status(500).json({
+        message: "Failed to get block suggestions",
         error: error instanceof Error ? error.message : String(error),
       });
     }
