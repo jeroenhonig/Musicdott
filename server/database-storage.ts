@@ -1,9 +1,11 @@
 import { eq, and, gte, lte, or, desc, sql, count, inArray } from "drizzle-orm";
 import { db, pool } from "./db";
-import { 
+import {
   users, students, songs, lessons, assignments, sessions, schools, schoolMemberships,
   achievementDefinitions, studentAchievements, recurringSchedules, practiceSessions,
   userNotifications, userPreferences, notifications,
+  // POS Import tables
+  notations, posSongs, songNotationMappings, drumblocks, posImportLogs,
   type User, type InsertUser,
   type Student, type InsertStudent,
   type Song, type InsertSong,
@@ -20,7 +22,14 @@ import {
   type UserPreferences, type InsertUserPreferences,
   type Notification, type InsertNotification,
   type ProfileUpdateData, type SchoolSettingsUpdateData,
-  type NotificationSettingsData, type PreferenceSettingsData
+  type NotificationSettingsData, type PreferenceSettingsData,
+  // POS Import types
+  type Notation, type InsertNotation,
+  type PosSong, type InsertPosSong,
+  type SongNotationMapping, type InsertSongNotationMapping,
+  type Drumblock, type InsertDrumblock,
+  type PosImportLog, type InsertPosImportLog,
+  type BatchResult
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import connectPg from "connect-pg-simple";
@@ -1968,5 +1977,312 @@ export class DatabaseStorage implements IStorage {
           )
         )
       ) as Promise<User[]>;
+  }
+
+  // ========================================
+  // POS IMPORT SYSTEM - Notations, Songs, Mappings, Drumblocks
+  // ========================================
+
+  // Notations
+  async getNotations(schoolId: number): Promise<Notation[]> {
+    return await db
+      .select()
+      .from(notations)
+      .where(eq(notations.schoolId, schoolId))
+      .orderBy(desc(notations.createdAt));
+  }
+
+  async getNotation(id: number): Promise<Notation | undefined> {
+    const [notation] = await db
+      .select()
+      .from(notations)
+      .where(eq(notations.id, id));
+    return notation;
+  }
+
+  async createNotation(notation: InsertNotation): Promise<Notation> {
+    const [newNotation] = await db
+      .insert(notations)
+      .values(notation)
+      .returning();
+    return newNotation;
+  }
+
+  async createNotationsBatch(notationsData: InsertNotation[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    if (notationsData.length === 0) return result;
+
+    try {
+      // Use batch insert with ON CONFLICT handling
+      const inserted = await db
+        .insert(notations)
+        .values(notationsData)
+        .returning();
+      result.inserted = inserted.length;
+    } catch (error) {
+      // Fall back to individual inserts to track specific errors
+      for (let i = 0; i < notationsData.length; i++) {
+        try {
+          await db.insert(notations).values(notationsData[i]);
+          result.inserted++;
+        } catch (err) {
+          result.errors.push({ row: i, error: err instanceof Error ? err.message : String(err) });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async updateNotation(id: number, data: Partial<Notation>): Promise<Notation> {
+    const [updated] = await db
+      .update(notations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(notations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteNotation(id: number): Promise<boolean> {
+    await db.delete(notations).where(eq(notations.id, id));
+    return true;
+  }
+
+  // POS Songs
+  async getPosSongs(schoolId: number): Promise<PosSong[]> {
+    return await db
+      .select()
+      .from(posSongs)
+      .where(eq(posSongs.schoolId, schoolId))
+      .orderBy(desc(posSongs.createdAt));
+  }
+
+  async getPosSong(id: number): Promise<PosSong | undefined> {
+    const [song] = await db
+      .select()
+      .from(posSongs)
+      .where(eq(posSongs.id, id));
+    return song;
+  }
+
+  async createPosSong(song: InsertPosSong): Promise<PosSong> {
+    const [newSong] = await db
+      .insert(posSongs)
+      .values(song)
+      .returning();
+    return newSong;
+  }
+
+  async createPosSongsBatch(songsData: InsertPosSong[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    if (songsData.length === 0) return result;
+
+    try {
+      const inserted = await db
+        .insert(posSongs)
+        .values(songsData)
+        .returning();
+      result.inserted = inserted.length;
+    } catch (error) {
+      // Fall back to individual inserts to track specific errors
+      for (let i = 0; i < songsData.length; i++) {
+        try {
+          await db.insert(posSongs).values(songsData[i]);
+          result.inserted++;
+        } catch (err) {
+          result.errors.push({ row: i, error: err instanceof Error ? err.message : String(err) });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async updatePosSong(id: number, data: Partial<PosSong>): Promise<PosSong> {
+    const [updated] = await db
+      .update(posSongs)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(posSongs.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePosSong(id: number): Promise<boolean> {
+    await db.delete(posSongs).where(eq(posSongs.id, id));
+    return true;
+  }
+
+  // Song ↔ Notation Mappings
+  async getSongNotationMappings(schoolId: number): Promise<SongNotationMapping[]> {
+    return await db
+      .select()
+      .from(songNotationMappings)
+      .where(eq(songNotationMappings.schoolId, schoolId))
+      .orderBy(desc(songNotationMappings.createdAt));
+  }
+
+  async getSongNotationMapping(id: number): Promise<SongNotationMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(songNotationMappings)
+      .where(eq(songNotationMappings.id, id));
+    return mapping;
+  }
+
+  async getMappingsForSong(songId: number): Promise<SongNotationMapping[]> {
+    return await db
+      .select()
+      .from(songNotationMappings)
+      .where(eq(songNotationMappings.songId, songId));
+  }
+
+  async getMappingsForNotation(notationId: number): Promise<SongNotationMapping[]> {
+    return await db
+      .select()
+      .from(songNotationMappings)
+      .where(eq(songNotationMappings.notationId, notationId));
+  }
+
+  async createSongNotationMapping(mapping: InsertSongNotationMapping): Promise<SongNotationMapping> {
+    const [newMapping] = await db
+      .insert(songNotationMappings)
+      .values(mapping)
+      .returning();
+    return newMapping;
+  }
+
+  async deleteSongNotationMapping(id: number): Promise<boolean> {
+    await db.delete(songNotationMappings).where(eq(songNotationMappings.id, id));
+    return true;
+  }
+
+  // Drumblocks
+  async getDrumblocks(schoolId: number): Promise<Drumblock[]> {
+    return await db
+      .select()
+      .from(drumblocks)
+      .where(eq(drumblocks.schoolId, schoolId))
+      .orderBy(desc(drumblocks.createdAt));
+  }
+
+  async getDrumblock(id: number): Promise<Drumblock | undefined> {
+    const [block] = await db
+      .select()
+      .from(drumblocks)
+      .where(eq(drumblocks.id, id));
+    return block;
+  }
+
+  async getDrumblockByBlockId(blockId: string, schoolId: number): Promise<Drumblock | undefined> {
+    const [block] = await db
+      .select()
+      .from(drumblocks)
+      .where(
+        and(
+          eq(drumblocks.blockId, blockId),
+          eq(drumblocks.schoolId, schoolId)
+        )
+      );
+    return block;
+  }
+
+  async getDrumblocksByNotation(notationId: number): Promise<Drumblock[]> {
+    return await db
+      .select()
+      .from(drumblocks)
+      .where(eq(drumblocks.sourceNotationId, notationId));
+  }
+
+  async createDrumblock(block: InsertDrumblock): Promise<Drumblock> {
+    const [newBlock] = await db
+      .insert(drumblocks)
+      .values(block)
+      .returning();
+    return newBlock;
+  }
+
+  async createDrumblocksBatch(blocksData: InsertDrumblock[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    if (blocksData.length === 0) return result;
+
+    try {
+      const inserted = await db
+        .insert(drumblocks)
+        .values(blocksData)
+        .returning();
+      result.inserted = inserted.length;
+    } catch (error) {
+      // Fall back to individual inserts to track specific errors
+      for (let i = 0; i < blocksData.length; i++) {
+        try {
+          await db.insert(drumblocks).values(blocksData[i]);
+          result.inserted++;
+        } catch (err) {
+          result.errors.push({ row: i, error: err instanceof Error ? err.message : String(err) });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async updateDrumblock(id: number, data: Partial<Drumblock>): Promise<Drumblock> {
+    const [updated] = await db
+      .update(drumblocks)
+      .set(data)
+      .where(eq(drumblocks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDrumblock(id: number): Promise<boolean> {
+    await db.delete(drumblocks).where(eq(drumblocks.id, id));
+    return true;
+  }
+
+  // Import Logs
+  async createImportLog(log: InsertPosImportLog): Promise<PosImportLog> {
+    const [newLog] = await db
+      .insert(posImportLogs)
+      .values(log)
+      .returning();
+    return newLog;
+  }
+
+  async updateImportLog(id: number, data: Partial<PosImportLog>): Promise<PosImportLog> {
+    const [updated] = await db
+      .update(posImportLogs)
+      .set(data)
+      .where(eq(posImportLogs.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getImportLog(id: number): Promise<PosImportLog | undefined> {
+    const [log] = await db
+      .select()
+      .from(posImportLogs)
+      .where(eq(posImportLogs.id, id));
+    return log;
+  }
+
+  async getImportLogs(schoolId: number, limit: number = 50): Promise<PosImportLog[]> {
+    return await db
+      .select()
+      .from(posImportLogs)
+      .where(eq(posImportLogs.schoolId, schoolId))
+      .orderBy(desc(posImportLogs.startedAt))
+      .limit(limit);
+  }
+
+  async getImportLogByBatchId(batchId: string): Promise<PosImportLog | undefined> {
+    const [log] = await db
+      .select()
+      .from(posImportLogs)
+      .where(eq(posImportLogs.batchId, batchId));
+    return log;
   }
 }

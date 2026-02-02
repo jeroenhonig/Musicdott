@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "fixture_set": "embed-registry",
+  "cases": [
+    {
+      "id": "ER-001",
+      "description": "Groovescribe self-hosted query URL should route to groovescribe normalizer",
+      "input": {
+        "raw": "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
+      },
+      "expected": {
+        "provider": "groovescribe",
+        "type": "notation",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "embed_url_contains": "teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1"
+      }
+    },
+    {
+      "id": "ER-002",
+      "description": "YouTube watch URL should route to youtube normalizer",
+      "input": {
+        "raw": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "embed_url_contains": "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      }
+    },
+    {
+      "id": "ER-003",
+      "description": "Spotify track URL should route to spotify normalizer",
+      "input": {
+        "raw": "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp"
+      },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "embed_url_contains": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp"
+      }
+    },
+    {
+      "id": "ER-004",
+      "description": "iframe HTML should extract src then route based on extracted URL (YouTube)",
+      "input": {
+        "raw": "<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\" width=\"560\" height=\"315\"></iframe>"
+      },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      }
+    },
+    {
+      "id": "ER-005",
+      "description": "Unknown external URL should become fallback external module",
+      "input": {
+        "raw": "https://example.com/some-page"
+      },
+      "expected": {
+        "provider": "external",
+        "type": "external",
+        "status": "fallback",
+        "embed_url_null": true,
+        "fallback_url_equals_raw": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "ER-006",
+      "description": "Dangerous javascript: URL must fallback (never embed)",
+      "input": {
+        "raw": "javascript:alert('xss')"
+      },
+      "expected": {
+        "provider": "external",
+        "type": "external",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "ER-007",
+      "description": "Empty input must fallback, never crash",
+      "input": {
+        "raw": ""
+      },
+      "expected": {
+        "provider": "external",
+        "type": "external",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    }
+  ]
+}

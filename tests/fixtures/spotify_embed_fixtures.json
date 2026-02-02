@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "fixture_set": "spotify-embed-normalizer",
+  "cases": [
+    {
+      "id": "SP-001",
+      "description": "Spotify track URL → embed URL",
+      "input": { "raw": "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-002",
+      "description": "Spotify album URL → embed URL",
+      "input": { "raw": "https://open.spotify.com/album/1ATL5GLyefJaxhQzSPVrLX" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/album/1ATL5GLyefJaxhQzSPVrLX",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-003",
+      "description": "Spotify playlist URL → embed URL",
+      "input": { "raw": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-004",
+      "description": "Spotify embed URL stays embed URL",
+      "input": { "raw": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-005",
+      "description": "Spotify URL with query params should still embed correctly",
+      "input": { "raw": "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp?si=abcdef123456" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-006",
+      "description": "iframe HTML should extract src and embed",
+      "input": { "raw": "<iframe style=\"border-radius:12px\" src=\"https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp\" width=\"100%\" height=\"152\" frameBorder=\"0\"></iframe>" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-007",
+      "description": "Missing protocol should normalize to https",
+      "input": { "raw": "open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-008",
+      "description": "Non-Spotify input should fallback (if normalizeSpotifyEmbed called directly)",
+      "input": { "raw": "https://example.com/not-spotify" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "SP-009",
+      "description": "Invalid Spotify URL missing type/id should fallback",
+      "input": { "raw": "https://open.spotify.com/" },
+      "expected": {
+        "provider": "spotify",
+        "type": "video",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "fixture_set": "youtube-embed-normalizer",
+  "cases": [
+    {
+      "id": "YT-001",
+      "description": "YouTube watch URL → embed URL",
+      "input": { "raw": "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-002",
+      "description": "YouTube short link youtu.be → embed URL",
+      "input": { "raw": "https://youtu.be/dQw4w9WgXcQ" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-003",
+      "description": "Already embed URL stays embed URL",
+      "input": { "raw": "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-004",
+      "description": "Watch URL with extra params should keep ID correct",
+      "input": { "raw": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=43s" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-005",
+      "description": "iframe HTML should extract src and embed",
+      "input": { "raw": "<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\" width=\"560\" height=\"315\"></iframe>" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-006",
+      "description": "Missing protocol should normalize to https",
+      "input": { "raw": "www.youtube.com/watch?v=dQw4w9WgXcQ" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "embedded",
+        "embed_url_equals": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-007",
+      "description": "Non-YouTube input should fallback (if normalizeYouTubeEmbed called directly)",
+      "input": { "raw": "https://example.com/not-youtube" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "YT-008",
+      "description": "Invalid YouTube URL missing ID should fallback",
+      "input": { "raw": "https://www.youtube.com/watch?v=" },
+      "expected": {
+        "provider": "youtube",
+        "type": "video",
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    }
+  ]
+}

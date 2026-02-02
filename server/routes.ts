@@ -166,7 +166,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register JSON import routes
   app.use("/api/import", (await import("./routes/json-import")).default);
-  
+
+  // Register POS import routes (notations, songs, drumblocks)
+  app.use("/api/pos-import", (await import("./routes/pos-import")).default);
+  // Also register under /api for direct access to notations, pos-songs, mappings, drumblocks
+  app.use("/api", (await import("./routes/pos-import")).default);
+
   // Register subscription routes with billing alias for compatibility
   app.use("/api/billing", subscriptionsRouter);
   

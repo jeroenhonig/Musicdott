@@ -131,6 +131,10 @@ npm run dev
 
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide voor Linux/Docker
 - **[.env.example](./.env.example)** - Environment variabelen configuratie
+- **[docs/GROOVESCRIBE_MODULE_SPEC.md](./docs/GROOVESCRIBE_MODULE_SPEC.md)** - Groovescribe module spec
+- **[docs/GROOVESCRIBE_MONOLITHIC_PROMPT.md](./docs/GROOVESCRIBE_MONOLITHIC_PROMPT.md)** - Monolithic Claude system prompt
+- **[docs/GROOVESCRIBE_EXAMPLE_LESSON.md](./docs/GROOVESCRIBE_EXAMPLE_LESSON.md)** - Example lesson (Groovescribe)
+- Docs index: `docs/README.md`
 
 ---
 

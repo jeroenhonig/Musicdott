@@ -324,6 +324,15 @@ export const schools = pgTable("schools", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// School aliases for slug -> school_id mapping (import support)
+export const schoolAliases = pgTable("school_aliases", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // School memberships for user-school role associations
 export const schoolMemberships = pgTable("school_memberships", {
   id: serial("id").primaryKey(),
@@ -336,6 +345,8 @@ export const schoolMemberships = pgTable("school_memberships", {
 
 export type School = typeof schools.$inferSelect;
 export type InsertSchool = typeof schools.$inferInsert;
+export type SchoolAlias = typeof schoolAliases.$inferSelect;
+export type InsertSchoolAlias = typeof schoolAliases.$inferInsert;
 
 // School branding schema for updates
 export const schoolBrandingSchema = createInsertSchema(schools).pick({
@@ -1112,3 +1123,6 @@ export type InsertCronJobHealth = typeof cronJobHealth.$inferInsert;
 
 // Re-export notation tables
 export * from "./notation-schema";
+
+// Re-export POS import tables
+export * from "./pos-schema";

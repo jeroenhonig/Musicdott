@@ -9,8 +9,15 @@ import {
   type InsertUser, type InsertStudent, type InsertSong, type InsertLesson, type InsertAssignment, type InsertSession,
   type InsertAchievementDefinition, type InsertStudentAchievement, type InsertRecurringSchedule, type InsertPracticeSession,
   type InsertSchool, type InsertGroovePattern, type InsertSchoolMembership, type InsertUserNotifications, type InsertUserPreferences,
-  type ProfileUpdateData, type SchoolSettingsUpdateData, type NotificationSettingsData, 
-  type PreferenceSettingsData, type PasswordChangeData
+  type ProfileUpdateData, type SchoolSettingsUpdateData, type NotificationSettingsData,
+  type PreferenceSettingsData, type PasswordChangeData,
+  // POS Import types
+  type Notation, type InsertNotation,
+  type PosSong, type InsertPosSong,
+  type SongNotationMapping, type InsertSongNotationMapping,
+  type Drumblock, type InsertDrumblock,
+  type PosImportLog, type InsertPosImportLog,
+  type BatchResult
 } from "@shared/schema";
 import session from "express-session";
 import { DatabaseStorage } from "./database-storage";
@@ -255,6 +262,51 @@ export interface IStorage {
   // Birthday checking
   getStudentsWithBirthdayToday(): Promise<any[]>;
   getSchoolTeachers(schoolId: number): Promise<User[]>;
+
+  // ========================================
+  // POS IMPORT SYSTEM - Notations, Songs, Mappings, Drumblocks
+  // ========================================
+
+  // Notations
+  getNotations(schoolId: number): Promise<Notation[]>;
+  getNotation(id: number): Promise<Notation | undefined>;
+  createNotation(notation: InsertNotation): Promise<Notation>;
+  createNotationsBatch(notations: InsertNotation[]): Promise<BatchResult>;
+  updateNotation(id: number, data: Partial<Notation>): Promise<Notation>;
+  deleteNotation(id: number): Promise<boolean>;
+
+  // POS Songs
+  getPosSongs(schoolId: number): Promise<PosSong[]>;
+  getPosSong(id: number): Promise<PosSong | undefined>;
+  createPosSong(song: InsertPosSong): Promise<PosSong>;
+  createPosSongsBatch(songs: InsertPosSong[]): Promise<BatchResult>;
+  updatePosSong(id: number, data: Partial<PosSong>): Promise<PosSong>;
+  deletePosSong(id: number): Promise<boolean>;
+
+  // Song ↔ Notation Mappings
+  getSongNotationMappings(schoolId: number): Promise<SongNotationMapping[]>;
+  getSongNotationMapping(id: number): Promise<SongNotationMapping | undefined>;
+  getMappingsForSong(songId: number): Promise<SongNotationMapping[]>;
+  getMappingsForNotation(notationId: number): Promise<SongNotationMapping[]>;
+  createSongNotationMapping(mapping: InsertSongNotationMapping): Promise<SongNotationMapping>;
+  deleteSongNotationMapping(id: number): Promise<boolean>;
+
+  // Drumblocks
+  getDrumblocks(schoolId: number): Promise<Drumblock[]>;
+  getDrumblock(id: number): Promise<Drumblock | undefined>;
+  getDrumblockByBlockId(blockId: string, schoolId: number): Promise<Drumblock | undefined>;
+  getDrumblocksByNotation(notationId: number): Promise<Drumblock[]>;
+  createDrumblock(block: InsertDrumblock): Promise<Drumblock>;
+  createDrumblocksBatch(blocks: InsertDrumblock[]): Promise<BatchResult>;
+  updateDrumblock(id: number, data: Partial<Drumblock>): Promise<Drumblock>;
+  deleteDrumblock(id: number): Promise<boolean>;
+
+  // Import Logs
+  createImportLog(log: InsertPosImportLog): Promise<PosImportLog>;
+  updateImportLog(id: number, data: Partial<PosImportLog>): Promise<PosImportLog>;
+  getImportLog(id: number): Promise<PosImportLog | undefined>;
+  getImportLogs(schoolId: number, limit?: number): Promise<PosImportLog[]>;
+  getImportLogByBatchId(batchId: string): Promise<PosImportLog | undefined>;
 }
 
 // In-memory storage implementation to use when database is unavailable
@@ -275,11 +327,23 @@ export class MemStorage implements IStorage {
   private groovePatterns: Map<string, GroovePattern> = new Map();
   private schoolMemberships: Map<number, SchoolMembership> = new Map();
   private notifications: Map<number, Notification> = new Map();
-  
+
+  // POS Import System maps
+  private posNotations: Map<number, Notation> = new Map();
+  private posSongsData: Map<number, PosSong> = new Map();
+  private songNotationMappings: Map<number, SongNotationMapping> = new Map();
+  private drumblocksData: Map<number, Drumblock> = new Map();
+  private posImportLogs: Map<number, PosImportLog> = new Map();
+
   // ID counters for proper ID generation
   private lessonIdCounter: number = 0;
   private studentIdCounter: number = 0;
   private songIdCounter: number = 0;
+  private notationIdCounter: number = 0;
+  private posSongIdCounter: number = 0;
+  private mappingIdCounter: number = 0;
+  private drumblockIdCounter: number = 0;
+  private importLogIdCounter: number = 0;
   private notificationIdCounter: number = 0;
   
   sessionStore: session.Store;
@@ -1923,10 +1987,237 @@ export class MemStorage implements IStorage {
   }
 
   async getSchoolTeachers(schoolId: number): Promise<User[]> {
-    return Array.from(this.users.values()).filter(user => 
-      user.schoolId === schoolId && 
+    return Array.from(this.users.values()).filter(user =>
+      user.schoolId === schoolId &&
       (user.role === 'teacher' || user.role === 'school_owner')
     );
+  }
+
+  // ========================================
+  // POS IMPORT SYSTEM IMPLEMENTATIONS
+  // ========================================
+
+  // Notations
+  async getNotations(schoolId: number): Promise<Notation[]> {
+    return Array.from(this.posNotations.values()).filter(n => n.schoolId === schoolId);
+  }
+
+  async getNotation(id: number): Promise<Notation | undefined> {
+    return this.posNotations.get(id);
+  }
+
+  async createNotation(notation: InsertNotation): Promise<Notation> {
+    const id = ++this.notationIdCounter;
+    const newNotation: Notation = {
+      ...notation,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.posNotations.set(id, newNotation);
+    return newNotation;
+  }
+
+  async createNotationsBatch(notations: InsertNotation[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    for (let i = 0; i < notations.length; i++) {
+      try {
+        await this.createNotation(notations[i]);
+        result.inserted++;
+      } catch (error) {
+        result.errors.push({ row: i, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
+    return result;
+  }
+
+  async updateNotation(id: number, data: Partial<Notation>): Promise<Notation> {
+    const existing = this.posNotations.get(id);
+    if (!existing) throw new Error("Notation not found");
+
+    const updated: Notation = { ...existing, ...data, updatedAt: new Date() };
+    this.posNotations.set(id, updated);
+    return updated;
+  }
+
+  async deleteNotation(id: number): Promise<boolean> {
+    return this.posNotations.delete(id);
+  }
+
+  // POS Songs
+  async getPosSongs(schoolId: number): Promise<PosSong[]> {
+    return Array.from(this.posSongsData.values()).filter(s => s.schoolId === schoolId);
+  }
+
+  async getPosSong(id: number): Promise<PosSong | undefined> {
+    return this.posSongsData.get(id);
+  }
+
+  async createPosSong(song: InsertPosSong): Promise<PosSong> {
+    const id = ++this.posSongIdCounter;
+    const newSong: PosSong = {
+      ...song,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.posSongsData.set(id, newSong);
+    return newSong;
+  }
+
+  async createPosSongsBatch(songs: InsertPosSong[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    for (let i = 0; i < songs.length; i++) {
+      try {
+        await this.createPosSong(songs[i]);
+        result.inserted++;
+      } catch (error) {
+        result.errors.push({ row: i, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
+    return result;
+  }
+
+  async updatePosSong(id: number, data: Partial<PosSong>): Promise<PosSong> {
+    const existing = this.posSongsData.get(id);
+    if (!existing) throw new Error("POS Song not found");
+
+    const updated: PosSong = { ...existing, ...data, updatedAt: new Date() };
+    this.posSongsData.set(id, updated);
+    return updated;
+  }
+
+  async deletePosSong(id: number): Promise<boolean> {
+    return this.posSongsData.delete(id);
+  }
+
+  // Song ↔ Notation Mappings
+  async getSongNotationMappings(schoolId: number): Promise<SongNotationMapping[]> {
+    return Array.from(this.songNotationMappings.values()).filter(m => m.schoolId === schoolId);
+  }
+
+  async getSongNotationMapping(id: number): Promise<SongNotationMapping | undefined> {
+    return this.songNotationMappings.get(id);
+  }
+
+  async getMappingsForSong(songId: number): Promise<SongNotationMapping[]> {
+    return Array.from(this.songNotationMappings.values()).filter(m => m.songId === songId);
+  }
+
+  async getMappingsForNotation(notationId: number): Promise<SongNotationMapping[]> {
+    return Array.from(this.songNotationMappings.values()).filter(m => m.notationId === notationId);
+  }
+
+  async createSongNotationMapping(mapping: InsertSongNotationMapping): Promise<SongNotationMapping> {
+    const id = ++this.mappingIdCounter;
+    const newMapping: SongNotationMapping = {
+      ...mapping,
+      id,
+      createdAt: new Date(),
+    };
+    this.songNotationMappings.set(id, newMapping);
+    return newMapping;
+  }
+
+  async deleteSongNotationMapping(id: number): Promise<boolean> {
+    return this.songNotationMappings.delete(id);
+  }
+
+  // Drumblocks
+  async getDrumblocks(schoolId: number): Promise<Drumblock[]> {
+    return Array.from(this.drumblocksData.values()).filter(b => b.schoolId === schoolId);
+  }
+
+  async getDrumblock(id: number): Promise<Drumblock | undefined> {
+    return this.drumblocksData.get(id);
+  }
+
+  async getDrumblockByBlockId(blockId: string, schoolId: number): Promise<Drumblock | undefined> {
+    return Array.from(this.drumblocksData.values()).find(b => b.blockId === blockId && b.schoolId === schoolId);
+  }
+
+  async getDrumblocksByNotation(notationId: number): Promise<Drumblock[]> {
+    return Array.from(this.drumblocksData.values()).filter(b => b.sourceNotationId === notationId);
+  }
+
+  async createDrumblock(block: InsertDrumblock): Promise<Drumblock> {
+    const id = ++this.drumblockIdCounter;
+    const newBlock: Drumblock = {
+      ...block,
+      id,
+      createdAt: new Date(),
+    };
+    this.drumblocksData.set(id, newBlock);
+    return newBlock;
+  }
+
+  async createDrumblocksBatch(blocks: InsertDrumblock[]): Promise<BatchResult> {
+    const result: BatchResult = { inserted: 0, skipped: 0, errors: [] };
+
+    for (let i = 0; i < blocks.length; i++) {
+      try {
+        await this.createDrumblock(blocks[i]);
+        result.inserted++;
+      } catch (error) {
+        result.errors.push({ row: i, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
+    return result;
+  }
+
+  async updateDrumblock(id: number, data: Partial<Drumblock>): Promise<Drumblock> {
+    const existing = this.drumblocksData.get(id);
+    if (!existing) throw new Error("Drumblock not found");
+
+    const updated: Drumblock = { ...existing, ...data };
+    this.drumblocksData.set(id, updated);
+    return updated;
+  }
+
+  async deleteDrumblock(id: number): Promise<boolean> {
+    return this.drumblocksData.delete(id);
+  }
+
+  // Import Logs
+  async createImportLog(log: InsertPosImportLog): Promise<PosImportLog> {
+    const id = ++this.importLogIdCounter;
+    const newLog: PosImportLog = {
+      ...log,
+      id,
+      startedAt: new Date(),
+      completedAt: null,
+    };
+    this.posImportLogs.set(id, newLog);
+    return newLog;
+  }
+
+  async updateImportLog(id: number, data: Partial<PosImportLog>): Promise<PosImportLog> {
+    const existing = this.posImportLogs.get(id);
+    if (!existing) throw new Error("Import log not found");
+
+    const updated: PosImportLog = { ...existing, ...data };
+    this.posImportLogs.set(id, updated);
+    return updated;
+  }
+
+  async getImportLog(id: number): Promise<PosImportLog | undefined> {
+    return this.posImportLogs.get(id);
+  }
+
+  async getImportLogs(schoolId: number, limit: number = 50): Promise<PosImportLog[]> {
+    return Array.from(this.posImportLogs.values())
+      .filter(l => l.schoolId === schoolId)
+      .sort((a, b) => (b.startedAt?.getTime() || 0) - (a.startedAt?.getTime() || 0))
+      .slice(0, limit);
+  }
+
+  async getImportLogByBatchId(batchId: string): Promise<PosImportLog | undefined> {
+    return Array.from(this.posImportLogs.values()).find(l => l.batchId === batchId);
   }
 }
 

@@ -1,0 +1,184 @@
+{
+  "schema_version": "1.0",
+  "fixture_set": "groovescribe-embed-normalizer",
+  "cases": [
+    {
+      "id": "GS-001",
+      "description": "Self-hosted Groovescribe query URL (Musicdott teacher) – should embed + parseable",
+      "input": {
+        "raw": "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_contains": "teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1",
+        "must_preserve_raw": true,
+        "should_extract_query_meta": true,
+        "should_translate_events": true
+      }
+    },
+    {
+      "id": "GS-002",
+      "description": "Official Groovescribe query URL – should embed",
+      "input": {
+        "raw": "https://www.groovescribe.com/?TimeSig=7/8&Div=16&Tempo=120&Measures=2&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_contains": "www.groovescribe.com/?TimeSig=7/8&Div=16&Tempo=120&Measures=2",
+        "must_preserve_raw": true,
+        "should_extract_query_meta": true,
+        "should_translate_events": true
+      }
+    },
+    {
+      "id": "GS-003",
+      "description": "Groovescribe hash/share URL – should embed, translation optional",
+      "input": {
+        "raw": "https://www.groovescribe.com/#/groove/ENCODED-GROOVE-STRING"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_equals_raw": true,
+        "must_preserve_raw": true,
+        "should_translate_events": false
+      }
+    },
+    {
+      "id": "GS-004",
+      "description": "iframe HTML containing Groovescribe src – should extract src and embed",
+      "input": {
+        "raw": "<iframe src=\"https://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=90&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C\" width=\"800\" height=\"600\"></iframe>"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_contains": "www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=90&Measures=1",
+        "must_preserve_raw": true,
+        "should_translate_events": true
+      }
+    },
+    {
+      "id": "GS-005",
+      "description": "Missing protocol (www.groovescribe.com/...) – should normalize to https and embed",
+      "input": {
+        "raw": "www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=100&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_contains": "https://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=100&Measures=1",
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-006",
+      "description": "HTTP protocol – should allow embed (optionally normalize to https if desired)",
+      "input": {
+        "raw": "http://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=85&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "embed_url_contains_any_of": [
+          "http://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=85&Measures=1",
+          "https://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=85&Measures=1"
+        ],
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-007",
+      "description": "Recognizable query meta but unknown host – treat as groovescribe-like notation, embed if safe (fallback allowed)",
+      "input": {
+        "raw": "https://example.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status_any_of": ["embedded", "fallback"],
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-008",
+      "description": "Non-groovescribe external link – must become a module with fallback (never crashes)",
+      "input": {
+        "raw": "https://drive.google.com/file/d/abc123/view?usp=sharing"
+      },
+      "expected": {
+        "type": "notation",
+        "provider_any_of": ["external"],
+        "status": "fallback",
+        "embed_url_null": true,
+        "fallback_url_equals_raw": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-009",
+      "description": "Potentially unsafe javascript URL – must NOT embed, must fallback, raw preserved",
+      "input": {
+        "raw": "javascript:alert('xss')"
+      },
+      "expected": {
+        "type": "notation",
+        "provider_any_of": ["external"],
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-010",
+      "description": "Empty string – must return fallback module, no crash",
+      "input": {
+        "raw": ""
+      },
+      "expected": {
+        "type": "notation",
+        "provider_any_of": ["external"],
+        "status": "fallback",
+        "embed_url_null": true,
+        "must_preserve_raw": true
+      }
+    },
+    {
+      "id": "GS-011",
+      "description": "Groovescribe query missing TimeSig/Div but has lanes – embed still; translate partial if possible",
+      "input": {
+        "raw": "https://teacher.musicdott.com/groovescribe/?Tempo=95&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "translation_status_any_of": ["ok", "partial", "failed"]
+      }
+    },
+    {
+      "id": "GS-012",
+      "description": "Groovescribe query with unrecognized lane keys – embed; translation should log errors but not fail import",
+      "input": {
+        "raw": "https://www.groovescribe.com/?TimeSig=4/4&Div=16&Tempo=90&Measures=1&X=%7C----x-------x---%7C"
+      },
+      "expected": {
+        "type": "notation",
+        "provider": "groovescribe",
+        "status": "embedded",
+        "must_preserve_raw": true,
+        "should_translate_events": true,
+        "translator_should_log_errors": true
+      }
+    }
+  ]
+}
