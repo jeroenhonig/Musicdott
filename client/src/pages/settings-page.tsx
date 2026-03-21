@@ -30,7 +30,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { 
+import {
   Settings,
   User,
   School,
@@ -42,8 +42,10 @@ import {
   Save,
   Upload,
   Eye,
-  EyeOff
+  EyeOff,
+  Plug,
 } from "lucide-react";
+import DrumSchoolIntegration from "@/components/integrations/drumschool-integration";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -293,7 +295,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className={`grid w-full ${canEditSchool ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${canEditSchool ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -316,6 +318,12 @@ export default function SettingsPage() {
             <Shield className="h-4 w-4" />
             Security
           </TabsTrigger>
+          {canEditSchool && (
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Plug className="h-4 w-4" />
+              Integraties
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Profile Settings */}
@@ -892,6 +900,13 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Integrations – DrumSchool Manager */}
+        {canEditSchool && (
+          <TabsContent value="integrations">
+            <DrumSchoolIntegration />
+          </TabsContent>
+        )}
       </Tabs>
       </div>
     </AppLayout>

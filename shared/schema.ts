@@ -55,6 +55,8 @@ export const students = pgTable("students", {
   level: text("level"),
   assignedTeacherId: integer("assigned_teacher_id"),
   notes: text("notes"),
+  externalId: text("external_id"), // ID from external system (e.g. DrumSchool Manager)
+  externalSource: text("external_source"), // Source system name (e.g. 'drumschool_manager')
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").default(true),
@@ -320,6 +322,8 @@ export const schools = pgTable("schools", {
   fontFamily: text("font_family").default("Inter"), // Default font
   customCss: text("custom_css"), // Custom CSS overrides
   brandingEnabled: boolean("branding_enabled").default(false),
+  // External integration settings (stored as JSON)
+  externalIntegrations: jsonb("external_integrations"), // DrumSchool Manager and other integrations
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -1126,3 +1130,21 @@ export * from "./notation-schema";
 
 // Re-export POS import tables
 export * from "./pos-schema";
+
+// DrumSchool Manager integration settings type
+export type DrumSchoolManagerSettings = {
+  baseUrl: string;                // e.g. "https://drumschoolstefanvandebrug.nl/manager"
+  apiKey?: string;                // API key / token for REST API access
+  icalUrl?: string;               // URL to iCal feed (for agenda sync)
+  autoSync: boolean;              // Whether to sync automatically
+  syncIntervalHours: number;      // How often to sync (default: 24)
+  lastSyncAt?: string;            // ISO timestamp of last successful sync
+  lastSyncStatus?: 'success' | 'error' | 'partial';
+  lastSyncMessage?: string;
+  syncStudents: boolean;          // Whether to sync students
+  syncSchedule: boolean;          // Whether to sync schedule/agenda
+};
+
+export type ExternalIntegrations = {
+  drumschoolManager?: DrumSchoolManagerSettings;
+};
