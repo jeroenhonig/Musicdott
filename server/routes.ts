@@ -172,6 +172,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Also register under /api for direct access to notations, pos-songs, mappings, drumblocks
   app.use("/api", (await import("./routes/pos-import")).default);
 
+  // Register DrumSchool Manager integration routes
+  app.use("/api/drumschool-integration", (await import("./routes/drumschool-integration")).default);
+
   // Register subscription routes with billing alias for compatibility
   app.use("/api/billing", subscriptionsRouter);
   
