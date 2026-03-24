@@ -12,7 +12,7 @@ import {
 } from "@shared/auth-validation";
 import { z } from "zod";
 import { EmailNotificationService } from "./services/email-notifications";
-import { authRateLimit, passwordChangeRateLimit, verifySameOrigin } from "./middleware/security";
+import { authRateLimit, passwordChangeRateLimit, strictRateLimit, verifySameOrigin } from "./middleware/security";
 
 // Exported session middleware for Socket.IO integration
 export let sessionMiddleware: RequestHandler;
@@ -400,6 +400,64 @@ export function setupAuth(app: Express) {
     };
     
     res.json(userResponse);
+  });
+
+  // AVG Art. 20 — Data portability: export all personal data for the authenticated user
+  app.get("/api/user/export", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+      const userId = req.user!.id;
+      const { password: _pw, ...userProfile } = req.user!;
+
+      const [lessons, assignments, students] = await Promise.all([
+        storage.getLessons(userId).catch(() => []),
+        storage.getAssignments(userId).catch(() => []),
+        storage.getStudentsForTeacher(userId).catch(() => []),
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        profile: userProfile,
+        lessons,
+        assignments,
+        students: students.map(({ id, name, instrument, level, schoolId }) => ({
+          id, name, instrument, level, schoolId,
+        })),
+      };
+
+      res.setHeader("Content-Disposition", `attachment; filename="musicdott-export-${userId}.json"`);
+      res.setHeader("Content-Type", "application/json");
+      res.json(exportData);
+    } catch (error) {
+      console.error("Data export error:", error);
+      res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  // AVG Art. 17 — Right to erasure: delete account and anonymize personal data
+  app.delete("/api/user/account", verifySameOrigin, strictRateLimit, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+      const { password } = req.body;
+      if (!password) return res.status(400).json({ message: "Password confirmation required" });
+
+      const isValid = await comparePasswords(password, req.user!.password);
+      if (!isValid) return res.status(403).json({ message: "Invalid password" });
+
+      const userId = req.user!.id;
+
+      // Log out before deleting
+      await new Promise<void>((resolve, reject) => req.logout((err) => err ? reject(err) : resolve()));
+
+      await storage.deleteUser(userId);
+
+      res.json({ message: "Account and personal data have been permanently deleted" });
+    } catch (error) {
+      console.error("Account deletion error:", error);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
   });
 
   app.patch("/api/user/password", verifySameOrigin, passwordChangeRateLimit, async (req, res, next) => {

@@ -128,8 +128,14 @@ async function seedAdminAndSchool() {
     console.log(`    ℹ️  Admin exists: ${admin.username} (ID: ${admin.id})`);
   }
 
-  // 2. Get or create school_owner (stefan) - SECOND, before creating the school
-  console.log('  Step 2: Creating school owner...');
+  // 2. Get or create school_owner (stefan) — development only
+  // In production, the school owner is created via the registration flow.
+  if (process.env.NODE_ENV === 'production') {
+    console.log('  Step 2-5: Skipping test accounts in production environment.');
+    return;
+  }
+
+  console.log('  Step 2: Creating school owner (dev only)...');
   let schoolOwner = await db.select().from(users).where(eq(users.username, 'stefan')).limit(1).then(r => r[0]);
 
   if (!schoolOwner) {
