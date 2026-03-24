@@ -431,10 +431,11 @@ export class MemStorage implements IStorage {
       fontFamily: "Inter",
       customCss: null,
       brandingEnabled: false,
+      externalIntegrations: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     this.schools.set(freshSchool.id, freshSchool);
     console.log("✅ Fresh school created");
     console.log("🎯 Account ready - completely empty except for owner");
