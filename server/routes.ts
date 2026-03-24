@@ -52,7 +52,7 @@ import {
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import ImportUtility from "./import-utility";
 import { importStudents } from "./importStudents";
 import { importSchedule } from "./importSchedule";
@@ -198,7 +198,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // Add categories alias for lesson-categories compatibility - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      console.log("Fetching categories (lesson-categories) for user:", req.user!.id, "school:", req.school?.id);
       let categories;
       const schoolId = req.school?.id || req.user!.schoolId;
 
@@ -208,7 +207,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       } else {
         categories = await storage.getLessonCategories(req.user!.id);
       }
-      console.log("Categories retrieved with secure scoping:", categories);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -219,10 +217,8 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // Add recent content endpoints for dashboard - SECURE with authorization and tenant scoping
   app.get("/api/songs/recent", loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      console.log("Fetching recent songs for user:", req.user!.id, "school:", req.school?.id);
       // Use the new secure user-scoped method with proper tenant filtering
       const recentSongs = await storage.getRecentSongsForUser(req.user!.id, 6);
-      console.log("Recent songs retrieved with secure scoping:", recentSongs.length);
       res.json(recentSongs);
     } catch (error) {
       console.error("Error getting recent songs:", error);
@@ -232,10 +228,8 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   app.get("/api/lessons/recent", loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      console.log("Fetching recent lessons for user:", req.user!.id, "school:", req.school?.id);
       // Use the new secure user-scoped method with proper tenant filtering
       const recentLessons = await storage.getRecentLessonsForUser(req.user!.id, 6);
-      console.log("Recent lessons retrieved with secure scoping:", recentLessons.length);
       res.json(recentLessons);
     } catch (error) {
       console.error("Error getting recent lessons:", error);
@@ -257,7 +251,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       // Use school-scoped data for school owners/teachers
       const schoolId = req.school?.id || req.user!.schoolId;
       
-      console.log(`Generating reports for user ${req.user!.id}, school: ${schoolId}, range: ${dateRange} days, type: ${reportType}`);
       
       let reportsData;
       if (schoolId) {
@@ -335,32 +328,48 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     }
   });
 
-  // Student lessons endpoint for today window
-  app.get("/api/student/lessons/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  // Student lessons endpoint for today window — school-scoped: requester must share the student's school
+  app.get("/api/student/lessons/:id", requireAuth, loadSchoolContext, async (req: Request, res: Response) => {
     try {
       const studentId = parseInt(req.params.id);
-      // Get lessons assigned to this student
+      if (isNaN(studentId)) return res.status(400).json({ message: "Invalid student ID" });
+
+      // Verify the student belongs to the same school as the requesting user
+      const student = await storage.getStudent(studentId);
+      if (!student) return res.status(404).json({ message: "Student not found" });
+
+      const requesterSchoolId = req.school?.id || req.user!.schoolId;
+      const isPlatformOwner = req.user!.role === "platform_owner";
+      if (!isPlatformOwner && student.schoolId !== requesterSchoolId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
       const lessons = await storage.getStudentLessons(studentId);
       res.json(lessons);
     } catch (error) {
-      console.error("Error fetching student lessons:", error);
       res.status(500).json({ message: "Failed to fetch student lessons" });
     }
   });
 
-  // Student songs endpoint for today window
-  app.get("/api/student/songs/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  // Student songs endpoint for today window — school-scoped: requester must share the student's school
+  app.get("/api/student/songs/:id", requireAuth, loadSchoolContext, async (req: Request, res: Response) => {
     try {
       const studentId = parseInt(req.params.id);
-      // Get songs assigned to this student
+      if (isNaN(studentId)) return res.status(400).json({ message: "Invalid student ID" });
+
+      // Verify the student belongs to the same school as the requesting user
+      const student = await storage.getStudent(studentId);
+      if (!student) return res.status(404).json({ message: "Student not found" });
+
+      const requesterSchoolId = req.school?.id || req.user!.schoolId;
+      const isPlatformOwner = req.user!.role === "platform_owner";
+      if (!isPlatformOwner && student.schoolId !== requesterSchoolId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
       const songs = await storage.getStudentSongs(studentId);
       res.json(songs);
     } catch (error) {
-      console.error("Error fetching student songs:", error);
       res.status(500).json({ message: "Failed to fetch student songs" });
     }
   });
@@ -391,9 +400,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   app.get("/api/dashboard/recent-songs", requireAuth, loadSchoolContext, requireTeacherOrOwner(), applySchoolFiltering(), async (req: Request, res: Response) => {
     try {
       // SECURE: Use school-scoped method with proper tenant filtering
-      console.log("Fetching recent dashboard songs for user:", req.user!.id, "school:", req.school?.id);
       const recentSongs = await storage.getRecentSongsForUser(req.user!.id, 6);
-      console.log("Dashboard recent songs retrieved with secure scoping:", recentSongs.length);
       res.json(recentSongs);
     } catch (error) {
       console.error("Error fetching recent songs:", error);
@@ -404,9 +411,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   app.get("/api/dashboard/recent-lessons", requireAuth, loadSchoolContext, requireTeacherOrOwner(), applySchoolFiltering(), async (req: Request, res: Response) => {
     try {
       // SECURE: Use school-scoped method with proper tenant filtering
-      console.log("Fetching recent dashboard lessons for user:", req.user!.id, "school:", req.school?.id);
       const recentLessons = await storage.getRecentLessonsForUser(req.user!.id, 6);
-      console.log("Dashboard recent lessons retrieved with secure scoping:", recentLessons.length);
       res.json(recentLessons);
     } catch (error) {
       console.error("Error fetching recent lessons:", error);
@@ -449,7 +454,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         
         // Log for debugging multi-tenant access
         if (process.env.NODE_ENV !== 'production') {
-          console.log(`Students access: User ${req.user!.id} with role ${req.school!.role} in school ${schoolId} retrieved ${students.length} students`);
         }
         
         res.json(students);
@@ -496,7 +500,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
         // Log for debugging multi-tenant access
         if (process.env.NODE_ENV !== 'production') {
-          console.log(`Lessons access: User ${req.user!.id} with role ${req.school!.role} in school ${req.school!.id} retrieved ${lessons.length} lessons`);
         }
 
         res.json(lessons);
@@ -657,7 +660,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // Lesson Categories - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/lesson-categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      console.log("Fetching lesson categories for user:", req.user!.id, "school:", req.school?.id);
       let categories;
       const schoolId = req.school?.id || req.user!.schoolId;
 
@@ -724,7 +726,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         userId: existingCategory.userId,     // Immutable - force existing value
       };
       
-      console.log("Updating lesson category with secure data:", updateData);
       const category = await storage.updateLessonCategory(id, updateData);
       res.json(category);
     } catch (error) {
@@ -1860,15 +1861,15 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       let songsFile = files.songs ? files.songs[0].path : null;
       let lessonsFile = files.lessons ? files.lessons[0].path : null;
       
-      // Prepare conversion command
-      const args = ['python', 'scripts/convert_csv_to_json.py'];
-      if (songsFile) args.push('--songs', songsFile);
-      if (lessonsFile) args.push('--notatie', lessonsFile);
-      args.push('--outdir', 'export');
+      // Prepare conversion command — use execFileSync (not execSync) to avoid shell injection
+      const scriptArgs = ['scripts/convert_csv_to_json.py'];
+      if (songsFile) scriptArgs.push('--songs', songsFile);
+      if (lessonsFile) scriptArgs.push('--notatie', lessonsFile);
+      scriptArgs.push('--outdir', 'export');
 
       // Run CSV to JSON conversion
       try {
-        execSync(args.join(' '), { 
+        execFileSync('python', scriptArgs, {
           stdio: 'pipe',
           cwd: process.cwd(),
           timeout: 30000 // 30 second timeout
@@ -2460,7 +2461,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
     try {
-      console.log(`Starting song cleanup for user ${req.user!.id} in school ${req.user!.schoolId}`);
       
       // Get the school ID from authenticated user context
       const schoolId = req.user!.schoolId;

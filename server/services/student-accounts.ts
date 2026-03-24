@@ -9,10 +9,19 @@ import { generateFallbackUsername } from '@shared/utils';
 import type { Student, User, StudentAccountCreate } from '@shared/schema';
 
 /**
- * Default password for new student accounts
- * Must be changed on first login (mustChangePassword = true)
+ * Default password for new student accounts — must be set via STUDENT_DEFAULT_PASSWORD env var.
+ * Must be changed on first login (mustChangePassword = true).
  */
-export const DEFAULT_STUDENT_PASSWORD = 'Drumles2025!';
+export const DEFAULT_STUDENT_PASSWORD = (() => {
+  const pwd = process.env.STUDENT_DEFAULT_PASSWORD;
+  if (!pwd) {
+    throw new Error(
+      '❌ STUDENT_DEFAULT_PASSWORD environment variable is not set.\n' +
+      'Set it in your .env file to enable student account creation.'
+    );
+  }
+  return pwd;
+})();
 
 /**
  * BCrypt salt rounds for password hashing

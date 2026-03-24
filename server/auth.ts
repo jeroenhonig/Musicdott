@@ -66,10 +66,11 @@ export async function comparePasswords(supplied: string, stored: string) {
 }
 
 function getSessionMaxAgeMs(): number {
-  const rawValue = process.env.SESSION_MAX_AGE_DAYS;
-  const parsedDays = rawValue ? Number.parseInt(rawValue, 10) : 30;
-  const safeDays = Number.isFinite(parsedDays) && parsedDays > 0 ? parsedDays : 30;
-  return safeDays * 24 * 60 * 60 * 1000;
+  const rawValue = process.env.SESSION_MAX_AGE_HOURS;
+  // Default: 8 hours. Override via SESSION_MAX_AGE_HOURS env var.
+  const parsedHours = rawValue ? Number.parseInt(rawValue, 10) : 8;
+  const safeHours = Number.isFinite(parsedHours) && parsedHours > 0 ? parsedHours : 8;
+  return safeHours * 60 * 60 * 1000;
 }
 
 function getTrustProxySetting(): boolean | number | string {
@@ -231,7 +232,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/register", verifySameOrigin, async (req, res, next) => {
+  app.post("/api/register", verifySameOrigin, authRateLimit, async (req, res, next) => {
     try {
       const validatedData = registerUserSchema.parse(req.body);
       const existingUser = await storage.getUserByUsername(validatedData.username);
@@ -262,33 +263,8 @@ export function setupAuth(app: Express) {
         }
       }
       
-      // If registering as a teacher, validate school code
-      else if (validatedData.role === "teacher" && validatedData.schoolCode) {
-        try {
-          // In a real app, we would validate the school code against our database
-          // For now, let's just hardcode a validation
-          // This would be replaced with a proper lookup of invite codes
-          if (validatedData.schoolCode === "DEMO123") {
-            schoolId = 1; // Dummy school ID
-          }
-        } catch (error) {
-          console.error("Failed to validate school code:", error);
-        }
-      }
-      
-      // If registering as a student, validate student code
-      else if (validatedData.role === "student" && validatedData.studentCode) {
-        try {
-          // In a real app, we would validate the student code against our database
-          // and link to an existing student record
-          // For now, let's just hardcode a validation
-          if (validatedData.studentCode === "STUDENT123") {
-            schoolId = 1; // Dummy school ID
-          }
-        } catch (error) {
-          console.error("Failed to validate student code:", error);
-        }
-      }
+      // Teacher/student school assignment via invite codes is handled by admins
+      // after registration. No hardcoded codes are accepted.
 
       const {
         username,
