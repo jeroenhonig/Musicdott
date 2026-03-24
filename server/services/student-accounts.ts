@@ -9,10 +9,11 @@ import { generateFallbackUsername } from '@shared/utils';
 import type { Student, User, StudentAccountCreate } from '@shared/schema';
 
 /**
- * Default password for new student accounts — must be set via STUDENT_DEFAULT_PASSWORD env var.
- * Must be changed on first login (mustChangePassword = true).
+ * Returns the default password for new student accounts.
+ * Reads STUDENT_DEFAULT_PASSWORD env var lazily (at call time, not import time)
+ * so the server can start without it — only student import operations require it.
  */
-export const DEFAULT_STUDENT_PASSWORD = (() => {
+export function getDefaultStudentPassword(): string {
   const pwd = process.env.STUDENT_DEFAULT_PASSWORD;
   if (!pwd) {
     throw new Error(
@@ -21,7 +22,7 @@ export const DEFAULT_STUDENT_PASSWORD = (() => {
     );
   }
   return pwd;
-})();
+}
 
 /**
  * BCrypt salt rounds for password hashing
@@ -179,7 +180,7 @@ export async function createStudentAccount(
     );
     
     // Hash default password
-    const hashedPassword = await hashPassword(DEFAULT_STUDENT_PASSWORD);
+    const hashedPassword = await hashPassword(getDefaultStudentPassword());
     
     // Prepare user account data
     const userAccountData: StudentAccountCreate = {
@@ -326,7 +327,7 @@ export async function resetStudentPassword(studentId: number): Promise<void> {
   }
   
   // Hash new default password
-  const hashedPassword = await hashPassword(DEFAULT_STUDENT_PASSWORD);
+  const hashedPassword = await hashPassword(getDefaultStudentPassword());
   
   // Update user account
   await storage.updateUser(accountId, {

@@ -105,18 +105,21 @@ function createRateLimit(options: {
 }
 
 // Enhanced rate limiting middleware for different endpoints
-// Note: skipSuccessfulRequests is intentionally NOT set — all attempts count toward the limit.
-// This prevents an attacker with valid credentials from bypassing the rate limit.
+// skipSuccessfulRequests: true — only failed attempts count toward the limit.
+// This allows legitimate users to login without depleting the quota while still
+// protecting against brute-force attacks (which always involve failed attempts).
 export const authRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: isDevelopment ? 100 : 5,
   message: 'Too many authentication attempts, please try again later.',
+  skipSuccessfulRequests: true,
 });
 
 export const ownerAuthRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDevelopment ? 50 : 3,
   message: 'Too many administrator authentication attempts, please try again later.',
+  skipSuccessfulRequests: true,
 });
 
 export const passwordChangeRateLimit = createRateLimit({

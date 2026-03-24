@@ -19,7 +19,7 @@ import {
   previewCSV,
   validateCSV,
 } from "../services/pos-csv-import";
-import { createStudentAccount, DEFAULT_STUDENT_PASSWORD } from "../services/student-accounts";
+import { createStudentAccount, getDefaultStudentPassword } from "../services/student-accounts";
 import { parseNotation, validateNotation, notationToText } from "../services/notation-parser";
 import {
   generateRandomPattern,
@@ -1212,7 +1212,7 @@ router.post(
         accountStats: {
           successful: accountsCreatedOrLinked,
           failed: accountFailures,
-          defaultPassword: DEFAULT_STUDENT_PASSWORD,
+          defaultPassword: getDefaultStudentPassword(),
           mustChangePassword: true,
           usernameRule:
             "voornaam+achternaam lowercase zonder spaties (suffix 2,3,... bij conflict)",
