@@ -191,6 +191,9 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     // Register subscription routes with billing alias for compatibility
     app.use("/api/billing", (await import("./routes/subscriptions")).default);
   }
+
+  // Register DrumSchool Manager integration routes
+  app.use("/api/drumschool-integration", (await import("./routes/drumschool-integration")).default);
   
   // Add categories alias for lesson-categories compatibility - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
