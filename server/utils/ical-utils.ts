@@ -1,5 +1,5 @@
 import ical from 'ical-generator';
-import moment from 'moment-timezone';
+import { format, addDays, addWeeks, setHours, setMinutes, setSeconds } from 'date-fns';
 import { RecurringSchedule, Student, User } from '@shared/schema';
 
 // Timezone constants
@@ -211,8 +211,8 @@ export function convertICalToSchedules(
   defaultStudentId?: number
 ): Partial<RecurringSchedule>[] {
   return events.map(event => {
-    const startTime = moment(event.startTime).format('HH:mm');
-    const endTime = moment(event.endTime).format('HH:mm');
+    const startTime = format(event.startTime, 'HH:mm');
+    const endTime = format(event.endTime, 'HH:mm');
     const dayOfWeek = event.startTime.getDay();
 
     const schedule: Partial<RecurringSchedule> = {
@@ -314,27 +314,42 @@ function mapRecurrenceType(frequency: string): 'weekly' | 'biweekly' | 'monthly'
   }
 }
 
+function getNowInTimezone(tz: string): Date {
+  // Use Intl to get the current date/time string in the target timezone,
+  // then parse it back to a local Date for arithmetic purposes.
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(new Date());
+
+  const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value ?? '0', 10);
+  return new Date(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+}
+
 function getNextOccurrence(schedule: RecurringSchedule): Date {
-  const now = moment().tz(DEFAULT_TIMEZONE);
-  const dayOfWeek = schedule.dayOfWeek;
+  const now = getNowInTimezone(DEFAULT_TIMEZONE);
+  const targetDay = schedule.dayOfWeek;
   const [hours, minutes] = schedule.startTime.split(':').map(Number);
-  
-  // Find next occurrence of this day
-  let nextOccurrence = now.clone().day(dayOfWeek).hour(hours).minute(minutes).second(0);
-  
-  // If it's in the past, move to next week
-  if (nextOccurrence.isBefore(now)) {
-    nextOccurrence.add(1, 'week');
+
+  // Start from today and find the next matching weekday
+  let candidate = setSeconds(setMinutes(setHours(new Date(now), hours), minutes), 0);
+  const currentDay = now.getDay();
+  const daysUntilTarget = (targetDay - currentDay + 7) % 7;
+  candidate = addDays(candidate, daysUntilTarget);
+
+  // If same day but already past, move to next week
+  if (candidate <= now) {
+    candidate = addWeeks(candidate, 1);
   }
-  
-  return nextOccurrence.toDate();
+
+  return candidate;
 }
 
 function getNextOccurrenceEnd(schedule: RecurringSchedule): Date {
   const start = getNextOccurrence(schedule);
   const [hours, minutes] = schedule.endTime.split(':').map(Number);
-  const end = moment(start).hour(hours).minute(minutes).second(0);
-  return end.toDate();
+  return setSeconds(setMinutes(setHours(new Date(start), hours), minutes), 0);
 }
 
 /**
@@ -366,10 +381,13 @@ export function generateSampleICalendar(): string {
   });
 
   // Add sample event
+  const sampleStart = setMinutes(setHours(addDays(new Date(), 1), 14), 0);
+  const sampleEnd = setMinutes(setHours(addDays(new Date(), 1), 15), 0);
+
   calendar.createEvent({
     uid: 'sample-1@musicdott.app',
-    start: moment().add(1, 'day').hour(14).minute(0).toDate(),
-    end: moment().add(1, 'day').hour(15).minute(0).toDate(),
+    start: sampleStart,
+    end: sampleEnd,
     summary: 'Piano Lesson - John Doe',
     description: 'Weekly piano lesson with beginner student',
     location: 'Studio A',

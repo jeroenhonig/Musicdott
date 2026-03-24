@@ -270,6 +270,20 @@ async function initializeSchedulers() {
 
   logger.info("✅ Billing scheduler initialized successfully");
   logger.info("✅ Birthday scheduler initialized successfully");
+
+  // AVG Art. 5(1)(e): run data retention cleanup daily at 03:00 UTC
+  const { runDataRetentionCleanup } = await import("./services/data-retention");
+  const { CronJob } = await import("cron");
+  new CronJob("0 3 * * *", async () => {
+    try {
+      const result = await runDataRetentionCleanup();
+      if (result.anonymized > 0) {
+        logger.info(`[data-retention] Anonymized ${result.anonymized} inactive account(s)`);
+      }
+    } catch (err) {
+      logger.error("[data-retention] Cleanup failed:", err);
+    }
+  }, null, true, "UTC");
 }
 
 export async function initializeApp(options: InitializeAppOptions = {}): Promise<Server> {

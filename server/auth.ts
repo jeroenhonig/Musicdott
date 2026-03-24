@@ -408,22 +408,40 @@ export function setupAuth(app: Express) {
 
     try {
       const userId = req.user!.id;
+      const role = req.user!.role;
       const { password: _pw, ...userProfile } = req.user!;
 
-      const [lessons, assignments, students] = await Promise.all([
+      // Build role-appropriate export
+      const [lessons, assignments] = await Promise.all([
         storage.getLessons(userId).catch(() => []),
         storage.getAssignments(userId).catch(() => []),
-        storage.getStudentsForTeacher(userId).catch(() => []),
       ]);
+
+      let studentData: object | null = null;
+      let managedStudents: object[] = [];
+
+      if (role === 'student') {
+        // Export the student's own record
+        const ownRecord = await storage.getStudentByUserId(userId).catch(() => undefined);
+        if (ownRecord) {
+          const { notes: _notes, ...safeRecord } = ownRecord as any;
+          studentData = safeRecord;
+        }
+      } else if (role === 'teacher' || role === 'school_owner') {
+        // Export anonymized list of students the teacher manages
+        const students = await storage.getStudentsForTeacher(userId).catch(() => []);
+        managedStudents = students.map(({ id, name, instrument, level, schoolId }: any) => ({
+          id, name, instrument, level, schoolId,
+        }));
+      }
 
       const exportData = {
         exportedAt: new Date().toISOString(),
         profile: userProfile,
         lessons,
         assignments,
-        students: students.map(({ id, name, instrument, level, schoolId }) => ({
-          id, name, instrument, level, schoolId,
-        })),
+        ...(studentData ? { studentRecord: studentData } : {}),
+        ...(managedStudents.length > 0 ? { managedStudents } : {}),
       };
 
       res.setHeader("Content-Disposition", `attachment; filename="musicdott-export-${userId}.json"`);
