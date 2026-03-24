@@ -28,6 +28,12 @@ interface ScheduleSession {
   userId: number;
 }
 
+type RecurringScheduleWithAliases = RecurringSchedule & {
+  recurrenceType?: string | null;
+  biWeeklyPattern?: string | null;
+  frequency?: string | null;
+};
+
 interface TeacherTabsProps {
   teachers: Teacher[];
   isLoading: boolean;
@@ -107,8 +113,9 @@ function TeacherScheduleView({
   };
   
   // Get recurrence pattern text
-  const getRecurrenceText = (schedule: RecurringSchedule) => {
-    switch(schedule.recurrenceType) {
+  const getRecurrenceText = (schedule: RecurringScheduleWithAliases) => {
+    const recurrence = String(schedule.frequency || schedule.recurrenceType || "").toLowerCase();
+    switch(recurrence) {
       case "weekly":
         return "Weekly";
       case "biweekly":
@@ -118,7 +125,7 @@ function TeacherScheduleView({
       case "once":
         return "One-time";
       default:
-        return schedule.recurrenceType;
+        return recurrence || "Weekly";
     }
   };
   

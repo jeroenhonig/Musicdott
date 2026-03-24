@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { securePasswordSchema } from '@shared/auth-validation';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,6 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
 
 // Schema for profile settings
 const profileSchema = z.object({
@@ -236,7 +236,7 @@ export default function SettingsPage() {
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
-      const res = await apiRequest('PUT', '/api/user/password', data);
+      const res = await apiRequest('PATCH', '/api/user/password', data);
       return res.json();
     },
     onSuccess: () => {
@@ -268,10 +268,11 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPassword.length < 8) {
+    const passwordValidation = securePasswordSchema.safeParse(newPassword);
+    if (!passwordValidation.success) {
       toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters long.",
+        title: "Weak password",
+        description: passwordValidation.error.issues[0]?.message || "Use a stronger password.",
         variant: "destructive",
       });
       return;
@@ -844,6 +845,7 @@ export default function SettingsPage() {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Use 8+ characters with upper/lowercase, a number, and a symbol"
                       />
                     </div>
                     <div>

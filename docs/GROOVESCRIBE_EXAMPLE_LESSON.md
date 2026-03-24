@@ -25,12 +25,12 @@ Maatsoort: 4/4
 
 ### 3.2 Zelf-gehoste embed-URL
 ```
-https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|
+https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|
 ```
 
 ### 3.3 iframe (input-voorbeeld)
 ```
-<iframe src="https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|"></iframe>
+<iframe src="https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|"></iframe>
 ```
 
 ## 4. Verwachte Embed Module Output
@@ -39,13 +39,13 @@ https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures
   "type": "notation",
   "provider": "groovescribe",
   "embed": {
-    "embed_url": "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|",
-    "raw": "<iframe src=\"https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|\"></iframe>"
+    "embed_url": "https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|",
+    "raw": "<iframe src=\"https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|\"></iframe>"
   },
   "status": "embedded",
   "fallback": {
     "label": "Open Groovescribe",
-    "url": "<iframe src=\"https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|\"></iframe>"
+    "url": "<iframe src=\"https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=92&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O-------O---|&K=|o---o---o---o---|\"></iframe>"
   }
 }
 ```

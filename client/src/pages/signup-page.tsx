@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
+import { securePasswordSchema, usernameSchema } from "@shared/auth-validation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -35,12 +36,9 @@ import musicdottLogo from "../assets/musicdott-logo.png";
 
 const signupSchema = z.object({
   // Account basics
-  username: z.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(50, "Username must be less than 50 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  username: usernameSchema,
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: securePasswordSchema,
   confirmPassword: z.string(),
   
   // School/Organization info
@@ -107,9 +105,9 @@ export default function SignupPage() {
         
         // School data
         schoolName: data.schoolName,
-        schoolAddress: data.schoolAddress,
-        schoolPhone: data.schoolPhone,
-        schoolWebsite: data.schoolWebsite,
+        address: data.schoolAddress,
+        phone: data.schoolPhone,
+        website: data.schoolWebsite,
         
         // Professional data
         instruments: data.primaryInstruments,

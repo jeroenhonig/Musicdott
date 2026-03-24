@@ -19,6 +19,7 @@ import ContentBlockManager, { ContentBlock } from "@/components/lessons/content-
 import LessonContentViewer from "@/components/lessons/lesson-content-viewer";
 import LessonPreview from "@/components/lessons/lesson-preview";
 import LessonCategoriesManager from "@/components/lessons/lesson-categories-manager";
+import { parseContentBlocks } from "@/utils/content-block-parser";
 import { Lesson, Student, type InsertLesson } from "@shared/schema";
 
 export default function LessonsPage() {
@@ -75,7 +76,7 @@ export default function LessonsPage() {
     // Initialize content blocks for editing
     try {
       const blocks = lesson.contentBlocks ? JSON.parse(lesson.contentBlocks) : [];
-      setEditContentBlocks(blocks);
+      setEditContentBlocks(parseContentBlocks(blocks) as unknown as ContentBlock[]);
     } catch (error) {
       console.error("Failed to parse content blocks:", error);
       setEditContentBlocks([]);

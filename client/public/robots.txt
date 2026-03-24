@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /owner
+Disallow: /ws/
+
+# Most app routes are authenticated and set noindex in the app shell by default.
+# Public SEO landing pages are explicitly allowed and listed in the sitemap.
+
+Sitemap: https://musicdott.app/sitemap.xml

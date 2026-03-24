@@ -66,7 +66,7 @@ export function GrooveEmbed({
   // Generate GrooveScribe embed URL based on authentic GrooveScribe structure
   useEffect(() => {
     // Use the real GrooveScribe endpoint with proper data encoding
-    const baseUrl = "https://teacher.musicdott.com/groovescribe/";
+    const baseUrl = "https://musicdott.app/groovescribe/";
     
     // Build authentic GrooveScribe URL parameters based on the source code
     let params = "";
@@ -349,7 +349,7 @@ export function GrooveEmbedSimple({
   className?: string;
 }) {
   // Use authentic GrooveScribe URL structure
-  const baseUrl = "https://teacher.musicdott.com/groovescribe/";
+  const baseUrl = "https://musicdott.app/groovescribe/";
   
   let params = "";
   if (grooveData) {

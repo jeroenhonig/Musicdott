@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from 'http';
-import { app } from '../../server/index.js';
+import { app } from '../../server/index.ts';
 import {
+  setupIntegrationApp,
+  teardownIntegrationApp,
   setupTestEnvironment,
   cleanupTestData,
   loginUser,
@@ -15,32 +16,33 @@ import {
   TEST_USERS
 } from '../utils/test-helpers.js';
 
-describe('Authentication & Authorization Tests', () => {
-  let server;
+function getResponseMessage(response) {
+  if (typeof response.body?.message === 'string') {
+    return response.body.message;
+  }
 
+  if (typeof response.text === 'string') {
+    return response.text;
+  }
+
+  return '';
+}
+
+describe('Authentication & Authorization Tests', () => {
   beforeAll(async () => {
     console.log('🧪 Setting up authentication tests...');
-    
-    // Start server for testing
-    server = createServer(app);
-    await new Promise((resolve) => {
-      server.listen(0, resolve);
-    });
-    
+
+    await setupIntegrationApp();
+
     // Setup test environment
     await setupTestEnvironment();
   });
 
   afterAll(async () => {
     console.log('🧹 Cleaning up authentication tests...');
-    
-    if (server) {
-      await new Promise((resolve) => {
-        server.close(resolve);
-      });
-    }
-    
+
     await cleanupTestData();
+    await teardownIntegrationApp();
   });
 
   describe('Basic Authentication Flow', () => {
@@ -57,6 +59,13 @@ describe('Authentication & Authorization Tests', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('role', 'teacher');
       expect(response.body).not.toHaveProperty('password');
+
+       const sessionCookie = response.headers['set-cookie']?.find((cookie) =>
+        cookie.startsWith('musicdott.sid=')
+      );
+      expect(sessionCookie).toBeTruthy();
+      expect(sessionCookie).toMatch(/HttpOnly/i);
+      expect(sessionCookie).toMatch(/SameSite=Lax/i);
     });
 
     it('should reject invalid credentials', async () => {
@@ -70,6 +79,38 @@ describe('Authentication & Authorization Tests', () => {
 
       assertResponseCode(response, 401, 'Invalid login');
       expect(response.body).toHaveProperty('message');
+    });
+
+    it('should allow platform owner login through the dedicated owner endpoint', async () => {
+      const response = await makeAuthenticatedRequest(
+        app,
+        'POST',
+        '/api/owner/login',
+        null,
+        {
+          username: TEST_USERS.PLATFORM_OWNER.username,
+          password: TEST_USERS.PLATFORM_OWNER.password,
+        },
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toMatch(/administrator authentication successful/i);
+
+      const sessionCookie = response.headers['set-cookie']?.find((cookie) =>
+        cookie.startsWith('musicdott.sid=')
+      );
+      expect(sessionCookie).toBeTruthy();
+
+      const platformStatsResponse = await makeAuthenticatedRequest(
+        app,
+        'GET',
+        '/api/owners/platform-stats',
+        sessionCookie.split(';')[0],
+      );
+
+      expect([200, 500]).toContain(platformStatsResponse.status);
+      expect(platformStatsResponse.status).not.toBe(401);
+      expect(platformStatsResponse.status).not.toBe(403);
     });
 
     it('should return user info for authenticated requests', async () => {
@@ -145,6 +186,65 @@ describe('Authentication & Authorization Tests', () => {
         expect(reportsResponse.status).not.toBe(403);
       }
     });
+
+    it('should block school owners from platform-only billing and debug endpoints', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+
+      const billingResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/billing/status', cookie
+      );
+
+      const debugResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/debug/stats', cookie
+      );
+
+      const invoicesResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/billing/invoices', cookie
+      );
+
+      const platformStatsResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/platform-stats', cookie
+      );
+
+      expect(billingResponse.status).toBe(403);
+      expect(debugResponse.status).toBe(403);
+      expect(invoicesResponse.status).toBe(403);
+      expect(platformStatsResponse.status).toBe(403);
+    });
+
+    it('should allow platform owners to access platform-only billing and debug endpoints', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.PLATFORM_OWNER);
+
+      const billingResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/billing/status', cookie
+      );
+
+      const debugResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/debug/stats', cookie
+      );
+
+      const invoicesResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/billing/invoices', cookie
+      );
+
+      const platformStatsResponse = await makeAuthenticatedRequest(
+        app, 'GET', '/api/admin/platform-stats', cookie
+      );
+
+      expect([200, 500]).toContain(billingResponse.status);
+      expect([200, 500]).toContain(debugResponse.status);
+      expect([200, 500]).toContain(invoicesResponse.status);
+      expect([200, 500]).toContain(platformStatsResponse.status);
+
+      expect(billingResponse.status).not.toBe(401);
+      expect(billingResponse.status).not.toBe(403);
+      expect(debugResponse.status).not.toBe(401);
+      expect(debugResponse.status).not.toBe(403);
+      expect(invoicesResponse.status).not.toBe(401);
+      expect(invoicesResponse.status).not.toBe(403);
+      expect(platformStatsResponse.status).not.toBe(401);
+      expect(platformStatsResponse.status).not.toBe(403);
+    });
   });
 
   describe('Session Management', () => {
@@ -182,6 +282,97 @@ describe('Authentication & Authorization Tests', () => {
       );
       
       assertResponseCode(response, 401, 'Access after logout');
+    });
+
+    it('should block authenticated cross-site logout requests', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'POST',
+        '/api/logout',
+        cookie,
+        null,
+        {
+          Origin: 'https://evil.example',
+          Referer: 'https://evil.example/logout',
+        }
+      );
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toMatch(/cross-site|origin/i);
+    });
+  });
+
+  describe('Authentication abuse protection', () => {
+    it('should rate limit repeated invalid login attempts', async () => {
+      let response;
+
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        response = await makeAuthenticatedRequest(
+          app,
+          'POST',
+          '/api/login',
+          null,
+          {
+            username: TEST_USERS.TEACHER.username,
+            password: 'wrong_password',
+          },
+          {
+            'X-Forwarded-For': '203.0.113.40',
+          },
+        );
+      }
+
+      expect(response.status).toBe(429);
+      expect(getResponseMessage(response)).toMatch(/too many/i);
+    });
+
+    it('should rate limit repeated invalid owner login attempts more aggressively', async () => {
+      let response;
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        response = await makeAuthenticatedRequest(
+          app,
+          'POST',
+          '/api/owner/login',
+          null,
+          {
+            username: TEST_USERS.PLATFORM_OWNER.username,
+            password: 'wrong_password',
+          },
+          {
+            'X-Forwarded-For': '203.0.113.41',
+          },
+        );
+      }
+
+      expect(response.status).toBe(429);
+      expect(getResponseMessage(response)).toMatch(/too many/i);
+    });
+
+    it('should rate limit repeated failed password change attempts', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+      let response;
+
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        response = await makeAuthenticatedRequest(
+          app,
+          'PATCH',
+          '/api/user/password',
+          cookie,
+          {
+            currentPassword: 'WrongPassword123!',
+            newPassword: 'DifferentPass123!',
+          },
+          {
+            'X-Forwarded-For': '203.0.113.42',
+          },
+        );
+      }
+
+      expect(response.status).toBe(429);
+      expect(getResponseMessage(response)).toMatch(/too many/i);
     });
   });
 

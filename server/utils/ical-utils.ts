@@ -164,7 +164,7 @@ export function generateICalFromSchedules(
 
     // Create recurring event
     const event = calendar.createEvent({
-      uid: `schedule-${schedule.id}@musicdott.com`,
+      uid: `schedule-${schedule.id}@musicdott.app`,
       start: getNextOccurrence(schedule),
       end: getNextOccurrenceEnd(schedule),
       summary: `${schedule.instrument || 'Music'} Lesson - ${student.firstName} ${student.lastName}`,
@@ -243,7 +243,7 @@ export function convertICalToSchedules(
 // Helper functions
 
 function generateUID(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@musicdott.com`;
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@musicdott.app`;
 }
 
 function parseRecurrenceRule(rrule: string): ParsedCalendarEvent['recurring'] {
@@ -367,7 +367,7 @@ export function generateSampleICalendar(): string {
 
   // Add sample event
   calendar.createEvent({
-    uid: 'sample-1@musicdott.com',
+    uid: 'sample-1@musicdott.app',
     start: moment().add(1, 'day').hour(14).minute(0).toDate(),
     end: moment().add(1, 'day').hour(15).minute(0).toDate(),
     summary: 'Piano Lesson - John Doe',

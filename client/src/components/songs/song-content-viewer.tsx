@@ -7,7 +7,7 @@ import ExternalLinkEmbed from "@/components/lessons/external-link-embed";
 import PdfEmbed from "@/components/lessons/pdf-embed";
 import AppleMusicEmbed from "./apple-music-embed";
 import { SyncEmbedCard } from "@/components/sync/sync-embed";
-import { parseContentBlocks, isContentBlockSupported } from "@/utils/content-block-parser";
+import { parseContentBlocks, parseSpotifyTrackId, isContentBlockSupported } from "@/utils/content-block-parser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Music, Guitar, FileMusic, Mic, FileText } from "lucide-react";
 
@@ -107,6 +107,10 @@ export default function SongContentViewer({ contentBlocksJson, contentBlocks }: 
 
         // Spotify content
         if (block.type === 'spotify' && block.data.spotify) {
+          const spotifyTrackId = parseSpotifyTrackId(block.data.spotify) || block.data.spotifyId;
+          if (!spotifyTrackId) {
+            return null;
+          }
           return (
             <ContentBlock>
               <h3 className="text-lg font-semibold mb-3 text-gray-800">
@@ -117,7 +121,7 @@ export default function SongContentViewer({ contentBlocksJson, contentBlocks }: 
               )}
               <div className="rounded-lg overflow-hidden shadow-lg">
                 <iframe
-                  src={`https://open.spotify.com/embed/track/${block.data.spotify}`}
+                  src={`https://open.spotify.com/embed/track/${spotifyTrackId}`}
                   width="100%"
                   height="380"
                   frameBorder="0"
@@ -131,6 +135,12 @@ export default function SongContentViewer({ contentBlocksJson, contentBlocks }: 
 
         // Apple Music content
         if (block.type === 'apple_music' && block.data.apple_music) {
+          const appleData = typeof block.data.apple_music === 'string'
+            ? { url: block.data.apple_music }
+            : block.data.apple_music;
+          if (!appleData?.url) {
+            return null;
+          }
           return (
             <ContentBlock>
               <h3 className="text-lg font-semibold mb-3 text-gray-800">
@@ -139,16 +149,12 @@ export default function SongContentViewer({ contentBlocksJson, contentBlocks }: 
               {block.description && (
                 <p className="text-sm text-gray-600 mb-3">{block.description}</p>
               )}
-              <div className="rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src={`https://embed.music.apple.com/us/album/${block.data.apple_music}`}
-                  width="100%"
-                  height="380"
-                  frameBorder="0"
-                  allowTransparency={true}
-                  allow="encrypted-media"
-                />
-              </div>
+              <AppleMusicEmbed
+                url={appleData.url}
+                title={appleData.title || block.title}
+                artist={appleData.artist}
+                editable={false}
+              />
             </ContentBlock>
           );
         }

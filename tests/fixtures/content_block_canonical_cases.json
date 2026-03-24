@@ -1,0 +1,37 @@
+{
+  "input": [
+    {
+      "type": "video",
+      "title": "Linear fill",
+      "content": "<iframe src=\"https://www.youtube.com/embed/abc123XYZ89\"></iframe>"
+    },
+    {
+      "type": "groove",
+      "title": "Half-time shuffle",
+      "data": {
+        "groove": "https://www.mikeslessons.com/gscribe?TimeSig=4/4&Tempo=88"
+      }
+    },
+    {
+      "type": "spotify",
+      "title": "Reference track",
+      "content": "<iframe src=\"https://open.spotify.com/embed/track/1234567890ABCDEFGHIJKL\"></iframe>"
+    },
+    {
+      "type": "pdf",
+      "title": "Fill PDF",
+      "content": "https://example.com/files/fill.pdf"
+    },
+    {
+      "type": "external_embed",
+      "title": "MuseScore",
+      "description": "Notation preview",
+      "content": "<iframe src=\"https://example.com/embed/notation-1\"></iframe>"
+    },
+    {
+      "type": "sync-embed",
+      "title": "Sync session",
+      "url": "https://sync.musicdott.app/session/abc"
+    }
+  ]
+}

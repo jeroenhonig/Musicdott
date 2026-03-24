@@ -5,10 +5,24 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --bundle --format=cjs --outfile=dist/index.cjs --packages=external",
+    "build": "vite build && node scripts/build-server.mjs",
     "start": "NODE_ENV=production node dist/index.cjs",
-    "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "check": "tsc -p tsconfig.check.json --pretty false",
+    "check:full": "tsc --pretty false",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx server/setup-db.ts --migrate-only",
+    "db:seed": "tsx server/setup-db.ts --seed-only",
+    "db:seed:core": "tsx server/setup-db.ts --seed-core-only",
+    "db:status": "tsx server/setup-db.ts --status",
+    "db:bootstrap": "tsx server/setup-db.ts",
+    "db:push": "drizzle-kit push",
+    "lint": "npm run check",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "SESSION_SECRET=integration-test-session-secret-0123456789 NODE_ENV=test vitest run tests/integration --testTimeout=10000 --hookTimeout=10000",
+    "test:smoke": "npm run test:blocks",
+    "test:blocks": "vitest run tests/unit/content-block-contract.test.ts tests/unit/content-block-parser-import-compat.test.ts",
+    "content-blocks:normalize": "tsx scripts/normalize-content-blocks.ts",
+    "ci": "npm run lint && npm run test:unit && npm run test:integration && npm run test:smoke && npm run build"
   },
   "dependencies": {
     "@coderline/alphatab": "^1.7.1",

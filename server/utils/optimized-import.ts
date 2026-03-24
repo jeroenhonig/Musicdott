@@ -8,6 +8,7 @@
 
 import { storage } from "../storage-wrapper";
 import { insertSongSchema } from "@shared/schema";
+import { sanitizeContentBlocksForStorage } from "@shared/content-blocks";
 import { 
   transformJsonContent, 
   normalizeDescription, 
@@ -104,7 +105,9 @@ export async function optimizedSongImport(
         const extractedGenre = extractGenreFromDescription(songData.description);
 
         // Transform content to contentBlocks
-        const contentBlocks = transformJsonContent(songData.content || '');
+        const contentBlocks = sanitizeContentBlocksForStorage(
+          transformJsonContent(songData.content || '')
+        );
 
         // Prepare song data for database
         const songToCreate = {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeGroovescribeEmbed } from "@/shared/utils";
+import { normalizeGroovescribeEmbed } from "@shared/utils/index";
 import fixturesData from "../fixtures/groovescribe-module-fixtures.json";
 
 type FixtureCase = {
@@ -97,7 +97,7 @@ describe("Groovescribe module fixtures", () => {
       }
 
       if (expected.fallback_url_equals_raw) {
-        expect(output.fallback.url).toBe(fixture.input.raw);
+        expect(output.fallback?.url).toBe(fixture.input.raw);
       }
 
       if (expected.must_preserve_raw) {

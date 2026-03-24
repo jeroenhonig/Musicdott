@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeYouTubeEmbed } from "@/shared/utils";
+import { normalizeYouTubeEmbed } from "@shared/utils/index";
 import { assertHardGuarantees } from "../utils/embed-test-helpers";
 import fixturesData from "../fixtures/youtube_embed_fixtures.json";
 

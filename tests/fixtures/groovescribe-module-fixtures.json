@@ -6,13 +6,13 @@
       "id": "GS-001",
       "description": "Self-hosted Groovescribe query URL (Musicdott teacher) – should embed + parseable",
       "input": {
-        "raw": "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
+        "raw": "https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
       },
       "expected": {
         "type": "notation",
         "provider": "groovescribe",
         "status": "embedded",
-        "embed_url_contains": "teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1",
+        "embed_url_contains": "musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1",
         "must_preserve_raw": true,
         "should_extract_query_meta": true,
         "should_translate_events": true
@@ -155,7 +155,7 @@
       "id": "GS-011",
       "description": "Groovescribe query missing TimeSig/Div but has lanes – embed still; translate partial if possible",
       "input": {
-        "raw": "https://teacher.musicdott.com/groovescribe/?Tempo=95&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C"
+        "raw": "https://musicdott.app/groovescribe/?Tempo=95&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C"
       },
       "expected": {
         "type": "notation",

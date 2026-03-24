@@ -44,7 +44,7 @@ const scheduleFormSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
   durationMin: z.number().min(5, "Duration must be at least 5 minutes").optional(),
   useDuration: z.boolean().default(false),
-  recurrenceType: z.string().min(1, "Recurrence type is required"),
+  frequency: z.enum(["WEEKLY", "BIWEEKLY", "MONTHLY", "ONCE"]),
   biWeeklyPattern: z.string().optional(),
   location: z.string().optional(),
   notes: z.string().optional(),
@@ -77,7 +77,7 @@ export default function StudentScheduleForm({
       endTime: "09:30",
       durationMin: 30,
       useDuration: true,
-      recurrenceType: "weekly",
+      frequency: "WEEKLY",
       biWeeklyPattern: "even",
       location: "",
       notes: "",
@@ -118,7 +118,7 @@ export default function StudentScheduleForm({
   
   const createScheduleMutation = useMutation({
     mutationFn: async (values: ScheduleFormValues) => {
-      const res = await apiRequest("/api/recurring-schedules", "POST", values);
+      const res = await apiRequest("POST", "/api/recurring-schedules", values);
       return await res.json();
     },
     onSuccess: () => {
@@ -365,7 +365,7 @@ export default function StudentScheduleForm({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="recurrenceType"
+                name="frequency"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Recurrence</FormLabel>
@@ -379,10 +379,10 @@ export default function StudentScheduleForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="biweekly">Bi-Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="once">One-time</SelectItem>
+                        <SelectItem value="WEEKLY">Weekly</SelectItem>
+                        <SelectItem value="BIWEEKLY">Bi-Weekly</SelectItem>
+                        <SelectItem value="MONTHLY">Monthly</SelectItem>
+                        <SelectItem value="ONCE">One-time</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -390,7 +390,7 @@ export default function StudentScheduleForm({
                 )}
               />
               
-              {form.watch("recurrenceType") === "biweekly" && (
+              {form.watch("frequency") === "BIWEEKLY" && (
                 <FormField
                   control={form.control}
                   name="biWeeklyPattern"

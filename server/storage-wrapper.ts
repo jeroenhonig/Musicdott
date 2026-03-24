@@ -1,5 +1,4 @@
 import { type IStorage, MemStorage } from "./storage";
-import { FileStorage } from "./file-storage";
 import { DatabaseStorage } from "./database-storage";
 import { isDatabaseAvailable } from "./db";
 import type { RealtimeBus } from "./services/realtime-bus";
@@ -23,12 +22,66 @@ interface UserContext {
   role: string;
 }
 
+interface InitializeStorageOptions {
+  mode?: StorageMode;
+  allowDegradedStorage?: boolean;
+}
+
+export type StorageMode = "auto" | "database" | "memory";
+export type ResolvedStorageMode = "database" | "memory";
+export type SessionBackend = "postgres" | "memory";
+
+export interface StorageRuntimeState {
+  initialized: boolean;
+  requestedMode: StorageMode;
+  resolvedMode: ResolvedStorageMode;
+  databaseAvailable: boolean;
+  degraded: boolean;
+  persistent: boolean;
+  sessionBackend: SessionBackend;
+  runtimeSwitchingEnabled: false;
+}
+
+export function resolveStorageMode(options: {
+  requestedMode: StorageMode;
+  databaseAvailable: boolean;
+  allowDegradedStorage: boolean;
+}): ResolvedStorageMode {
+  const { requestedMode, databaseAvailable, allowDegradedStorage } = options;
+
+  if (requestedMode === "memory") {
+    return "memory";
+  }
+
+  if (requestedMode === "database") {
+    if (!databaseAvailable) {
+      throw new Error("Database storage was requested, but the database is unavailable.");
+    }
+    return "database";
+  }
+
+  if (databaseAvailable) {
+    return "database";
+  }
+
+  if (allowDegradedStorage) {
+    return "memory";
+  }
+
+  throw new Error(
+    "Database is unavailable and degraded storage mode is disabled. " +
+    "Set MUSICDOTT_ENABLE_DEGRADED_STORAGE=1 or start with explicit memory mode to allow fallback.",
+  );
+}
+
 class StorageWrapper implements IStorage {
   private actualStorage: IStorage;
   private initialized = false;
   private realtimeBus?: RealtimeBus;
   private currentUserContext?: UserContext;
   private storageInitialized = false;
+  private requestedMode: StorageMode = "memory";
+  private resolvedMode: ResolvedStorageMode = "memory";
   
   constructor() {
     console.log("🔄 StorageWrapper created - waiting for explicit initialization...");
@@ -41,90 +94,43 @@ class StorageWrapper implements IStorage {
    * Initialize storage after database verification has completed
    * This should be called from server startup after database is verified
    */
-  async initializeStorage(): Promise<void> {
+  async initializeStorage(options: InitializeStorageOptions = {}): Promise<void> {
+    const {
+      mode = "auto",
+      allowDegradedStorage = false,
+    } = options;
+
     if (this.storageInitialized) {
       console.log("⚠️ Storage already initialized, skipping...");
       return;
     }
 
     console.log("🔄 Initializing storage after database verification...");
-    
-    // Now check database availability after proper initialization time
-    console.log("🔍 Checking database availability...");
-    if (isDatabaseAvailable) {
-      console.log("✅ Using DatabaseStorage (PostgreSQL) with session store");
+
+    this.requestedMode = mode;
+    this.resolvedMode = resolveStorageMode({
+      requestedMode: mode,
+      databaseAvailable: isDatabaseAvailable,
+      allowDegradedStorage,
+    });
+
+    if (this.resolvedMode === "database") {
+      console.log("✅ Using DatabaseStorage (PostgreSQL) with matching PostgreSQL session store");
       this.actualStorage = new DatabaseStorage();
-      this.initialized = true;
-      this.storageInitialized = true;
-      
-      // Verify session store is working
-      if (this.actualStorage.sessionStore) {
-        console.log('✅ PostgreSQL session store initialized successfully');
-      } else {
-        console.error('❌ PostgreSQL session store failed to initialize');
-      }
     } else {
-      console.log("📁 Database not available - using FileStorage");
-      // Use FileStorage as fallback, not temporary storage
-      this.actualStorage = new FileStorage('./data');
-      this.initialized = false;
-      await this.initializeFileStorage();
-      this.storageInitialized = true;
-      // Still check for database in background for potential upgrade
-      this.waitForDatabaseUpgrade();
-    }
-    
-    // Monitor database availability for runtime switching (only after initial setup)
-    setInterval(() => {
-      if (isDatabaseAvailable && !(this.actualStorage instanceof DatabaseStorage)) {
-        console.log("🔄 Switching to DatabaseStorage (database became available)");
-        this.actualStorage = new DatabaseStorage();
-        this.initialized = true;
-      } else if (!isDatabaseAvailable && !(this.actualStorage instanceof FileStorage)) {
-        console.log("🔄 Switching to FileStorage fallback (database unavailable)");
-        this.actualStorage = new FileStorage('./data');
-        this.initializeFileStorage();
-      }
-    }, 5000);
-  }
-
-  private async waitForDatabaseUpgrade() {
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    // Keep checking for database availability to upgrade storage
-    const checkForUpgrade = async () => {
-      attempts++;
-      if (attempts % 5 === 0) {
-        console.log(`🔄 Background database check attempt ${attempts}...`);
-      }
-      
-      if (isDatabaseAvailable && !(this.actualStorage instanceof DatabaseStorage)) {
-        console.log("✅ Database became available! Upgrading to DatabaseStorage");
-        this.actualStorage = new DatabaseStorage();
-        this.initialized = true;
-        return;
-      }
-      
-      if (attempts < maxAttempts) {
-        setTimeout(checkForUpgrade, 2000);
-      }
-    };
-    
-    // Start checking after 2 seconds to give system time
-    setTimeout(checkForUpgrade, 2000);
-  }
-
-  private async initializeFileStorage() {
-    try {
-      await (this.actualStorage as FileStorage).initialize();
-      this.initialized = true;
-      console.log("✅ File-based persistent storage initialized");
-    } catch (error) {
-      console.error("❌ FileStorage initialization failed, falling back to MemStorage:", error);
+      console.log("🧪 Using MemStorage with matching in-memory session store");
       this.actualStorage = new MemStorage();
-      this.initialized = true;
     }
+
+    this.initialized = true;
+    this.storageInitialized = true;
+
+    const diagnostics = this.getRuntimeState();
+    console.log(
+      `✅ Storage initialized: requested=${diagnostics.requestedMode}, ` +
+      `resolved=${diagnostics.resolvedMode}, session=${diagnostics.sessionBackend}, ` +
+      `degraded=${diagnostics.degraded}`,
+    );
   }
   
   private async waitForInitialization(): Promise<void> {
@@ -135,6 +141,26 @@ class StorageWrapper implements IStorage {
   
   get sessionStore() {
     return this.actualStorage.sessionStore;
+  }
+
+  public getRuntimeState(): StorageRuntimeState {
+    const sessionBackend: SessionBackend =
+      this.actualStorage instanceof DatabaseStorage ? "postgres" : "memory";
+
+    return {
+      initialized: this.storageInitialized,
+      requestedMode: this.requestedMode,
+      resolvedMode: this.resolvedMode,
+      databaseAvailable: isDatabaseAvailable,
+      degraded: this.requestedMode !== this.resolvedMode,
+      persistent: this.resolvedMode === "database",
+      sessionBackend,
+      runtimeSwitchingEnabled: false,
+    };
+  }
+
+  private getOptionalSchoolId(value: number | null | undefined): number | undefined {
+    return typeof value === "number" ? value : undefined;
   }
 
   /**
@@ -257,12 +283,12 @@ class StorageWrapper implements IStorage {
   async createUser(user: any) { 
     await this.waitForInitialization(); 
     const result = await this.actualStorage.createUser(user);
-    await this.broadcastEvent('user', 'create', result, result.schoolId);
+    await this.broadcastEvent('user', 'create', result, this.getOptionalSchoolId(result.schoolId));
     return result;
   }
   async updateUser(id: number, user: any) { 
     const result = await this.actualStorage.updateUser(id, user);
-    await this.broadcastEvent('user', 'update', result, result.schoolId);
+    await this.broadcastEvent('user', 'update', result, this.getOptionalSchoolId(result.schoolId));
     return result;
   }
   async deleteUser(id: number) { 
@@ -270,7 +296,7 @@ class StorageWrapper implements IStorage {
     const userData = await this.actualStorage.getUser(id);
     const result = await this.actualStorage.deleteUser(id);
     if (result && userData) {
-      await this.broadcastEvent('user', 'delete', { id, ...userData }, userData.schoolId);
+      await this.broadcastEvent('user', 'delete', userData, this.getOptionalSchoolId(userData.schoolId));
     }
     return result;
   }
@@ -281,18 +307,19 @@ class StorageWrapper implements IStorage {
   
   async getStudents(userId: number) { return this.actualStorage.getStudents(userId); }
   async getStudent(id: number) { return this.actualStorage.getStudent(id); }
+  async getStudentByUserId(userId: number) { return this.actualStorage.getStudentByUserId(userId); }
   async getStudentLessons(studentId: number) { return this.actualStorage.getStudentLessons(studentId); }
   async getStudentSongs(studentId: number) { return this.actualStorage.getStudentSongs(studentId); }
   async getStudentLessonProgress(studentId: number) { return this.actualStorage.getStudentLessonProgress(studentId); }
   async getStudentSongProgress(studentId: number) { return this.actualStorage.getStudentSongProgress(studentId); }
   async createStudent(student: any) { 
     const result = await this.actualStorage.createStudent(student);
-    await this.broadcastEvent('student', 'create', result, result.schoolId);
+    await this.broadcastEvent('student', 'create', result, this.getOptionalSchoolId(result.schoolId));
     return result;
   }
   async updateStudent(id: number, student: any) { 
     const result = await this.actualStorage.updateStudent(id, student);
-    await this.broadcastEvent('student', 'update', result, result.schoolId);
+    await this.broadcastEvent('student', 'update', result, this.getOptionalSchoolId(result.schoolId));
     return result;
   }
   async deleteStudent(id: number) { 
@@ -300,7 +327,7 @@ class StorageWrapper implements IStorage {
     const studentData = await this.actualStorage.getStudent(id);
     const result = await this.actualStorage.deleteStudent(id);
     if (result && studentData) {
-      await this.broadcastEvent('student', 'delete', { id, ...studentData }, studentData.schoolId);
+      await this.broadcastEvent('student', 'delete', studentData, this.getOptionalSchoolId(studentData.schoolId));
     }
     return result;
   }
@@ -313,14 +340,14 @@ class StorageWrapper implements IStorage {
   async createSong(song: any) { 
     const result = await this.actualStorage.createSong(song);
     // Extract schoolId from user creating the song or song data
-    const schoolId = this.currentUserContext?.schoolId || song.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? song.schoolId ?? undefined;
     await this.broadcastEvent('song', 'create', result, schoolId);
     return result;
   }
   async updateSong(id: number, song: any) { 
     const result = await this.actualStorage.updateSong(id, song);
     // Extract schoolId from user updating the song or song data
-    const schoolId = this.currentUserContext?.schoolId || song.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? song.schoolId ?? result.schoolId ?? undefined;
     await this.broadcastEvent('song', 'update', result, schoolId);
     return result;
   }
@@ -329,8 +356,8 @@ class StorageWrapper implements IStorage {
     const songData = await this.actualStorage.getSong(id);
     const result = await this.actualStorage.deleteSong(id);
     if (result && songData) {
-      const schoolId = this.currentUserContext?.schoolId || songData.schoolId;
-      await this.broadcastEvent('song', 'delete', { id, ...songData }, schoolId);
+      const schoolId = this.currentUserContext?.schoolId ?? songData.schoolId ?? undefined;
+      await this.broadcastEvent('song', 'delete', songData, schoolId);
     }
     return result;
   }
@@ -342,14 +369,14 @@ class StorageWrapper implements IStorage {
   async createLesson(lesson: any) { 
     const result = await this.actualStorage.createLesson(lesson);
     // Extract schoolId from user creating the lesson or lesson data
-    const schoolId = this.currentUserContext?.schoolId || lesson.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? lesson.schoolId ?? undefined;
     await this.broadcastEvent('lesson', 'create', result, schoolId);
     return result;
   }
   async updateLesson(id: number, lesson: any) { 
     const result = await this.actualStorage.updateLesson(id, lesson);
     // Extract schoolId from user updating the lesson or lesson data
-    const schoolId = this.currentUserContext?.schoolId || lesson.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? lesson.schoolId ?? result.schoolId ?? undefined;
     await this.broadcastEvent('lesson', 'update', result, schoolId);
     return result;
   }
@@ -358,8 +385,8 @@ class StorageWrapper implements IStorage {
     const lessonData = await this.actualStorage.getLesson(id);
     const result = await this.actualStorage.deleteLesson(id);
     if (result && lessonData) {
-      const schoolId = this.currentUserContext?.schoolId || lessonData.schoolId;
-      await this.broadcastEvent('lesson', 'delete', { id, ...lessonData }, schoolId);
+      const schoolId = this.currentUserContext?.schoolId ?? lessonData.schoolId ?? undefined;
+      await this.broadcastEvent('lesson', 'delete', lessonData, schoolId);
     }
     return result;
   }
@@ -370,14 +397,14 @@ class StorageWrapper implements IStorage {
   async createAssignment(assignment: any) { 
     const result = await this.actualStorage.createAssignment(assignment);
     // Extract schoolId from user creating the assignment or assignment data
-    const schoolId = this.currentUserContext?.schoolId || assignment.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? assignment.schoolId ?? undefined;
     await this.broadcastEvent('assignment', 'create', result, schoolId);
     return result;
   }
   async updateAssignment(id: number, assignment: any) { 
     const result = await this.actualStorage.updateAssignment(id, assignment);
     // Extract schoolId from user updating the assignment or assignment data
-    const schoolId = this.currentUserContext?.schoolId || assignment.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? assignment.schoolId ?? result.schoolId ?? undefined;
     await this.broadcastEvent('assignment', 'update', result, schoolId);
     return result;
   }
@@ -386,8 +413,8 @@ class StorageWrapper implements IStorage {
     const assignmentData = await this.actualStorage.getAssignment(id);
     const result = await this.actualStorage.deleteAssignment(id);
     if (result && assignmentData) {
-      const schoolId = this.currentUserContext?.schoolId || assignmentData.schoolId;
-      await this.broadcastEvent('assignment', 'delete', { id, ...assignmentData }, schoolId);
+      const schoolId = this.currentUserContext?.schoolId ?? assignmentData.schoolId ?? undefined;
+      await this.broadcastEvent('assignment', 'delete', assignmentData, schoolId);
     }
     return result;
   }
@@ -399,14 +426,14 @@ class StorageWrapper implements IStorage {
   async createSession(session: any) { 
     const result = await this.actualStorage.createSession(session);
     // Extract schoolId from user creating the session or session data
-    const schoolId = this.currentUserContext?.schoolId || session.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? session.schoolId ?? undefined;
     await this.broadcastEvent('session', 'create', result, schoolId);
     return result;
   }
   async updateSession(id: number, session: any) { 
     const result = await this.actualStorage.updateSession(id, session);
     // Extract schoolId from user updating the session or session data
-    const schoolId = this.currentUserContext?.schoolId || session.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId ?? session.schoolId ?? result.schoolId ?? undefined;
     await this.broadcastEvent('session', 'update', result, schoolId);
     return result;
   }
@@ -415,8 +442,8 @@ class StorageWrapper implements IStorage {
     const sessionData = await this.actualStorage.getSession(id);
     const result = await this.actualStorage.deleteSession(id);
     if (result && sessionData) {
-      const schoolId = this.currentUserContext?.schoolId || sessionData.schoolId;
-      await this.broadcastEvent('session', 'delete', { id, ...sessionData }, schoolId);
+      const schoolId = this.currentUserContext?.schoolId ?? sessionData.schoolId ?? undefined;
+      await this.broadcastEvent('session', 'delete', sessionData, schoolId);
     }
     return result;
   }
@@ -427,15 +454,13 @@ class StorageWrapper implements IStorage {
   async getRecurringSchedule(id: number) { return this.actualStorage.getRecurringSchedule(id); }
   async createRecurringSchedule(schedule: any) { 
     const result = await this.actualStorage.createRecurringSchedule(schedule);
-    // Extract schoolId from user creating the schedule or schedule data
-    const schoolId = this.currentUserContext?.schoolId || schedule.schoolId;
+    const schoolId = this.currentUserContext?.schoolId;
     await this.broadcastEvent('schedule', 'create', result, schoolId);
     return result;
   }
   async updateRecurringSchedule(id: number, schedule: any) { 
     const result = await this.actualStorage.updateRecurringSchedule(id, schedule);
-    // Extract schoolId from user updating the schedule or schedule data
-    const schoolId = this.currentUserContext?.schoolId || schedule.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId;
     await this.broadcastEvent('schedule', 'update', result, schoolId);
     return result;
   }
@@ -444,8 +469,8 @@ class StorageWrapper implements IStorage {
     const scheduleData = await this.actualStorage.getRecurringSchedule(id);
     const result = await this.actualStorage.deleteRecurringSchedule(id);
     if (result && scheduleData) {
-      const schoolId = this.currentUserContext?.schoolId || scheduleData.schoolId;
-      await this.broadcastEvent('schedule', 'delete', { id, ...scheduleData }, schoolId);
+      const schoolId = this.currentUserContext?.schoolId;
+      await this.broadcastEvent('schedule', 'delete', scheduleData, schoolId);
     }
     return result;
   }
@@ -470,8 +495,7 @@ class StorageWrapper implements IStorage {
   }
   async endPracticeSession(id: number) { 
     const result = await this.actualStorage.endPracticeSession(id);
-    // Extract schoolId from user ending the practice session or session data
-    const schoolId = this.currentUserContext?.schoolId || result.schoolId;
+    const schoolId = this.currentUserContext?.schoolId;
     await this.broadcastEvent('practice', 'end', result, schoolId);
     return result;
   }
@@ -479,6 +503,14 @@ class StorageWrapper implements IStorage {
   async getPracticeVideo(videoId: string) { return this.actualStorage.getPracticeVideo(videoId); }
   async getPracticeVideos(userId: number) { return this.actualStorage.getPracticeVideos(userId); }
   async getPracticeVideosBySchool(schoolId: number) { return this.actualStorage.getPracticeVideosBySchool(schoolId); }
+  async getStudentPracticeVideos(studentId: number) { return this.actualStorage.getStudentPracticeVideos(studentId); }
+  async createPracticeVideo(video: any) { return this.actualStorage.createPracticeVideo(video); }
+  async updatePracticeVideo(videoId: string, video: any) { return this.actualStorage.updatePracticeVideo(videoId, video); }
+  async deletePracticeVideo(videoId: string) { return this.actualStorage.deletePracticeVideo(videoId); }
+  async getVideoComments(videoId: string) { return this.actualStorage.getVideoComments(videoId); }
+  async createVideoComment(comment: any) { return this.actualStorage.createVideoComment(comment); }
+  async updateVideoComment(commentId: string, comment: any) { return this.actualStorage.updateVideoComment(commentId, comment); }
+  async deleteVideoComment(commentId: string) { return this.actualStorage.deleteVideoComment(commentId); }
   
   async getAchievementDefinitions() { return this.actualStorage.getAchievementDefinitions(); }
   async getAchievementDefinition(id: number) { return this.actualStorage.getAchievementDefinition(id); }
@@ -497,6 +529,9 @@ class StorageWrapper implements IStorage {
   
   async getMessages(userId: number) { return this.actualStorage.getMessages(userId); }
   async getMessage(id: number) { return this.actualStorage.getMessage(id); }
+  async getUnreadMessageCount(userId: number, userType: string) {
+    return this.actualStorage.getUnreadMessageCount(userId, userType);
+  }
   async createMessage(message: any) { 
     const result = await this.actualStorage.createMessage(message);
     // Determine schoolId from message data or current user context
@@ -514,12 +549,11 @@ class StorageWrapper implements IStorage {
   async deleteMessage(id: number) { 
     // Get message data before deletion for broadcasting
     const messageData = await this.actualStorage.getMessage(id);
-    const result = await this.actualStorage.deleteMessage(id);
-    if (result && messageData) {
-      const schoolId = this.currentUserContext?.schoolId || messageData.schoolId;
-      await this.broadcastEvent('message', 'delete', { id, ...messageData }, schoolId);
+    await this.actualStorage.deleteMessage(id);
+    if (messageData) {
+      const schoolId = this.currentUserContext?.schoolId ?? messageData.schoolId ?? undefined;
+      await this.broadcastEvent('message', 'delete', messageData, schoolId);
     }
-    return result;
   }
   
   // Lesson Categories
@@ -740,6 +774,14 @@ class StorageWrapper implements IStorage {
     return this.actualStorage.deleteOldNotifications(days);
   }
 
+  async getStudentsWithBirthdayToday() {
+    return this.actualStorage.getStudentsWithBirthdayToday();
+  }
+
+  async getSchoolTeachers(schoolId: number) {
+    return this.actualStorage.getSchoolTeachers(schoolId);
+  }
+
   async upsertUserNotifications(userId: number, settings: any) {
     return this.actualStorage.upsertUserNotifications(userId, settings);
   }
@@ -757,6 +799,47 @@ class StorageWrapper implements IStorage {
   async changeUserPassword(userId: number, currentPassword: string, newPassword: string) {
     return this.actualStorage.changeUserPassword(userId, currentPassword, newPassword);
   }
+
+  async getNotations(schoolId: number) { return this.actualStorage.getNotations(schoolId); }
+  async getNotation(id: number) { return this.actualStorage.getNotation(id); }
+  async createNotation(notation: any) { return this.actualStorage.createNotation(notation); }
+  async createNotationsBatch(notations: any[]) { return this.actualStorage.createNotationsBatch(notations); }
+  async updateNotation(id: number, data: any) { return this.actualStorage.updateNotation(id, data); }
+  async deleteNotation(id: number) { return this.actualStorage.deleteNotation(id); }
+
+  async getPosSongs(schoolId: number) { return this.actualStorage.getPosSongs(schoolId); }
+  async getPosSong(id: number) { return this.actualStorage.getPosSong(id); }
+  async createPosSong(song: any) { return this.actualStorage.createPosSong(song); }
+  async createPosSongsBatch(songs: any[]) { return this.actualStorage.createPosSongsBatch(songs); }
+  async updatePosSong(id: number, data: any) { return this.actualStorage.updatePosSong(id, data); }
+  async deletePosSong(id: number) { return this.actualStorage.deletePosSong(id); }
+
+  async getSongNotationMappings(schoolId: number) { return this.actualStorage.getSongNotationMappings(schoolId); }
+  async getSongNotationMapping(id: number) { return this.actualStorage.getSongNotationMapping(id); }
+  async getMappingsForSong(songId: number) { return this.actualStorage.getMappingsForSong(songId); }
+  async getMappingsForNotation(notationId: number) { return this.actualStorage.getMappingsForNotation(notationId); }
+  async createSongNotationMapping(mapping: any) { return this.actualStorage.createSongNotationMapping(mapping); }
+  async deleteSongNotationMapping(id: number) { return this.actualStorage.deleteSongNotationMapping(id); }
+
+  async getDrumblocks(schoolId: number) { return this.actualStorage.getDrumblocks(schoolId); }
+  async getDrumblock(id: number) { return this.actualStorage.getDrumblock(id); }
+  async getDrumblockByBlockId(blockId: string, schoolId: number) {
+    return this.actualStorage.getDrumblockByBlockId(blockId, schoolId);
+  }
+  async getDrumblocksByNotation(notationId: number) { return this.actualStorage.getDrumblocksByNotation(notationId); }
+  async createDrumblock(block: any) { return this.actualStorage.createDrumblock(block); }
+  async createDrumblocksBatch(blocks: any[]) { return this.actualStorage.createDrumblocksBatch(blocks); }
+  async updateDrumblock(id: number, data: any) { return this.actualStorage.updateDrumblock(id, data); }
+  async deleteDrumblock(id: number) { return this.actualStorage.deleteDrumblock(id); }
+
+  async createImportLog(log: any) { return this.actualStorage.createImportLog(log); }
+  async updateImportLog(id: number, data: any) { return this.actualStorage.updateImportLog(id, data); }
+  async getImportLog(id: number) { return this.actualStorage.getImportLog(id); }
+  async getImportLogs(schoolId: number, limit?: number) { return this.actualStorage.getImportLogs(schoolId, limit); }
+  async getImportLogByBatchId(batchId: string) { return this.actualStorage.getImportLogByBatchId(batchId); }
 }
 
 export const storage = new StorageWrapper();
+export function getStorageRuntimeState(): StorageRuntimeState {
+  return storage.getRuntimeState();
+}

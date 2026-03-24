@@ -5,11 +5,17 @@ import { stripeService } from "../services/stripe-service";
 import { db } from "../db";
 import { subscriptionPlans, schoolSubscriptions, teacherSubscriptions } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
+import { requireAuth } from "../auth";
+import { loadSchoolContext, requirePlatformOwner } from "../middleware/authz";
 
 const router = Router();
 
+function getScopedSchoolId(req: any): number | undefined {
+  return req.school?.id || req.user?.schoolId || undefined;
+}
+
 // Get user's current subscription status and pricing
-router.get("/status", async (req: any, res) => {
+router.get("/status", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -36,7 +42,7 @@ router.get("/plans", async (req: any, res) => {
 });
 
 // Get subscription summary with billing history
-router.get("/summary", async (req: any, res) => {
+router.get("/summary", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -52,7 +58,7 @@ router.get("/summary", async (req: any, res) => {
 });
 
 // Start subscription after trial (create Stripe customer and subscription)
-router.post("/start", async (req: any, res) => {
+router.post("/start", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -63,10 +69,12 @@ router.post("/start", async (req: any, res) => {
     let customer;
     let subscription;
 
-    if (user.schoolId) {
+    const schoolId = getScopedSchoolId(req);
+
+    if (schoolId) {
       // School subscription
-      customer = await stripeService.createSchoolCustomer(user.schoolId);
-      subscription = await stripeService.createStripeSubscription(customer.id, 'school', user.schoolId);
+      customer = await stripeService.createSchoolCustomer(schoolId);
+      subscription = await stripeService.createStripeSubscription(customer.id, 'school', schoolId);
     } else if (user.role === 'teacher') {
       // Individual teacher subscription
       customer = await stripeService.createTeacherCustomer(userId);
@@ -91,7 +99,7 @@ router.post("/start", async (req: any, res) => {
 });
 
 // Update subscription plan
-router.put("/plan", async (req: any, res) => {
+router.put("/plan", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -105,7 +113,9 @@ router.put("/plan", async (req: any, res) => {
 
     const user = req.user;
     
-    if (user.schoolId) {
+    const schoolId = getScopedSchoolId(req);
+
+    if (schoolId) {
       // Update school subscription plan
       await db
         .update(schoolSubscriptions)
@@ -113,7 +123,7 @@ router.put("/plan", async (req: any, res) => {
           planId: planId,
           updatedAt: new Date(),
         })
-        .where(eq(schoolSubscriptions.schoolId, user.schoolId));
+        .where(eq(schoolSubscriptions.schoolId, schoolId));
     } else if (user.role === 'teacher') {
       // Update teacher subscription plan
       await db
@@ -135,7 +145,7 @@ router.put("/plan", async (req: any, res) => {
 });
 
 // Add extra student licenses
-router.post("/extra-licenses", async (req: any, res) => {
+router.post("/extra-licenses", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -149,12 +159,14 @@ router.post("/extra-licenses", async (req: any, res) => {
 
     const user = req.user;
     
-    if (user.schoolId) {
+    const schoolId = getScopedSchoolId(req);
+
+    if (schoolId) {
       // Update school subscription with extra licenses
       const subscription = await db
         .select()
         .from(schoolSubscriptions)
-        .where(eq(schoolSubscriptions.schoolId, user.schoolId))
+        .where(eq(schoolSubscriptions.schoolId, schoolId))
         .orderBy(desc(schoolSubscriptions.createdAt))
         .limit(1);
 
@@ -241,18 +253,8 @@ router.post("/webhook", async (req, res) => {
 });
 
 // Admin endpoint to process monthly billing (would typically be called by a cron job)
-router.post("/process-billing", async (req: any, res) => {
+router.post("/process-billing", requireAuth, loadSchoolContext, requirePlatformOwner(), async (req: any, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    // Only allow admin users to trigger billing
-    if (req.user.role !== 'school_owner') {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     await stripeService.processMonthlyBilling();
     res.json({ message: "Monthly billing processed successfully" });
   } catch (error) {
@@ -262,7 +264,7 @@ router.post("/process-billing", async (req: any, res) => {
 });
 
 // Get payment methods
-router.get("/payment-methods", async (req: any, res) => {
+router.get("/payment-methods", requireAuth, loadSchoolContext, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -272,11 +274,13 @@ router.get("/payment-methods", async (req: any, res) => {
     const user = req.user;
     let customerId;
 
-    if (user.schoolId) {
+    const schoolId = getScopedSchoolId(req);
+
+    if (schoolId) {
       const subscription = await db
         .select({ stripeCustomerId: schoolSubscriptions.stripeCustomerId })
         .from(schoolSubscriptions)
-        .where(eq(schoolSubscriptions.schoolId, user.schoolId))
+        .where(eq(schoolSubscriptions.schoolId, schoolId))
         .orderBy(desc(schoolSubscriptions.createdAt))
         .limit(1);
       

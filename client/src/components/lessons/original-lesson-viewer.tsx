@@ -84,8 +84,8 @@ export default function OriginalLessonViewer({
       // Clean URL encoding like original PHP code
       const cleanPattern = pattern.replace(/%7C/g, '|').replace(/%2D/g, '-').replace(/%20/g, ' ');
       const iframeUrl = isFullScreen 
-        ? `https://teacher.musicdott.com/groove/GrooveEmbed.html${cleanPattern}`
-        : `https://teacher.musicdott.com/groove/GrooveEmbedSmall.html${cleanPattern}`;
+        ? `https://musicdott.app/groove/GrooveEmbed.html${cleanPattern}`
+        : `https://musicdott.app/groove/GrooveEmbedSmall.html${cleanPattern}`;
       
       return (
         <div key={index} className="mb-6">

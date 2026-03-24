@@ -266,7 +266,7 @@ sudo firewall-cmd --reload
 
 ```bash
 # Run migrations
-docker-compose exec app npm run db:push
+docker-compose exec app npm run db:migrate
 
 # Check database
 docker-compose exec postgres psql -U musicdott -d musicdott -c "\dt"

@@ -14,7 +14,7 @@ export default function GrooveDisplay({ pattern, title, className }: GrooveDispl
   
   // Ensure pattern starts with ? for proper URL construction
   const cleanPattern = pattern.startsWith('?') ? pattern : `?${pattern}`;
-  const grooveUrl = `https://teacher.musicdott.com/groovescribe/GrooveEmbed.html${cleanPattern}`;
+  const grooveUrl = `https://musicdott.app/groovescribe/GrooveEmbed.html${cleanPattern}`;
   
   const handleZoomIn = () => {
     setZoom(prev => Math.min(100, prev + 15));

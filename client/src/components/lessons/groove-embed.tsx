@@ -67,7 +67,7 @@ export default function GrooveEmbed({
     if (!input.trim()) return false;
     
     // Check if it's a URL
-    if (input.includes('teacher.musicdott.com/groovescribe') || 
+    if (input.includes('musicdott.app/groovescribe') || 
         input.includes('mikeslessons.com/groove') ||
         input.includes('montulli.github.io/GrooveScribe')) {
       return true;
@@ -219,8 +219,8 @@ export default function GrooveEmbed({
     // Clean up the parameters
     const cleanParams = params.replace(/%7C/g, '|').replace(/%2D/g, '-').replace(/%20/g, ' ');
     
-    // Try teacher.musicdott.com first (current version), fallback to mikeslessons.com
-    return `https://teacher.musicdott.com/groovescribe/GrooveEmbed.html${cleanParams}`;
+    // Try musicdott.app first (current version), fallback to mikeslessons.com
+    return `https://musicdott.app/groovescribe/GrooveEmbed.html${cleanParams}`;
   }, []);
   
   // Multiple embedding methods for maximum compatibility
@@ -230,7 +230,7 @@ export default function GrooveEmbed({
     const solutions = [
       {
         name: "Primary Embed",
-        url: `https://teacher.musicdott.com/groovescribe/GrooveEmbed.html${grooveParams}`,
+        url: `https://musicdott.app/groovescribe/GrooveEmbed.html${grooveParams}`,
         description: "MusicDott GrooveScribe host",
         isPrimary: true
       },

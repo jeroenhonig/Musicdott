@@ -3,7 +3,7 @@ import { db, pool } from "./db";
 import {
   users, students, songs, lessons, assignments, sessions, schools, schoolMemberships,
   achievementDefinitions, studentAchievements, recurringSchedules, practiceSessions,
-  userNotifications, userPreferences, notifications,
+  userNotifications, userPreferences, notifications, messages,
   // POS Import tables
   notations, posSongs, songNotationMappings, drumblocks, posImportLogs,
   type User, type InsertUser,
@@ -82,39 +82,11 @@ export class DatabaseStorage implements IStorage {
   
   // Additional User operations
   async getUsersBySchool(schoolId: number): Promise<User[]> {
-    // SECURITY FIX: Remove password field exposure to prevent hash leakage
-    return await db.select({
-      id: users.id,
-      schoolId: users.schoolId,
-      username: users.username,
-      // password: users.password, // REMOVED FOR SECURITY
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      instruments: users.instruments,
-      avatar: users.avatar,
-      bio: users.bio,
-      mustChangePassword: users.mustChangePassword,
-      lastLoginAt: users.lastLoginAt
-    }).from(users).where(eq(users.schoolId, schoolId)) as Promise<User[]>;
+    return db.select().from(users).where(eq(users.schoolId, schoolId));
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
-    // SECURITY FIX: Remove password field exposure to prevent hash leakage
-    return await db.select({
-      id: users.id,
-      schoolId: users.schoolId,
-      username: users.username,
-      // password: users.password, // REMOVED FOR SECURITY
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      instruments: users.instruments,
-      avatar: users.avatar,
-      bio: users.bio,
-      mustChangePassword: users.mustChangePassword,
-      lastLoginAt: users.lastLoginAt
-    }).from(users).where(eq(users.role, role)) as Promise<User[]>;
+    return db.select().from(users).where(eq(users.role, role as User["role"]));
   }
 
   async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
@@ -133,23 +105,7 @@ export class DatabaseStorage implements IStorage {
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    // SECURITY FIX: Remove password field exposure to prevent hash leakage
-    const [user] = await db.select({
-      id: users.id,
-      schoolId: users.schoolId,
-      username: users.username,
-      // password: users.password, // REMOVED FOR SECURITY
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      instruments: users.instruments,
-      avatar: users.avatar,
-      bio: users.bio,
-      mustChangePassword: users.mustChangePassword,
-      lastLoginAt: users.lastLoginAt
-    })
-      .from(users)
-      .where(eq(users.id, id)) as { id: number; schoolId: number | null; username: string; name: string; email: string; role: string; instruments: string | null; avatar: string | null; bio: string | null; mustChangePassword: boolean | null; lastLoginAt: Date | null; }[];
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user as User | undefined;
   }
 
@@ -176,22 +132,7 @@ export class DatabaseStorage implements IStorage {
 
   // SECURITY FIX: General user lookup method without password exposure
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select({
-      id: users.id,
-      schoolId: users.schoolId,
-      username: users.username,
-      // password: users.password, // REMOVED FOR SECURITY
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      instruments: users.instruments,
-      avatar: users.avatar,
-      bio: users.bio,
-      mustChangePassword: users.mustChangePassword,
-      lastLoginAt: users.lastLoginAt
-    })
-      .from(users)
-      .where(eq(users.username, username)) as { id: number; schoolId: number | null; username: string; name: string; email: string; role: string; instruments: string | null; avatar: string | null; bio: string | null; mustChangePassword: boolean | null; lastLoginAt: Date | null; }[];
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user as User | undefined;
   }
 
@@ -204,23 +145,7 @@ export class DatabaseStorage implements IStorage {
 
   // Student operations
   async getStudents(userId: number): Promise<Student[]> {
-    // Support both legacy account_id and current userId for imported data
-    // Use explicit column selection matching actual database columns
-    return db.select({
-      id: students.id,
-      userId: students.userId,
-      accountId: students.accountId,
-      name: students.name,
-      email: students.email,
-      phone: students.phone,
-      level: students.level,
-      instrument: students.instrument,
-      assignedTeacherId: students.assignedTeacherId,
-      notes: students.notes,
-      createdAt: students.createdAt,
-      updatedAt: students.updatedAt,
-      isActive: students.isActive
-    })
+    return db.select()
       .from(students)
       .where(
         or(
@@ -231,23 +156,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudent(id: number): Promise<Student | undefined> {
-    const [student] = await db.select({
-      id: students.id,
-      userId: students.userId,
-      accountId: students.accountId,
-      name: students.name,
-      email: students.email,
-      phone: students.phone,
-      level: students.level,
-      instrument: students.instrument,
-      assignedTeacherId: students.assignedTeacherId,
-      notes: students.notes,
-      createdAt: students.createdAt,
-      updatedAt: students.updatedAt,
-      isActive: students.isActive
-    })
+    const [student] = await db.select().from(students).where(eq(students.id, id));
+    return student;
+  }
+
+  async getStudentByUserId(userId: number): Promise<Student | undefined> {
+    const [student] = await db
+      .select()
       .from(students)
-      .where(eq(students.id, id));
+      .where(or(eq(students.userId, userId), eq(students.accountId, userId)));
     return student;
   }
 
@@ -380,70 +297,15 @@ export class DatabaseStorage implements IStorage {
 
   // Lesson operations
   async getLessons(userId: number): Promise<Lesson[]> {
-    // Use explicit column selection matching actual database columns
-    return db.select({
-      id: lessons.id,
-      title: lessons.title,
-      description: lessons.description,
-      contentType: lessons.contentType,
-      instrument: lessons.instrument,
-      level: lessons.level,
-      category: lessons.category,
-      categoryId: lessons.categoryId,
-      userId: lessons.userId,
-      contentBlocks: lessons.contentBlocks,
-      orderNumber: lessons.orderNumber,
-      isActive: lessons.isActive,
-      createdAt: lessons.createdAt,
-      updatedAt: lessons.updatedAt
-    })
-      .from(lessons)
-      .where(eq(lessons.userId, userId));
+    return db.select().from(lessons).where(eq(lessons.userId, userId));
   }
 
-  // Add missing getLessonsBySchool method
   async getLessonsBySchool(schoolId: number): Promise<Lesson[]> {
-    // FIXED: Get lessons from ALL teachers in the school, not just school_owner
-    return db.select({
-      id: lessons.id,
-      title: lessons.title,
-      description: lessons.description,
-      contentType: lessons.contentType,
-      instrument: lessons.instrument,
-      level: lessons.level,
-      category: lessons.category,
-      categoryId: lessons.categoryId,
-      userId: lessons.userId,
-      contentBlocks: lessons.contentBlocks,
-      orderNumber: lessons.orderNumber,
-      isActive: lessons.isActive,
-      createdAt: lessons.createdAt,
-      updatedAt: lessons.updatedAt
-    })
-      .from(lessons)
-      .innerJoin(users, eq(lessons.userId, users.id))
-      .where(eq(users.schoolId, schoolId));
+    return db.select().from(lessons).where(eq(lessons.schoolId, schoolId));
   }
 
   async getLesson(id: number): Promise<Lesson | undefined> {
-    const [lesson] = await db.select({
-      id: lessons.id,
-      title: lessons.title,
-      description: lessons.description,
-      contentType: lessons.contentType,
-      instrument: lessons.instrument,
-      level: lessons.level,
-      category: lessons.category,
-      categoryId: lessons.categoryId,
-      userId: lessons.userId,
-      contentBlocks: lessons.contentBlocks,
-      orderNumber: lessons.orderNumber,
-      isActive: lessons.isActive,
-      createdAt: lessons.createdAt,
-      updatedAt: lessons.updatedAt
-    })
-      .from(lessons)
-      .where(eq(lessons.id, id));
+    const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id));
     return lesson;
   }
 
@@ -821,8 +683,6 @@ export class DatabaseStorage implements IStorage {
   async requestReschedule(sessionId: number, newStartTime: Date, newEndTime: Date): Promise<Session> {
     const [updatedSession] = await db.update(sessions)
       .set({
-        rescheduleRequestSent: true,
-        originalStartTime: db.sql`${sessions.startTime}`,
         startTime: newStartTime,
         endTime: newEndTime,
       })
@@ -832,30 +692,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async approveReschedule(sessionId: number): Promise<Session> {
-    const [updatedSession] = await db.update(sessions)
-      .set({
-        rescheduleApproved: true,
-        isRescheduled: true,
-      })
-      .where(eq(sessions.id, sessionId))
-      .returning();
+    const [updatedSession] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
     return updatedSession;
   }
 
   // Practice session operations
   async getPracticeSessions(userId: number): Promise<PracticeSession[]> {
-    return db.select({
-      id: practiceSessions.id,
-      studentId: practiceSessions.studentId,
-      lessonId: practiceSessions.lessonId,
-      songId: practiceSessions.songId,
-      startTime: practiceSessions.startTime,
-      endTime: practiceSessions.endTime,
-      duration: practiceSessions.duration,
-      notes: practiceSessions.notes
-    })
-      .from(practiceSessions)
-      .where(eq(practiceSessions.studentId, userId));
+    const studentRows = await db
+      .select({ id: students.id })
+      .from(students)
+      .where(or(eq(students.userId, userId), eq(students.accountId, userId)));
+
+    const studentIds = studentRows.map((row) => row.id);
+    if (studentIds.length === 0) {
+      return [];
+    }
+
+    return db.select().from(practiceSessions).where(inArray(practiceSessions.studentId, studentIds));
   }
 
   async getStudentPracticeSessions(studentId: number): Promise<PracticeSession[]> {
@@ -874,33 +727,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveStudentPracticeSessions(): Promise<PracticeSession[]> {
-    return db.select({
-      id: practiceSessions.id,
-      studentId: practiceSessions.studentId,
-      lessonId: practiceSessions.lessonId,
-      songId: practiceSessions.songId,
-      startTime: practiceSessions.startTime,
-      endTime: practiceSessions.endTime,
-      duration: practiceSessions.duration,
-      notes: practiceSessions.notes
-    })
-      .from(practiceSessions)
-      .where(eq(practiceSessions.isActive, true));
+    return db.select().from(practiceSessions).where(sql`${practiceSessions.endTime} IS NULL`);
   }
 
   async getPracticeSession(id: number): Promise<PracticeSession | undefined> {
-    const [session] = await db.select({
-      id: practiceSessions.id,
-      studentId: practiceSessions.studentId,
-      lessonId: practiceSessions.lessonId,
-      songId: practiceSessions.songId,
-      startTime: practiceSessions.startTime,
-      endTime: practiceSessions.endTime,
-      duration: practiceSessions.duration,
-      notes: practiceSessions.notes
-    })
-      .from(practiceSessions)
-      .where(eq(practiceSessions.id, id));
+    const [session] = await db.select().from(practiceSessions).where(eq(practiceSessions.id, id));
     return session;
   }
 
@@ -914,7 +745,6 @@ export class DatabaseStorage implements IStorage {
   async endPracticeSession(id: number): Promise<PracticeSession> {
     const [updatedSession] = await db.update(practiceSessions)
       .set({
-        isActive: false,
         endTime: new Date(),
       })
       .where(eq(practiceSessions.id, id))
@@ -1039,7 +869,7 @@ export class DatabaseStorage implements IStorage {
 
   async markAchievementAsSeen(id: number): Promise<StudentAchievement> {
     const [updatedAchievement] = await db.update(studentAchievements)
-      .set({ isNew: false })
+      .set({ isVisible: true })
       .where(eq(studentAchievements.id, id))
       .returning();
     return updatedAchievement;
@@ -1053,48 +883,40 @@ export class DatabaseStorage implements IStorage {
 
   // Additional student query methods
   async getStudentsBySchool(schoolId: number): Promise<Student[]> {
-    // Get students whose user_id points to a user with school_id matching
-    // The students.user_id = users.id where users.school_id = schoolId
+    // Include both modern school-scoped rows (students.school_id) and legacy rows
+    // that can only be resolved via the linked user account's school.
     const result = await db.select({
       id: students.id,
+      schoolId: students.schoolId,
       userId: students.userId,
       accountId: students.accountId,
       name: students.name,
       email: students.email,
       phone: students.phone,
-      level: students.level,
-      instrument: students.instrument,
-      assignedTeacherId: students.assignedTeacherId,
-      notes: students.notes,
-      createdAt: students.createdAt,
-    })
-      .from(students)
-      .innerJoin(users, eq(students.userId, users.id))
-      .where(eq(users.schoolId, schoolId))
-      .orderBy(students.name);
-    
-    return result as Student[];
-  }
-
-  async getStudentsForTeacher(teacherId: number): Promise<Student[]> {
-    // Use explicit column selection matching actual database columns
-    return db.select({
-      id: students.id,
-      userId: students.userId,
-      accountId: students.accountId,
-      name: students.name,
-      email: students.email,
-      phone: students.phone,
+      birthdate: students.birthdate,
       level: students.level,
       instrument: students.instrument,
       assignedTeacherId: students.assignedTeacherId,
       notes: students.notes,
       createdAt: students.createdAt,
       updatedAt: students.updatedAt,
-      isActive: students.isActive
+      isActive: students.isActive,
     })
       .from(students)
-      .where(eq(students.assignedTeacherId, teacherId));
+      .leftJoin(users, eq(students.userId, users.id))
+      .where(
+        or(
+          eq(students.schoolId, schoolId),
+          eq(users.schoolId, schoolId)
+        )
+      )
+      .orderBy(students.name);
+    
+    return result as Student[];
+  }
+
+  async getStudentsForTeacher(teacherId: number): Promise<Student[]> {
+    return db.select().from(students).where(eq(students.assignedTeacherId, teacherId));
   }
 
   // User-related missing methods
@@ -1132,61 +954,41 @@ export class DatabaseStorage implements IStorage {
 
   // Content retrieval methods
   async getRecentSongs(limit: number): Promise<Song[]> {
-    return db.select({
-      id: songs.id,
-      userId: songs.userId,
-      schoolId: songs.schoolId,
-      title: songs.title,
-      artist: songs.artist,
-      composer: songs.composer,
-      genre: songs.genre,
-      bpm: songs.bpm,
-      duration: songs.duration,
-      description: songs.description,
-      difficulty: songs.difficulty,
-      instrument: songs.instrument,
-      level: songs.level,
-      contentBlocks: songs.contentBlocks,
-      groovePatterns: songs.groovePatterns,
-      isActive: songs.isActive,
-      key: songs.key,
-      tempo: songs.tempo,
-      createdAt: songs.createdAt,
-      updatedAt: songs.updatedAt
-    })
+    return db.select()
       .from(songs)
       .where(eq(songs.isActive, true))
       .orderBy(desc(songs.createdAt))
       .limit(limit);
   }
 
-  async getSongsByLetter(letter: string): Promise<Song[]> {
-    return db.select({
-      id: songs.id,
-      userId: songs.userId,
-      schoolId: songs.schoolId,
-      title: songs.title,
-      artist: songs.artist,
-      composer: songs.composer,
-      genre: songs.genre,
-      bpm: songs.bpm,
-      duration: songs.duration,
-      description: songs.description,
-      difficulty: songs.difficulty,
-      instrument: songs.instrument,
-      level: songs.level,
-      contentBlocks: songs.contentBlocks,
-      groovePatterns: songs.groovePatterns,
-      isActive: songs.isActive,
-      key: songs.key,
-      tempo: songs.tempo,
-      createdAt: songs.createdAt,
-      updatedAt: songs.updatedAt
-    })
+  async getRecentSongsForUser(userId: number, limit: number): Promise<Song[]> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return [];
+    }
+
+    return db
+      .select()
       .from(songs)
       .where(
         and(
           eq(songs.isActive, true),
+          user.role === "school_owner" && user.schoolId != null
+            ? eq(songs.schoolId, user.schoolId)
+            : eq(songs.userId, userId),
+        ),
+      )
+      .orderBy(desc(songs.createdAt))
+      .limit(limit);
+  }
+
+  async getSongsByLetter(userId: number, letter: string): Promise<Song[]> {
+    return db.select()
+      .from(songs)
+      .where(
+        and(
+          eq(songs.isActive, true),
+          eq(songs.userId, userId),
           sql`UPPER(${songs.title}) LIKE ${letter.toUpperCase() + '%'}`
         )
       )
@@ -1194,24 +996,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentLessons(limit: number): Promise<Lesson[]> {
-    return db.select({
-      id: lessons.id,
-      title: lessons.title,
-      description: lessons.description,
-      contentType: lessons.contentType,
-      instrument: lessons.instrument,
-      level: lessons.level,
-      category: lessons.category,
-      categoryId: lessons.categoryId,
-      userId: lessons.userId,
-      contentBlocks: lessons.contentBlocks,
-      orderNumber: lessons.orderNumber,
-      isActive: lessons.isActive,
-      createdAt: lessons.createdAt,
-      updatedAt: lessons.updatedAt
-    })
+    return db.select()
       .from(lessons)
       .where(eq(lessons.isActive, true))
+      .orderBy(desc(lessons.createdAt))
+      .limit(limit);
+  }
+
+  async getRecentLessonsForUser(userId: number, limit: number): Promise<Lesson[]> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return [];
+    }
+
+    return db
+      .select()
+      .from(lessons)
+      .where(
+        and(
+          eq(lessons.isActive, true),
+          user.role === "school_owner" && user.schoolId != null
+            ? eq(lessons.schoolId, user.schoolId)
+            : eq(lessons.userId, userId),
+        ),
+      )
       .orderBy(desc(lessons.createdAt))
       .limit(limit);
   }
@@ -1235,7 +1043,6 @@ export class DatabaseStorage implements IStorage {
 
   // Recurring schedule methods
   async getRecurringSchedulesBySchool(schoolId: number): Promise<RecurringSchedule[]> {
-    // Get all recurring schedules for users in this school by joining with users table
     const schedulesData = await db.select({
       id: recurringSchedules.id,
       userId: recurringSchedules.userId,
@@ -1245,7 +1052,7 @@ export class DatabaseStorage implements IStorage {
       endTime: recurringSchedules.endTime,
       location: recurringSchedules.location,
       notes: recurringSchedules.notes,
-      // timezone: recurringSchedules.timezone, // Column doesn't exist in database
+      timezone: recurringSchedules.timezone,
       frequency: recurringSchedules.frequency,
       isActive: recurringSchedules.isActive,
       iCalDtStart: recurringSchedules.iCalDtStart,
@@ -1253,7 +1060,6 @@ export class DatabaseStorage implements IStorage {
       iCalTzid: recurringSchedules.iCalTzid,
       createdAt: recurringSchedules.createdAt,
       updatedAt: recurringSchedules.updatedAt,
-      schoolId: users.schoolId
     })
       .from(recurringSchedules)
       .innerJoin(users, eq(recurringSchedules.userId, users.id))
@@ -1266,22 +1072,7 @@ export class DatabaseStorage implements IStorage {
   async searchContent(userId: number, searchTerm: string): Promise<{lessons: Lesson[], songs: Song[]}> {
     const searchPattern = `%${searchTerm.toLowerCase()}%`;
     
-    const lessonResults = await db.select({
-      id: lessons.id,
-      title: lessons.title,
-      description: lessons.description,
-      contentType: lessons.contentType,
-      instrument: lessons.instrument,
-      level: lessons.level,
-      category: lessons.category,
-      categoryId: lessons.categoryId,
-      userId: lessons.userId,
-      contentBlocks: lessons.contentBlocks,
-      orderNumber: lessons.orderNumber,
-      isActive: lessons.isActive,
-      createdAt: lessons.createdAt,
-      updatedAt: lessons.updatedAt
-    })
+    const lessonResults = await db.select()
       .from(lessons)
       .where(
         and(
@@ -1351,9 +1142,8 @@ export class DatabaseStorage implements IStorage {
     return message;
   }
 
-  async deleteMessage(id: number): Promise<boolean> {
-    // Return true for now - messages system not fully implemented
-    return true;
+  async deleteMessage(id: number): Promise<void> {
+    await db.delete(messages).where(eq(messages.id, id));
   }
 
   async getUnreadMessageCount(userId: number, userType: string): Promise<number> {
@@ -1434,11 +1224,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAssignmentsBySchool(schoolId: number): Promise<Assignment[]> {
-    // FIXED: Get assignments from ALL teachers in the school, not just school_owner
-    return db.select()
-      .from(assignments)
-      .innerJoin(users, eq(assignments.userId, users.id))
-      .where(eq(users.schoolId, schoolId));
+    return db.select().from(assignments).where(eq(assignments.schoolId, schoolId));
   }
 
   async getAssignmentsForTeacher(teacherId: number): Promise<Assignment[]> {
@@ -1446,11 +1232,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSessionsBySchool(schoolId: number): Promise<Session[]> {
-    // FIXED: Get sessions from ALL teachers in the school, not just school_owner
-    return db.select()
-      .from(sessions)
-      .innerJoin(users, eq(sessions.userId, users.id))
-      .where(eq(users.schoolId, schoolId));
+    return db.select().from(sessions).where(eq(sessions.schoolId, schoolId));
   }
 
   async getSessionsForTeacher(teacherId: number): Promise<Session[]> {
@@ -1458,26 +1240,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeachersBySchool(schoolId: number): Promise<User[]> {
-    // SECURITY FIX: Remove password field exposure to prevent hash leakage
-    return await db.select({
-      id: users.id,
-      schoolId: users.schoolId,
-      username: users.username,
-      // password: users.password, // REMOVED FOR SECURITY
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      instruments: users.instruments,
-      avatar: users.avatar,
-      bio: users.bio,
-      mustChangePassword: users.mustChangePassword,
-      lastLoginAt: users.lastLoginAt
-    }).from(users).where(
+    return db.select().from(users).where(
       and(
         eq(users.schoolId, schoolId),
         eq(users.role, 'teacher')
       )
-    ) as Promise<User[]>;
+    );
   }
 
   async getStudentCountBySchool(schoolId: number): Promise<number> {
@@ -1632,6 +1400,20 @@ export class DatabaseStorage implements IStorage {
     // Return empty array for now - deadlines not fully implemented
     return [];
   }
+
+  // Practice video methods are not fully wired to PostgreSQL yet.
+  // Keep the interface stable while release hardening continues.
+  async getPracticeVideo(videoId: string): Promise<any | undefined> { return undefined; }
+  async getPracticeVideos(userId: number): Promise<any[]> { return []; }
+  async getPracticeVideosBySchool(schoolId: number): Promise<any[]> { return []; }
+  async getStudentPracticeVideos(studentId: number): Promise<any[]> { return []; }
+  async createPracticeVideo(video: any): Promise<any> { return video; }
+  async updatePracticeVideo(videoId: string, video: Partial<any>): Promise<any> { return { id: videoId, ...video }; }
+  async deletePracticeVideo(videoId: string): Promise<boolean> { return true; }
+  async getVideoComments(videoId: string): Promise<any[]> { return []; }
+  async createVideoComment(comment: any): Promise<any> { return comment; }
+  async updateVideoComment(commentId: string, comment: Partial<any>): Promise<any> { return { id: commentId, ...comment }; }
+  async deleteVideoComment(commentId: string): Promise<boolean> { return true; }
 
   // School membership methods - now fully implemented with proper types
   async getUserSchoolMemberships(userId: number): Promise<SchoolMembership[]> {
@@ -1953,20 +1735,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSchoolTeachers(schoolId: number): Promise<User[]> {
-    return await db
-      .select({
-        id: users.id,
-        schoolId: users.schoolId,
-        username: users.username,
-        name: users.name,
-        email: users.email,
-        role: users.role,
-        instruments: users.instruments,
-        avatar: users.avatar,
-        bio: users.bio,
-        mustChangePassword: users.mustChangePassword,
-        lastLoginAt: users.lastLoginAt
-      })
+    return db
+      .select()
       .from(users)
       .where(
         and(

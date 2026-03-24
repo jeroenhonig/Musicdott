@@ -3,8 +3,16 @@
  */
 
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@/shared': path.resolve(__dirname, 'shared'),
+      '@shared': path.resolve(__dirname, 'shared'),
+      '@': path.resolve(__dirname, 'client/src')
+    }
+  },
   test: {
     // Test environment
     environment: 'node',
@@ -52,6 +60,6 @@ export default defineConfig({
   
   // ESM support
   esbuild: {
-    target: 'node14'
+    target: 'node20'
   }
 });

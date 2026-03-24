@@ -3,8 +3,8 @@
 **Modern SaaS Platform voor Muziekschool Management**
 
 [![Production Ready](https://img.shields.io/badge/production-ready-brightgreen.svg)](https://github.com/jeroenhonig/Musicdott)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./DEPLOYMENT.md)
-[![Security](https://img.shields.io/badge/security-8.5%2F10-green.svg)](./DEPLOYMENT.md)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./docs/DEPLOYMENT.md)
+[![Security](https://img.shields.io/badge/security-8.5%2F10-green.svg)](./docs/DEPLOYMENT.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 MusicDott 2.0 is een complete full-stack SaaS applicatie voor muziekscholen en privé docenten. Het platform biedt tools voor student management, interactieve lessen, planning, facturering en veel meer.
@@ -116,8 +116,8 @@ npm install
 cp .env.example .env
 # Edit .env met database URL en secrets
 
-# 3. Run database migrations
-npm run db:push
+# 3. Bootstrap local database (migrations + seed data)
+npm run db:bootstrap
 
 # 4. Start development server
 npm run dev
@@ -129,7 +129,7 @@ npm run dev
 
 ## 📖 Documentatie
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide voor Linux/Docker
+- **[DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Complete deployment guide voor Linux/Docker
 - **[.env.example](./.env.example)** - Environment variabelen configuratie
 - **[docs/GROOVESCRIBE_MODULE_SPEC.md](./docs/GROOVESCRIBE_MODULE_SPEC.md)** - Groovescribe module spec
 - **[docs/GROOVESCRIBE_MONOLITHIC_PROMPT.md](./docs/GROOVESCRIBE_MONOLITHIC_PROMPT.md)** - Monolithic Claude system prompt
@@ -189,7 +189,7 @@ sudo cp /etc/letsencrypt/live/yourdomain.com/*.pem ssl/
 docker-compose --profile with-nginx up -d
 ```
 
-**Zie [DEPLOYMENT.md](./DEPLOYMENT.md) voor gedetailleerde instructies.**
+**Zie [DEPLOYMENT.md](./docs/DEPLOYMENT.md) voor gedetailleerde instructies.**
 
 ---
 
@@ -283,20 +283,25 @@ npm run dev       # Start development server
 npm run build     # Build voor productie
 npm start         # Start productie server
 npm run check     # TypeScript check
-npm run db:push   # Database migrations
+npm run db:migrate     # Versioned SQL migrations
+npm run db:bootstrap   # Migrations + local seed data
+npm run db:status      # Migration/database status
 ```
 
 ### Database Migrations
 
 ```bash
-# Push schema changes
-npm run db:push
+# Check migration status
+npm run db:status
 
-# Generate migration
-npx drizzle-kit generate
+# Generate a new versioned migration
+npm run db:generate
 
-# Apply migrations
-npx drizzle-kit migrate
+# Apply migrations only
+npm run db:migrate
+
+# Bootstrap a local/dev database with seed data
+npm run db:bootstrap
 ```
 
 ---
@@ -413,9 +418,9 @@ Ontwikkeld door Jeroen Honig met behulp van:
 
 Voor vragen of problemen:
 
-- 📧 Email: support@musicdott.com
+- 📧 Email: support@musicdott.app
 - 🐛 Issues: [GitHub Issues](https://github.com/jeroenhonig/Musicdott/issues)
-- 📖 Docs: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- 📖 Docs: [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
 ---
 

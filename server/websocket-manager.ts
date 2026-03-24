@@ -46,7 +46,13 @@ export class WebSocketManager {
   }
 
   public emit(eventName: string, data: any) {
-    this.io.emit(eventName, data);
+    const schoolId = data?.meta?.schoolId ?? data?.schoolId;
+    if (!schoolId || typeof schoolId !== "number") {
+      console.error(`❌ SECURITY: Blocked ${eventName} emit without valid schoolId`, data);
+      return;
+    }
+
+    this.io.to(`school:${schoolId}`).emit(eventName, data);
   }
 
   public to(room: string) {

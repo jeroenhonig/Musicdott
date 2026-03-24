@@ -10,6 +10,8 @@ export function registerCronHealthRoutes(app: Express, authMiddleware?: any) {
     requireAdmin = authMiddleware.requireAdmin;
   }
 
+  const adminHandlers = requireAdmin ? [requireAdmin] : [];
+
   // Public health check for cron jobs (minimal info) - NO AUTH
   app.get("/health/cron", async (req, res) => {
     try {
@@ -60,12 +62,7 @@ export function registerCronHealthRoutes(app: Express, authMiddleware?: any) {
     }
   };
 
-  // Register with auth middleware if available
-  if (requireAdmin) {
-    app.get("/api/admin/cron-health", requireAdmin, adminHealthHandler);
-  } else {
-    app.get("/api/admin/cron-health", adminHealthHandler);
-  }
+  app.get("/api/admin/cron-health", ...adminHandlers, adminHealthHandler);
 
   // Get health for a specific job
   const specificJobHandler = async (req: Request, res: Response) => {
@@ -93,10 +90,5 @@ export function registerCronHealthRoutes(app: Express, authMiddleware?: any) {
     }
   };
 
-  // Register with auth middleware if available
-  if (requireAdmin) {
-    app.get("/api/admin/cron-health/:jobName", requireAdmin, specificJobHandler);
-  } else {
-    app.get("/api/admin/cron-health/:jobName", specificJobHandler);
-  }
+  app.get("/api/admin/cron-health/:jobName", ...adminHandlers, specificJobHandler);
 }

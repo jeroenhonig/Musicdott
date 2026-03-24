@@ -159,7 +159,7 @@ export default function MusicDottV1Dashboard() {
             
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" asChild>
-                <a href="https://teacher.musicdott.com/groovescribe/" target="_blank" rel="noopener noreferrer">
+                <a href="https://musicdott.app/groovescribe/" target="_blank" rel="noopener noreferrer">
                   <Music className="h-4 w-4 mr-2" />
                   GrooveScribe
                   <ExternalLink className="h-3 w-3 ml-1" />

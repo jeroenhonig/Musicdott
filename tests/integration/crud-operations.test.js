@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from 'http';
-import { app } from '../../server/index.js';
+import { app } from '../../server/index.ts';
 import {
+  setupIntegrationApp,
+  teardownIntegrationApp,
   setupTestEnvironment,
   cleanupTestData,
   loginUser,
@@ -21,7 +22,6 @@ import {
 } from '../utils/test-helpers.js';
 
 describe('CRUD Operations Integration Tests', () => {
-  let server;
   let testTeacher;
   let createdStudent;
   let createdSong;
@@ -29,13 +29,9 @@ describe('CRUD Operations Integration Tests', () => {
 
   beforeAll(async () => {
     console.log('🧪 Setting up CRUD operations tests...');
-    
-    // Start server for testing
-    server = createServer(app);
-    await new Promise((resolve) => {
-      server.listen(0, resolve);
-    });
-    
+
+    await setupIntegrationApp();
+
     // Setup test environment
     await setupTestEnvironment();
     
@@ -46,14 +42,9 @@ describe('CRUD Operations Integration Tests', () => {
 
   afterAll(async () => {
     console.log('🧹 Cleaning up CRUD operations tests...');
-    
-    if (server) {
-      await new Promise((resolve) => {
-        server.close(resolve);
-      });
-    }
-    
+
     await cleanupTestData();
+    await teardownIntegrationApp();
   });
 
   describe('Students CRUD Operations', () => {

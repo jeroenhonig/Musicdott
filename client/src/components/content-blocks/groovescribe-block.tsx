@@ -60,7 +60,7 @@ export function GrooveScribeBlock({
 
   const handleCopyGroove = async () => {
     try {
-      const grooveUrl = `https://teacher.musicdott.com/groovescribe/?${grooveData}`;
+      const grooveUrl = `https://musicdott.app/groovescribe/?${grooveData}`;
       await navigator.clipboard.writeText(grooveUrl);
       
       toast({
@@ -77,7 +77,7 @@ export function GrooveScribeBlock({
   };
 
   const handleOpenInGrooveScribe = () => {
-    const grooveUrl = `https://teacher.musicdott.com/groovescribe/?${grooveData}`;
+    const grooveUrl = `https://musicdott.app/groovescribe/?${grooveData}`;
     window.open(grooveUrl, '_blank');
   };
 

@@ -18,6 +18,7 @@ import AppLayout from "@/components/layouts/app-layout";
 // Import song components
 import SongContentManager, { SongContentBlock } from "@/components/songs/song-content-manager";
 import SongContentViewer from "@/components/songs/song-content-viewer";
+import { parseContentBlocks } from "@/utils/content-block-parser";
 import AlphabeticalBrowser from "@/components/songs/alphabetical-browser";
 
 import { Song, Student, type InsertSong } from "@shared/schema";
@@ -83,7 +84,7 @@ export default function SongsPage() {
     // Initialize content blocks for editing
     try {
       const blocks = song.contentBlocks ? JSON.parse(song.contentBlocks) : [];
-      setEditContentBlocks(blocks);
+      setEditContentBlocks(parseContentBlocks(blocks) as unknown as SongContentBlock[]);
     } catch (error) {
       console.error("Failed to parse content blocks:", error);
       setEditContentBlocks([]);

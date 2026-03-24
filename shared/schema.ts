@@ -1,6 +1,7 @@
 import { pgTable, serial, integer, text, timestamp, boolean, jsonb, uuid, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { passwordChangeRequestSchema } from "./auth-validation";
 
 // Constants
 export const USER_ROLES = {
@@ -1061,11 +1062,7 @@ export const preferenceSettingsSchema = z.object({
 export type PreferenceSettingsData = z.infer<typeof preferenceSettingsSchema>;
 
 // Password change validation schema
-export const passwordChangeSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
-});
+export const passwordChangeSchema = passwordChangeRequestSchema;
 
 export type PasswordChangeData = z.infer<typeof passwordChangeSchema>;
 

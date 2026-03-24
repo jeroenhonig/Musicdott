@@ -1,19 +1,27 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage-wrapper";
-import { setupAuth, requireAuth, enforcePasswordChange, sessionMiddleware } from "./auth";
+import { getStorageRuntimeState, storage } from "./storage-wrapper";
+import {
+  setupAuth,
+  requireAuth,
+  enforcePasswordChange,
+  sessionMiddleware,
+  comparePasswords,
+  changeAuthenticatedUserPassword,
+} from "./auth";
 // WebSocketManager removed - using RealtimeBus instead (set up in index.ts)
-import { db, executeQuery } from "./db";
-import { eq, and, desc, or, inArray, ne, not, sql } from "drizzle-orm";
-import { EmailNotificationService } from "./services/email-notifications";
+import { db } from "./db";
+import { eq, and, or, ne, not, sql } from "drizzle-orm";
 import { notificationService } from "./services/notification-service";
 import { registerSchoolRoutes } from "./routes/schools";
 import { registerTeacherRoutes } from "./routes/teachers";
 import { registerStudentRoutes } from "./routes/students";
 import { registerSongRoutes } from "./routes/songs";
+import { registerMessageRoutes } from "./routes/messages";
+import { registerPlatformAdminRoutes } from "./routes/platform-admin";
+import { registerRecurringScheduleRoutes } from "./routes/recurring-schedules";
 import { registerNotificationRoutes } from "./routes/notifications";
-import recurringSchedulesRouter from "./routes/recurring-schedules";
-import subscriptionsRouter from "./routes/subscriptions";
+import { canAccessSchoolId, getAccessibleSchoolIds } from "./routes/school-scope";
 import { z } from "zod";
 import {
   insertStudentSchema,
@@ -25,18 +33,16 @@ import {
   insertSessionSchema,
   insertAchievementDefinitionSchema,
   insertStudentAchievementSchema,
-  studentMessages,
-  messageReplies,
   students,
   sessions,
   users,
   profileUpdateSchema,
   schoolSettingsUpdateSchema,
   notificationSettingsSchema,
-  preferenceSettingsSchema,
-  passwordChangeSchema
+  preferenceSettingsSchema
 } from "@shared/schema";
-import { authRateLimit } from "./middleware/security";
+import { ownerLoginSchema, passwordChangeRequestSchema } from "@shared/auth-validation";
+import { ownerAuthRateLimit, passwordChangeRateLimit, verifySameOrigin } from "./middleware/security";
 import { 
   loadSchoolContext, 
   requireTeacherOrOwner,
@@ -53,7 +59,13 @@ import { importSchedule } from "./importSchedule";
 import { resetStudentPassword } from "./services/student-accounts";
 import { fixExistingCorruptedSongs } from "./utils/optimized-import";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+interface RegisterRoutesOptions {
+  minimal?: boolean;
+}
+
+export async function registerRoutes(app: Express, server?: Server, options: RegisterRoutesOptions = {}): Promise<Server> {
+  const { minimal = false } = options;
+
   // Health check endpoint for deployment verification
   app.get("/health", (req: Request, res: Response) => {
     res.status(200).json({ 
@@ -102,10 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           latency: dbLatency > 0 ? `${dbLatency}ms` : null,
           ...dbDetails
         },
-        storage: {
-          mode: isDatabaseAvailable ? "database" : "memory",
-          fallback: "memory"
-        },
+        storage: getStorageRuntimeState(),
         timestamp: new Date().toISOString(),
         uptime: Math.floor(process.uptime()),
         memory: {
@@ -122,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "healthy", 
         api: "ready",
         database: { status: "error" },
-        storage: { mode: "memory", fallback: "memory" },
+        storage: getStorageRuntimeState(),
         timestamp: new Date().toISOString()
       });
     }
@@ -136,6 +145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     (app as any).realtimeBus.configureSessionMiddleware(sessionMiddleware);
   }
 
+  // Protect authenticated cookie-based mutations against cross-site requests.
+  app.use('/api', verifySameOrigin);
+
   // Apply password change enforcement to all API routes
   app.use('/api', enforcePasswordChange);
   
@@ -144,36 +156,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerTeacherRoutes(app);
   registerStudentRoutes(app);
   registerSongRoutes(app);
+  registerMessageRoutes(app);
+  registerPlatformAdminRoutes(app);
+  registerRecurringScheduleRoutes(app);
   registerNotificationRoutes(app);
-  
-  // Register gamification routes
-  app.use("/api/gamification", (await import("./routes/gamification")).default);
-  
-  // Register video routes
-  app.use("/api/videos", (await import("./routes/video")).default);
-  
-  // Register groove patterns routes
-  app.use("/api/groove-patterns", (await import("./routes/groove-patterns")).default);
-  
-  // Register AI services routes
-  app.use("/api/ai", (await import("./routes/ai-services")).default);
-  
-  // Register notation collaboration routes
-  app.use("/api/notation", (await import("./routes/notation")).default);
-  
-  // Register iCal import/export routes
-  app.use("/api/ical", (await import("./routes/ical")).default);
-  
-  // Register JSON import routes
-  app.use("/api/import", (await import("./routes/json-import")).default);
 
-  // Register POS import routes (notations, songs, drumblocks)
-  app.use("/api/pos-import", (await import("./routes/pos-import")).default);
-  // Also register under /api for direct access to notations, pos-songs, mappings, drumblocks
-  app.use("/api", (await import("./routes/pos-import")).default);
+  if (!minimal) {
+    // Register gamification routes
+    app.use("/api/gamification", (await import("./routes/gamification")).default);
 
-  // Register subscription routes with billing alias for compatibility
-  app.use("/api/billing", subscriptionsRouter);
+    // Register video routes
+    app.use("/api/videos", (await import("./routes/video")).default);
+
+    // Register groove patterns routes
+    app.use("/api/groove-patterns", (await import("./routes/groove-patterns")).default);
+
+    // Register AI services routes
+    app.use("/api/ai", (await import("./routes/ai-services")).default);
+
+    // Register notation collaboration routes
+    app.use("/api/notation", (await import("./routes/notation")).default);
+
+    // Register iCal import/export routes
+    app.use("/api/ical", (await import("./routes/ical")).default);
+
+    // Register JSON import routes
+    app.use("/api/import", (await import("./routes/json-import")).default);
+
+    // Register POS import routes (notations, songs, drumblocks)
+    app.use("/api/pos-import", (await import("./routes/pos-import")).default);
+    // Also register under /api for direct access to notations, pos-songs, mappings, drumblocks
+    app.use("/api", (await import("./routes/pos-import")).default);
+
+    // Register subscription routes with billing alias for compatibility
+    app.use("/api/billing", (await import("./routes/subscriptions")).default);
+  }
   
   // Add categories alias for lesson-categories compatibility - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
@@ -395,18 +412,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API routes - all routes are prefixed with /api
-  
-  // Teachers endpoint for teacher assignment
-  app.get("/api/teachers", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
-    try {
-      const teachers = await storage.getUsersByRole('teacher');
-      res.json(teachers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch teachers" });
-    }
-  });
 
   // Students - role-based access with proper multi-tenant filtering
   app.get("/api/students", 
@@ -1484,243 +1489,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Teachers endpoint for school owners/admins
-  app.get("/api/teachers", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+  // Canonical teachers endpoint (school-scoped for assignment/scheduling UIs)
+  app.get("/api/teachers", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      // For now, return users with teacher role from the same school
+      const schoolId = req.school?.id || req.user!.schoolId;
       const teachers = await storage.getUsersByRole("teacher");
-      const schoolTeachers = teachers.filter(teacher => teacher.schoolId === req.user!.schoolId);
+      const schoolTeachers = schoolId
+        ? teachers.filter((teacher) => teacher.schoolId === schoolId)
+        : teachers;
       res.json(schoolTeachers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch teachers" });
     }
   });
-
-
-  // Recurring schedule endpoints
-  app.get("/api/recurring-schedules", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const user = req.user!;
-      let schedules;
-      
-      console.log(`User accessing recurring schedules: ${user.id}, role: ${user.role}, schoolId: ${user.schoolId}`);
-      
-      // School owners can see all schedules in their school
-      if (user.role === 'school_owner' && user.schoolId) {
-        console.log(`Fetching schedules for school: ${user.schoolId}`);
-        schedules = await storage.getRecurringSchedulesBySchool(user.schoolId);
-      } else {
-        // Regular users only see their own schedules
-        console.log(`Fetching schedules for user: ${user.id}`);
-        schedules = await storage.getRecurringSchedules(user.id);
-      }
-      
-      console.log(`Found ${schedules.length} recurring schedules`);
-      console.log(`Sample schedule data:`, schedules[0] ? JSON.stringify(schedules[0], null, 2) : 'No schedules found');
-      
-      // Ensure proper camelCase property names for frontend
-      const transformedSchedules = schedules.map(schedule => ({
-        ...schedule,
-        // Ensure we have the camelCase properties the frontend expects
-        dayOfWeek: schedule.dayOfWeek,
-        userId: schedule.userId,
-        studentId: schedule.studentId,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        schoolId: schedule.schoolId || req.user!.schoolId, // Use schoolId from schedule or fallback to user's schoolId
-        recurrenceType: schedule.frequency || 'weekly' // Map frequency to recurrenceType for backward compatibility
-      }));
-      
-      res.json(transformedSchedules);
-    } catch (error) {
-      console.error("Error in recurring schedules endpoint:", error);
-      res.status(500).json({ message: "Failed to fetch recurring schedules" });
-    }
-  });
-  
-  // NOTE: Student recurring schedules route moved to server/routes/students.ts with proper security
-  
-  app.post("/api/recurring-schedules", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      // Ensure userId is set to the authenticated user
-      const scheduleData = {
-        ...req.body,
-        userId: req.user!.id
-      };
-      
-      console.log("Creating recurring schedule:", JSON.stringify(scheduleData, null, 2));
-      
-      // Validate required fields
-      if (!scheduleData.studentId || !scheduleData.dayOfWeek || !scheduleData.startTime || !scheduleData.endTime) {
-        return res.status(400).json({ 
-          message: "Missing required fields",
-          required: ["studentId", "dayOfWeek", "startTime", "endTime"]
-        });
-      }
-      
-      const schedule = await storage.createRecurringSchedule(scheduleData);
-      console.log("Recurring schedule created:", schedule.id);
-      res.status(201).json(schedule);
-    } catch (error) {
-      console.error("Error creating recurring schedule:", error);
-      res.status(500).json({ message: "Failed to create recurring schedule", details: String(error) });
-    }
-  });
-  
-  app.put("/api/recurring-schedules/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const scheduleId = parseInt(req.params.id);
-      // Verify the schedule belongs to this teacher
-      const schedule = await storage.getRecurringSchedule(scheduleId);
-      if (!schedule || schedule.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const updatedSchedule = await storage.updateRecurringSchedule(scheduleId, req.body);
-      res.json(updatedSchedule);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update recurring schedule" });
-    }
-  });
-  
-  app.delete("/api/recurring-schedules/:id", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const scheduleId = parseInt(req.params.id);
-      // Verify the schedule belongs to this teacher
-      const schedule = await storage.getRecurringSchedule(scheduleId);
-      if (!schedule || schedule.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const success = await storage.deleteRecurringSchedule(scheduleId);
-      if (success) {
-        res.status(204).end();
-      } else {
-        res.status(404).json({ message: "Schedule not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete recurring schedule" });
-    }
-  });
-  
-  app.post("/api/recurring-schedules/generate", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const userId = req.user!.id;
-      const { startDate, endDate } = req.body;
-      
-      if (!startDate || !endDate) {
-        return res.status(400).json({ message: "Start date and end date are required" });
-      }
-      
-      const sessions = await storage.generateSessionsFromRecurringSchedules(
-        userId,
-        new Date(startDate),
-        new Date(endDate)
-      );
-      
-      res.status(201).json(sessions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to generate sessions from recurring schedules" });
-    }
-  });
-  
-  // Session rescheduling endpoints
-  app.post("/api/sessions/:id/reschedule/request", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const sessionId = parseInt(req.params.id);
-      const { newStartTime, newEndTime } = req.body;
-      
-      if (!newStartTime || !newEndTime) {
-        return res.status(400).json({ message: "New start time and end time are required" });
-      }
-      
-      // Verify the session belongs to this teacher or the student belongs to this teacher
-      const session = await storage.getSession(sessionId);
-      if (!session) {
-        return res.status(404).json({ message: "Session not found" });
-      }
-      
-      const isTeacher = session.userId === req.user!.id;
-      const isStudent = req.user!.role === 'student' && await storage.getStudent(session.studentId) !== undefined;
-      
-      if (!isTeacher && !isStudent) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const updatedSession = await storage.requestReschedule(
-        sessionId,
-        new Date(newStartTime),
-        new Date(newEndTime)
-      );
-      
-      // If it's a student requesting the reschedule, notify the teacher
-      if (isStudent) {
-        const wsManager = (app as any).wsManager;
-        wsManager.sendRescheduleRequest(session.studentId, {
-          sessionId,
-          title: session.title,
-          originalStartTime: session.startTime,
-          originalEndTime: session.endTime,
-          newStartTime,
-          newEndTime,
-          studentId: session.studentId
-        });
-      }
-      
-      res.json(updatedSession);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to request session reschedule" });
-    }
-  });
-  
-  app.post("/api/sessions/:id/reschedule/approve", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    try {
-      const sessionId = parseInt(req.params.id);
-      
-      // Verify the session belongs to this teacher
-      const session = await storage.getSession(sessionId);
-      if (!session || session.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const updatedSession = await storage.approveReschedule(sessionId);
-      
-      res.json(updatedSession);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to approve session reschedule" });
-    }
-  });
-  
   // Dashboard stats endpoint
   app.get("/api/dashboard/stats",
     requireAuth,
@@ -1896,23 +1677,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // MusicDott 2.0 Import Endpoints - Students
-  app.post("/api/import/students", requireAuth, async (req: any, res: Response) => {
+  app.post("/api/import/students", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: any, res: Response) => {
     try {
-      // Only allow teachers and school owners to import students
-      if (!['teacher', 'school_owner', 'platform_owner'].includes(req.user.role)) {
-        return res.status(403).json({ 
-          success: false,
-          message: "Only teachers and school owners can import students" 
-        });
-      }
-
       // Validate request body
       const { filePath, schoolId } = req.body;
+      const requestedSchoolId = typeof schoolId === "number"
+        ? schoolId
+        : schoolId
+          ? Number.parseInt(String(schoolId), 10)
+          : undefined;
+      const targetSchoolId = requestedSchoolId ?? req.school?.id ?? req.user?.schoolId;
       
       if (!filePath) {
         return res.status(400).json({ 
           success: false,
           message: "filePath is required" 
+        });
+      }
+
+      if (!targetSchoolId || !canAccessSchoolId(req, targetSchoolId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You don't have access to import students for this school"
         });
       }
 
@@ -1933,9 +1719,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Import file not found" 
         });
       }
-
-      // Use the authenticated user's school ID if not provided
-      const targetSchoolId = schoolId || req.user.schoolId || 1;
 
       // Execute the import
       const result = await importStudents(normalizedPath, targetSchoolId);
@@ -1963,24 +1746,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // MusicDott 2.0 Import Endpoints - Schedules
-  app.post("/api/import/schedule", requireAuth, async (req: any, res: Response) => {
+  app.post("/api/import/schedule", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: any, res: Response) => {
     try {
-      // Only allow teachers and school owners to import schedules
-      if (!['teacher', 'school_owner', 'platform_owner'].includes(req.user.role)) {
-        return res.status(403).json({ 
-          success: false,
-          message: "Only teachers and school owners can import schedules" 
-        });
-      }
-
       // Validate request body
       const { filePath, defaultUserId } = req.body;
+      const targetUserId = typeof defaultUserId === "number"
+        ? defaultUserId
+        : defaultUserId
+          ? Number.parseInt(String(defaultUserId), 10)
+          : req.user.id;
       
       if (!filePath) {
         return res.status(400).json({ 
           success: false,
           message: "filePath is required" 
         });
+      }
+
+      if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid default user"
+        });
+      }
+
+      if (!req.school?.isPlatformOwner()) {
+        if (req.user.role === "teacher" && targetUserId !== req.user.id) {
+          return res.status(403).json({
+            success: false,
+            message: "Teachers can only import schedules for themselves"
+          });
+        }
+
+        const targetUser = targetUserId === req.user.id ? req.user : await storage.getUser(targetUserId);
+        if (!targetUser) {
+          return res.status(404).json({
+            success: false,
+            message: "Import target user not found"
+          });
+        }
+
+        if (!canAccessSchoolId(req, targetUser.schoolId)) {
+          return res.status(403).json({
+            success: false,
+            message: "You don't have access to import schedules for this user"
+          });
+        }
       }
 
       // Security: Restrict file access to ./export directory only
@@ -2000,9 +1811,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Import file not found" 
         });
       }
-
-      // Use the authenticated user's ID as default teacher
-      const targetUserId = defaultUserId || req.user.id;
 
       // Execute the import
       const result = await importSchedule(normalizedPath, targetUserId);
@@ -2119,7 +1927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Import routes for migrating from old MusicDott system
-  app.post("/api/import/preview", async (req: Request, res: Response) => {
+  app.post("/api/import/preview", requireAuth, async (req: Request, res: Response) => {
     try {
       const { content } = req.body;
       
@@ -2137,52 +1945,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Import students from JSON
-  app.post("/api/import/students", async (req: Request, res: Response) => {
-    try {
-      const { filePath } = req.body;
-      
-      if (!filePath) {
-        return res.status(400).json({ message: "File path is required" });
-      }
-
-      const { importStudents } = await import('./importStudents');
-      const result = await importStudents(filePath);
-      
-      res.json({
-        message: "Student import completed",
-        result
-      });
-    } catch (error) {
-      console.error("Error importing students:", error);
-      res.status(500).json({ message: "Failed to import students" });
-    }
-  });
-
-  // Import schedule from JSON
-  app.post("/api/import/schedule", async (req: Request, res: Response) => {
-    try {
-      const { filePath } = req.body;
-      
-      if (!filePath) {
-        return res.status(400).json({ message: "File path is required" });
-      }
-
-      const { importSchedule } = await import('./importSchedule');
-      const result = await importSchedule(filePath);
-      
-      res.json({
-        message: "Schedule import completed", 
-        result
-      });
-    } catch (error) {
-      console.error("Error importing schedule:", error);
-      res.status(500).json({ message: "Failed to import schedule" });
-    }
-  });
-
   // Complete import (students + schedule)
-  app.post("/api/import/complete", async (req: Request, res: Response) => {
+  app.post("/api/import/complete", requireAuth, async (req: Request, res: Response) => {
     try {
       const { studentsPath, schedulePath } = req.body;
       
@@ -2212,7 +1976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/import/songs", async (req: Request, res: Response) => {
+  app.post("/api/import/songs", requireAuth, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       if (!user) {
@@ -2235,7 +1999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/import/lessons", async (req: Request, res: Response) => {
+  app.post("/api/import/lessons", requireAuth, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       if (!user) {
@@ -2258,555 +2022,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Register subscription routes
-  app.use("/api/subscriptions", subscriptionsRouter);
+  if (!minimal) {
+    // Register subscription routes
+    app.use("/api/subscriptions", (await import("./routes/subscriptions")).default);
+  }
   
-  const httpServer = createServer(app);
-  
-  // Initialize WebSocket server for real-time communication
-  // Teacher Messages API routes - removed duplicate, using enhanced version below
-
-  app.patch("/api/teacher/respond-message/:messageId", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.messageId);
-      const { response } = req.body;
-      const teacherId = req.user.id;
-      
-      const [updatedMessage] = await db.update(studentMessages)
-        .set({
-          response,
-          respondedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(studentMessages.id, messageId),
-          eq(studentMessages.teacherId, teacherId)
-        ))
-        .returning();
-        
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-      
-      res.json(updatedMessage);
-    } catch (error) {
-      console.error("Error responding to message:", error);
-      res.status(500).json({ message: "Failed to respond to message" });
-    }
-  });
-
-  app.patch("/api/teacher/mark-message-read/:messageId", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.messageId);
-      const teacherId = req.user.id;
-      
-      const [updatedMessage] = await db.update(studentMessages)
-        .set({
-          isRead: true,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(studentMessages.id, messageId),
-          eq(studentMessages.teacherId, teacherId)
-        ))
-        .returning();
-        
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-      
-      res.json(updatedMessage);
-    } catch (error) {
-      console.error("Error marking message as read:", error);
-      res.status(500).json({ message: "Failed to mark message as read" });
-    }
-  });
-
-  // Unified Messages API routes
-  app.get("/api/messages", requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const userRole = req.user.role;
-      
-      // Get messages for this user (both sent and received) using storage interface
-      const userMessages = await storage.getMessages(userId, userRole);
-      
-      res.json(userMessages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
-
-  app.post("/api/messages", requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const userRole = req.user.role;
-      const { recipientId, subject, message } = req.body;
-      
-      // Determine recipient type
-      const recipient = await db.select()
-        .from(users)
-        .where(eq(users.id, recipientId))
-        .limit(1);
-        
-      if (!recipient.length) {
-        return res.status(404).json({ message: "Recipient not found" });
-      }
-      
-      const recipientRole = recipient[0].role;
-      
-      // Create message using storage interface
-      const messageData = {
-        senderId: userId,
-        recipientId: recipientId,
-        senderType: userRole,
-        recipientType: recipientRole,
-        subject: subject,
-        content: message,
-        isRead: false
-      };
-      
-      const newMessage = await storage.createMessage(messageData);
-      
-      res.status(201).json(newMessage);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
-
-  app.patch("/api/messages/:id/read", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.id);
-      const userId = req.user.id;
-      
-      // Mark message as read using Drizzle ORM
-      const [updatedMessage] = await db.update(messages)
-        .set({ isRead: true })
-        .where(and(
-          eq(messages.id, messageId),
-          eq(messages.recipientId, userId)
-        ))
-        .returning();
-      
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found or unauthorized" });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error marking message as read:", error);
-      res.status(500).json({ message: "Failed to mark message as read" });
-    }
-  });
-
-  // Get users for messaging (students and teachers)
-  app.get("/api/users", requireAuth, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.id;
-      const currentUserRole = req.user.role;
-      
-      // Get all users that can be messaged (exclude current user)
-      const messagingUsers = await db.select({
-        id: users.id,
-        name: users.name,
-        role: users.role,
-        username: users.username
-      })
-        .from(users)
-        .where(
-          and(
-            ne(users.id, currentUserId),
-            inArray(users.role, ['teacher', 'student', 'school_owner'])
-          )
-        )
-        .orderBy(users.name);
-      
-      res.json(messagingUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  app.post("/api/student/ask-teacher", requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const { subject, message } = req.body;
-      
-      // Find the student record that corresponds to this user
-      const student = await db.select({
-        id: students.id,
-        userId: students.userId,
-        assignedTeacherId: students.assignedTeacherId,
-        name: students.name
-      })
-        .from(students)
-        .where(eq(students.userId, userId))
-        .limit(1);
-        
-      if (!student.length) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-      
-      const studentRecord = student[0];
-      let teacherId;
-      
-      // Use the assigned teacher from the student record
-      if (studentRecord.assignedTeacherId) {
-        teacherId = studentRecord.assignedTeacherId;
-      } else {
-        // Fallback: find any teacher/school owner as default
-        const defaultTeacher = await db.select()
-          .from(users)
-          .where(or(
-            eq(users.role, 'teacher'),
-            eq(users.role, 'school_owner')
-          ))
-          .limit(1);
-          
-        if (!defaultTeacher.length) {
-          return res.status(400).json({ message: "No teacher available to receive messages" });
-        }
-        teacherId = defaultTeacher[0].id;
-      }
-      
-      const [newMessage] = await db.insert(studentMessages)
-        .values({
-          studentId: studentRecord.id,
-          teacherId,
-          subject,
-          message,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .returning();
-
-      res.json(newMessage);
-    } catch (error) {
-      console.error("Error creating student message:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
-
-  app.patch("/api/student/mark-response-read/:id", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.id);
-      const userId = req.user.id;
-      
-      // Find the student record that corresponds to this user account
-      const student = await db.select({
-        id: students.id,
-        userId: students.userId,
-        name: students.name
-      })
-        .from(students)
-        .where(eq(students.userId, userId))
-        .limit(1);
-        
-      if (!student.length) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-      
-      const studentRecord = student[0];
-      
-      const [updatedMessage] = await db.update(studentMessages)
-        .set({ 
-          responseRead: true,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(studentMessages.id, messageId),
-          eq(studentMessages.studentId, studentRecord.id)
-        ))
-        .returning();
-
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
-      res.json(updatedMessage);
-    } catch (error) {
-      console.error("Error marking response as read:", error);
-      res.status(500).json({ message: "Failed to mark response as read" });
-    }
-  });
-
-  // Student reply to message thread
-  app.post("/api/student/reply-message/:messageId", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.messageId);
-      const userId = req.user.id;
-      const { reply } = req.body;
-
-      if (!reply || !reply.trim()) {
-        return res.status(400).json({ message: "Reply content is required" });
-      }
-
-      // Find the student record that corresponds to this user account
-      const student = await db.select({
-        id: students.id,
-        userId: students.userId,
-        name: students.name
-      })
-        .from(students)
-        .where(eq(students.userId, userId))
-        .limit(1);
-        
-      if (!student.length) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
-      // Verify the message exists and belongs to this student
-      const message = await db.select()
-        .from(studentMessages)
-        .where(or(
-          and(eq(studentMessages.id, messageId), eq(studentMessages.studentId, student[0].id)),
-          and(eq(studentMessages.id, messageId), eq(studentMessages.studentId, userId))
-        ))
-        .limit(1);
-
-      if (!message.length) {
-        return res.status(404).json({ message: "Message not found or access denied" });
-      }
-
-      // Create the threaded reply
-      const newReply = await db.insert(messageReplies)
-        .values({
-          messageId: messageId,
-          senderId: userId,
-          senderType: "student",
-          reply: reply.trim(),
-          isRead: false
-        })
-        .returning();
-
-      res.json(newReply[0]);
-    } catch (error) {
-      console.error("Error creating message reply:", error);
-      res.status(500).json({ message: "Failed to send reply" });
-    }
-  });
-
-  app.get("/api/teacher/messages", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: any, res) => {
-    try {
-      const teacherId = req.user.id;
-      
-      // Get all messages for this teacher with explicit select using camelCase columns
-      const messages = await db.select({ 
-        id: studentMessages.id, 
-        studentId: studentMessages.studentId, 
-        studentName: students.name, 
-        subject: studentMessages.subject, 
-        message: studentMessages.message, 
-        response: studentMessages.response, 
-        isRead: studentMessages.isRead, 
-        responseRead: studentMessages.responseRead, 
-        createdAt: studentMessages.createdAt, 
-        respondedAt: studentMessages.respondedAt 
-      })
-        .from(studentMessages)
-        .leftJoin(students, eq(studentMessages.studentId, students.id))
-        .where(eq(studentMessages.teacherId, teacherId))
-        .orderBy(desc(studentMessages.createdAt))
-        .catch(error => {
-          console.error('Teacher messages query failed:', error);
-          return [];
-        });
-
-      // Get all replies for these messages with explicit select using camelCase columns
-      const messageIds = messages.map(m => m.id).filter(Boolean);
-      const replies = messageIds.length > 0 ? await db.select({
-        id: messageReplies.id,
-        messageId: messageReplies.messageId,
-        senderId: messageReplies.senderId,
-        senderType: messageReplies.senderType,
-        content: messageReplies.content,
-        isRead: messageReplies.isRead,
-        createdAt: messageReplies.createdAt
-      })
-        .from(messageReplies)
-        .where(inArray(messageReplies.messageId, messageIds))
-        .orderBy(messageReplies.createdAt)
-        .catch(error => {
-          console.error('Message replies query failed:', error);
-          return [];
-        }) : [];
-
-      // Format messages with replies using correct field names from the schema
-      const messagesWithReplies = messages.map(row => ({
-        id: row.id,
-        studentId: row.studentId,
-        studentName: row.studentName || 'Unknown',
-        subject: row.subject,
-        message: row.message,
-        response: row.response,
-        isRead: row.isRead,
-        responseRead: row.responseRead,
-        createdAt: row.createdAt,
-        respondedAt: row.respondedAt,
-        replies: replies.filter(reply => reply.messageId === row.id)
-      })).filter(msg => msg.id); // Filter out empty results
-      
-      res.json(messagesWithReplies);
-    } catch (error) {
-      console.error("Error fetching teacher messages:", error);
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
-
-  app.patch("/api/teacher/respond-message/:id", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.id);
-      const teacherId = req.user.id;
-      const { response } = req.body;
-      
-      const [updatedMessage] = await db.update(studentMessages)
-        .set({ 
-          response,
-          isRead: true,
-          responseRead: false,
-          respondedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(studentMessages.id, messageId),
-          eq(studentMessages.teacherId, teacherId)
-        ))
-        .returning();
-
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
-      res.json(updatedMessage);
-    } catch (error) {
-      console.error("Error responding to message:", error);
-      res.status(500).json({ message: "Failed to respond to message" });
-    }
-  });
-
-  app.patch("/api/teacher/mark-message-read/:id", requireAuth, async (req: any, res) => {
-    try {
-      const messageId = parseInt(req.params.id);
-      const teacherId = req.user.id;
-      
-      const [updatedMessage] = await db.update(studentMessages)
-        .set({ 
-          isRead: true,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(studentMessages.id, messageId),
-          eq(studentMessages.teacherId, teacherId)
-        ))
-        .returning();
-
-      if (!updatedMessage) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
-      res.json(updatedMessage);
-    } catch (error) {
-      console.error("Error marking message as read:", error);
-      res.status(500).json({ message: "Failed to mark message as read" });
-    }
-  });
-
-  // Send new message from teacher to student or teacher
-  app.post("/api/teacher/send-message", requireAuth, async (req: any, res) => {
-    try {
-      const senderId = req.user.id;
-      const { recipientType, recipientId, subject, message } = req.body;
-      
-      if (!recipientType || !recipientId || !subject || !message) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      if (recipientType === "student") {
-        // Sending to a student - use existing studentMessages table
-        const student = await db.select({
-          id: students.id,
-          name: students.name,
-          userId: students.userId,
-          schoolId: students.schoolId
-        })
-          .from(students)
-          .where(eq(students.id, recipientId))
-          .limit(1);
-          
-        if (!student.length) {
-          return res.status(404).json({ message: "Student not found" });
-        }
-        
-        const [newMessage] = await db.insert(studentMessages)
-          .values({
-            studentId: recipientId,
-            teacherId: senderId,
-            subject,
-            message,
-            isRead: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          })
-          .returning();
-        
-        // Send notification to student about new message
-        try {
-          if (student[0].userId && student[0].schoolId) {
-            await notificationService.sendNotification({
-              userId: student[0].userId,
-              schoolId: student[0].schoolId,
-              type: 'message',
-              title: 'New Message from Teacher',
-              message: subject,
-              link: `/messages/${newMessage.id}`,
-              metadata: { messageId: newMessage.id, senderId: senderId }
-            });
-          }
-        } catch (notifError) {
-          console.error('Failed to send message notification:', notifError);
-        }
-          
-        res.status(201).json(newMessage);
-      } else if (recipientType === "teacher") {
-        // Sending to a teacher - for now, we'll create a system message using studentMessages
-        // In the future, we could create a separate teachers messaging table
-        const teacher = await db.select()
-          .from(users)
-          .where(and(
-            eq(users.id, recipientId),
-            or(eq(users.role, 'teacher'), eq(users.role, 'school_owner'))
-          ))
-          .limit(1);
-          
-        if (!teacher.length) {
-          return res.status(404).json({ message: "Teacher not found" });
-        }
-        
-        // For teacher-to-teacher messages, we'll use studentId: 0 as a flag for system/teacher messages
-        const [newMessage] = await db.insert(studentMessages)
-          .values({
-            studentId: 0, // Special value to indicate teacher-to-teacher message
-            teacherId: recipientId, // The recipient teacher
-            subject: `From Teacher: ${subject}`,
-            message: `Message from ${req.user.name}: ${message}`,
-            isRead: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          })
-          .returning();
-          
-        res.status(201).json(newMessage);
-      } else {
-        return res.status(400).json({ message: "Invalid recipient type" });
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
+  const httpServer = server ?? createServer(app);
 
   // Admin debug endpoints
   app.get('/api/admin/storage-status', async (req, res) => {
@@ -2873,1576 +2094,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/debug/stats', requireAuth, async (req, res) => {
-    try {
-      const currentUserId = req.user?.id;
-      const isDatabaseConnected = false; // Memory storage fallback active
-      
-      // Get counts from storage
-      const students = await storage.getStudents(currentUserId);
-      const lessons = await storage.getLessons(currentUserId);
-      const songs = await storage.getSongs(currentUserId);
-      const categories = await storage.getLessonCategories(currentUserId);
-      
-      res.json({
-        currentUserId,
-        storageType: 'memory',
-        connected: false,
-        counts: {
-          students: students.length,
-          lessons: lessons.length,
-          songs: songs.length,
-          categories: categories.length,
-          users: 1 // Current implementation has single user
-        }
-      });
-    } catch (error) {
-      console.error('Debug stats error:', error);
-      res.status(500).json({ error: 'Failed to get debug stats' });
-    }
-  });
-
-  app.post('/api/admin/debug/reset-demo-data', requireAuth, async (req, res) => {
-    try {
-      // This would reset the in-memory storage to clean state
-      // Implementation depends on storage architecture
-      res.json({ message: 'Demo data reset functionality ready for implementation' });
-    } catch (error) {
-      console.error('Reset demo data error:', error);
-      res.status(500).json({ error: 'Failed to reset demo data' });
-    }
-  });
-
-  // Automated Billing Management Endpoints
-  app.get("/api/admin/billing/status", requireAuth, async (req: any, res) => {
-    try {
-      // Only allow school owners and admins to check billing status
-      if (req.user.role !== 'school_owner' && req.user.role !== 'platform_owner') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const { billingScheduler } = require('../services/billing-scheduler');
-      const nextRun = billingScheduler.getNextScheduledRun();
-      
-      res.json({
-        automatedBilling: {
-          isActive: true,
-          nextScheduledRun: nextRun ? nextRun.toISOString() : null,
-          schedule: "Monthly on 1st day at 2:00 AM UTC",
-          status: "running"
-        }
-      });
-    } catch (error) {
-      console.error("Error checking billing status:", error);
-      res.status(500).json({ message: "Failed to get billing status" });
-    }
-  });
-
-  app.post("/api/admin/billing/trigger", requireAuth, async (req: any, res) => {
-    try {
-      // Only allow school owners and admins to manually trigger billing
-      if (req.user.role !== 'school_owner' && req.user.role !== 'platform_owner') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const { billingScheduler } = require('../services/billing-scheduler');
-
-      // Trigger manual billing (for testing or emergency use)
-      await billingScheduler.triggerManualBilling();
-      
-      res.json({ 
-        message: "Manual billing process completed successfully",
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("Error triggering manual billing:", error);
-      res.status(500).json({ message: "Failed to trigger billing process" });
-    }
-  });
-
   // Owner Login API Endpoint (separate from regular authentication)
-  app.post("/api/owner/login", async (req: Request, res: Response) => {
+  app.post("/api/owner/login", verifySameOrigin, ownerAuthRateLimit, async (req: Request, res: Response, next) => {
     try {
-      const { username, password } = req.body;
-
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password required" });
-      }
+      const { username, password } = ownerLoginSchema.parse(req.body);
 
       // Verify platform owner credentials
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.getUserByUsernameForAuth(username);
       
       if (!user || user.role !== 'platform_owner') {
         return res.status(401).json({ message: "Invalid administrator credentials" });
       }
 
-      // Verify password
-      const bcrypt = await import('bcrypt');
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await comparePasswords(password, user.password);
       
       if (!isValidPassword) {
         return res.status(401).json({ message: "Invalid administrator credentials" });
       }
 
-      // Log the access attempt for security
-      console.log(`[SECURITY] Platform owner login: ${username} at ${new Date().toISOString()}`);
-
-      // Set session for platform owner
-      (req as any).session.user = {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      };
-
-      res.json({ message: "Administrator authentication successful" });
-    } catch (error) {
-      console.error("Error in owner login:", error);
-      res.status(500).json({ message: "Authentication failed" });
-    }
-  });
-
-  // Platform Owners Dashboard API Endpoints
-  // Require platform owner role for access
-  const requirePlatformOwner = (req: any, res: any, next: any) => {
-    // Check both Passport session (req.user) and direct session (req.session.user)
-    const user = req.user || req.session?.user;
-    if (!user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    if (user.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Access denied. Platform owner role required." });
-    }
-    next();
-  };
-
-  // Helper function to log admin actions for audit trail
-  const logAdminAction = async (req: any, action: string, targetType: string, targetId: number | null, metadata: any = {}) => {
-    try {
-      // Get user from Passport session (req.user) or direct session (req.session.user)
-      const user = req.user || req.session?.user;
-      if (!user?.id) {
-        console.warn("No user found for audit log");
-        return;
-      }
-
-      await storage.executeQuery(`
-        INSERT INTO admin_actions (actor_id, target_type, target_id, action, metadata, ip_address, user_agent)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `, [
-        user.id,
-        targetType,
-        targetId,
-        action,
-        JSON.stringify(metadata),
-        req.ip || req.connection?.remoteAddress,
-        req.get('user-agent')
-      ]);
-    } catch (error) {
-      console.error("Failed to log admin action:", error);
-    }
-  };
-
-  // Get platform-wide statistics
-  app.get("/api/owners/platform-stats", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      // Get comprehensive platform statistics
-      const [
-        totalUsers,
-        totalSchools,
-        totalStudents,
-        totalTeachers,
-        totalLessons,
-        totalSongs,
-        totalSessions,
-        activeSubscriptions,
-        monthlyRevenue
-      ] = await Promise.all([
-        storage.executeQuery("SELECT COUNT(*) as count FROM users"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM schools"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM students"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM users WHERE role IN ('teacher', 'school_owner')"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM lessons"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM songs"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM sessions"),
-        storage.executeQuery("SELECT COUNT(*) as count FROM school_subscriptions WHERE status = 'active'"),
-        storage.executeQuery("SELECT COALESCE(SUM(amount), 0) as total FROM payment_history WHERE status = 'paid' AND billing_month = date_trunc('month', CURRENT_DATE)")
-      ]);
-
-      // Calculate new users this month
-      const newUsersThisMonth = await storage.executeQuery(
-        "SELECT COUNT(*) as count FROM users WHERE created_at >= date_trunc('month', CURRENT_DATE)"
-      );
-
-      // Calculate growth rate (simplified)
-      const lastMonthRevenue = await storage.executeQuery(
-        "SELECT COALESCE(SUM(amount), 0) as total FROM payment_history WHERE status = 'paid' AND billing_month = date_trunc('month', CURRENT_DATE - interval '1 month')"
-      );
-
-      const currentRevenue = monthlyRevenue.rows[0]?.total || 0;
-      const previousRevenue = lastMonthRevenue.rows[0]?.total || 1;
-      const growthRate = Math.round(((currentRevenue - previousRevenue) / previousRevenue) * 100);
-
-      const stats = {
-        totalUsers: parseInt(totalUsers.rows[0]?.count || 0),
-        totalSchools: parseInt(totalSchools.rows[0]?.count || 0),
-        totalStudents: parseInt(totalStudents.rows[0]?.count || 0),
-        totalTeachers: parseInt(totalTeachers.rows[0]?.count || 0),
-        totalLessons: parseInt(totalLessons.rows[0]?.count || 0),
-        totalSongs: parseInt(totalSongs.rows[0]?.count || 0),
-        totalSessions: parseInt(totalSessions.rows[0]?.count || 0),
-        monthlyRecurringRevenue: parseInt(currentRevenue),
-        activeSubscriptions: parseInt(activeSubscriptions.rows[0]?.count || 0),
-        newUsersThisMonth: parseInt(newUsersThisMonth.rows[0]?.count || 0),
-        growthRate: growthRate || 0,
-        churnRate: 5 // Placeholder - would calculate from subscription cancellations
-      };
-
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching platform stats:", error);
-      res.status(500).json({ message: "Failed to fetch platform statistics" });
-    }
-  });
-
-  // Get revenue analytics over time
-  app.get("/api/owners/revenue-analytics", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const revenueData = await storage.executeQuery(`
-        SELECT 
-          TO_CHAR(billing_month, 'Mon YYYY') as month,
-          COALESCE(SUM(amount), 0) as revenue,
-          COUNT(DISTINCT school_id) as subscriptions
-        FROM payment_history 
-        WHERE status = 'paid' 
-          AND billing_month >= CURRENT_DATE - interval '12 months'
-        GROUP BY billing_month
-        ORDER BY billing_month ASC
-      `);
-
-      res.json(revenueData.rows);
-    } catch (error) {
-      console.error("Error fetching revenue analytics:", error);
-      res.status(500).json({ message: "Failed to fetch revenue analytics" });
-    }
-  });
-
-  // Get user growth analytics
-  app.get("/api/owners/user-growth", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const userGrowthData = await storage.executeQuery(`
-        WITH monthly_users AS (
-          SELECT 
-            DATE_TRUNC('month', created_at) as month,
-            COUNT(*) as new_users
-          FROM users 
-          WHERE created_at >= CURRENT_DATE - interval '12 months'
-          GROUP BY DATE_TRUNC('month', created_at)
-        ),
-        monthly_schools AS (
-          SELECT 
-            DATE_TRUNC('month', created_at) as month,
-            COUNT(*) as new_schools
-          FROM schools 
-          WHERE created_at >= CURRENT_DATE - interval '12 months'
-          GROUP BY DATE_TRUNC('month', created_at)
-        ),
-        running_totals AS (
-          SELECT 
-            generate_series(
-              DATE_TRUNC('month', CURRENT_DATE - interval '12 months'), 
-              DATE_TRUNC('month', CURRENT_DATE), 
-              interval '1 month'
-            ) as month
-        )
-        SELECT 
-          TO_CHAR(rt.month, 'Mon YYYY') as month,
-          (SELECT COUNT(*) FROM users WHERE created_at <= rt.month + interval '1 month' - interval '1 day') as totalUsers,
-          COALESCE(mu.new_users, 0) as newUsers,
-          (SELECT COUNT(*) FROM schools WHERE created_at <= rt.month + interval '1 month' - interval '1 day') as schools
-        FROM running_totals rt
-        LEFT JOIN monthly_users mu ON rt.month = mu.month
-        LEFT JOIN monthly_schools ms ON rt.month = ms.month
-        ORDER BY rt.month ASC
-      `);
-
-      res.json(userGrowthData.rows);
-    } catch (error) {
-      console.error("Error fetching user growth analytics:", error);
-      res.status(500).json({ message: "Failed to fetch user growth analytics" });
-    }
-  });
-
-  // Get top performing schools
-  app.get("/api/owners/top-schools", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const topSchools = await storage.executeQuery(`
-        SELECT 
-          s.id,
-          s.name,
-          s.city,
-          COUNT(DISTINCT u.id) as teacher_count,
-          COUNT(DISTINCT st.id) as student_count,
-          COUNT(DISTINCT l.id) as lessons_count,
-          COALESCE(ss.status, 'inactive') as subscription_status,
-          COALESCE(ph.total_revenue, 0) as monthly_revenue,
-          COALESCE(TO_CHAR(MAX(u.last_login_at), 'DD Mon YYYY'), 'Never') as last_activity
-        FROM schools s
-        LEFT JOIN users u ON s.id = u.school_id
-        LEFT JOIN students st ON u.id = st.user_id
-        LEFT JOIN lessons l ON u.id = l.user_id
-        LEFT JOIN school_subscriptions ss ON s.id = ss.school_id AND ss.status = 'active'
-        LEFT JOIN (
-          SELECT 
-            school_id, 
-            SUM(amount) as total_revenue
-          FROM payment_history 
-          WHERE billing_month = DATE_TRUNC('month', CURRENT_DATE)
-            AND status = 'paid'
-          GROUP BY school_id
-        ) ph ON s.id = ph.school_id
-        GROUP BY s.id, s.name, s.city, ss.status, ph.total_revenue
-        ORDER BY monthly_revenue DESC, student_count DESC
-        LIMIT 10
-      `);
-
-      // Map database field names to camelCase
-      const mappedSchools = topSchools.rows.map(school => ({
-        id: school.id,
-        name: school.name,
-        city: school.city,
-        teacherCount: parseInt(school.teacher_count) || 0,
-        studentCount: parseInt(school.student_count) || 0,
-        lessonsCount: parseInt(school.lessons_count) || 0,
-        subscriptionStatus: school.subscription_status,
-        monthlyRevenue: parseInt(school.monthly_revenue) || 0,
-        lastActivity: school.last_activity
-      }));
-
-      res.json(mappedSchools);
-    } catch (error) {
-      console.error("Error fetching top schools:", error);
-      res.status(500).json({ message: "Failed to fetch top schools" });
-    }
-  });
-
-  // Get recent platform activities
-  app.get("/api/owners/recent-activities", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      // Get recent registrations and activities from database
-      const activities = await storage.executeQuery(`
-        SELECT 
-          'user_registration' as type,
-          users.name || ' (' || users.role || ')' as description,
-          COALESCE(schools.name, 'No School') as school,
-          users.created_at as timestamp
-        FROM users 
-        LEFT JOIN schools ON users.school_id = schools.id
-        WHERE users.created_at >= NOW() - INTERVAL '30 days'
-        ORDER BY users.created_at DESC
-        LIMIT 20
-      `);
-
-      const formattedActivities = activities.rows.map(activity => ({
-        description: `New registration: ${activity.description}`,
-        school: activity.school,
-        timestamp: new Date(activity.timestamp).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      }));
-
-      res.json(formattedActivities);
-    } catch (error) {
-      console.error("Error fetching recent activities:", error);
-      res.status(500).json({ message: "Failed to fetch recent activities" });
-    }
-  });
-
-  // Get all schools with detailed information
-  app.get("/api/owners/schools", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolsData = await storage.executeQuery(`
-        SELECT 
-          s.*,
-          COUNT(DISTINCT u.id) as total_users,
-          COUNT(DISTINCT CASE WHEN u.role = 'teacher' THEN u.id END) as total_teachers,
-          COUNT(DISTINCT st.id) as total_students,
-          COUNT(DISTINCT l.id) as total_lessons,
-          COUNT(DISTINCT sg.id) as total_songs,
-          COALESCE(ss.status, 'inactive') as subscription_status,
-          ss.plan_type,
-          ss.monthly_price,
-          ss.created_at as subscription_start
-        FROM schools s
-        LEFT JOIN users u ON s.id = u.school_id
-        LEFT JOIN students st ON u.id = st.user_id
-        LEFT JOIN lessons l ON u.id = l.user_id
-        LEFT JOIN songs sg ON u.id = sg.user_id
-        LEFT JOIN school_subscriptions ss ON s.id = ss.school_id
-        GROUP BY s.id, ss.status, ss.plan_type, ss.monthly_price, ss.created_at
-        ORDER BY s.created_at DESC
-      `);
-
-      res.json({
-        schools: schoolsData.rows
-      });
-    } catch (error) {
-      console.error("Error fetching schools data:", error);
-      res.status(500).json({ message: "Failed to fetch schools data" });
-    }
-  });
-
-  // Get detailed information for a specific school
-  app.get("/api/owners/schools/:id", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolId = parseInt(req.params.id);
-      
-      // Get school basic info
-      const schoolData = await storage.getSchool(schoolId);
-      if (!schoolData) {
-        return res.status(404).json({ message: "School not found" });
-      }
-
-      // Get school users (teachers and school owners)
-      const users = await storage.executeQuery(`
-        SELECT id, username, name, email, role, instruments, created_at, last_login_at
-        FROM users 
-        WHERE school_id = $1
-        ORDER BY role, name
-      `, [schoolId]);
-
-      // Get school students
-      const students = await storage.executeQuery(`
-        SELECT s.*, u.username, u.email, u.last_login_at
-        FROM students s
-        LEFT JOIN users u ON s.user_id = u.id
-        WHERE u.school_id = $1
-        ORDER BY s.name
-      `, [schoolId]);
-
-      // Get subscription info
-      const subscription = await storage.executeQuery(`
-        SELECT * FROM school_subscriptions 
-        WHERE school_id = $1 
-        ORDER BY created_at DESC 
-        LIMIT 1
-      `, [schoolId]);
-
-      // Get usage statistics
-      const stats = await storage.executeQuery(`
-        SELECT 
-          COUNT(DISTINCT l.id) as total_lessons,
-          COUNT(DISTINCT sg.id) as total_songs,
-          COUNT(DISTINCT sess.id) as total_sessions,
-          COUNT(DISTINCT CASE WHEN sess.start_time >= NOW() - INTERVAL '30 days' THEN sess.id END) as sessions_last_month
-        FROM users u
-        LEFT JOIN lessons l ON u.id = l.user_id
-        LEFT JOIN songs sg ON u.id = sg.user_id
-        LEFT JOIN sessions sess ON u.id = sess.user_id
-        WHERE u.school_id = $1
-      `, [schoolId]);
-
-      res.json({
-        school: schoolData,
-        users: users.rows,
-        students: students.rows,
-        subscription: subscription.rows[0] || null,
-        statistics: stats.rows[0]
-      });
-    } catch (error) {
-      console.error("Error fetching school details:", error);
-      res.status(500).json({ message: "Failed to fetch school details" });
-    }
-  });
-
-  // Update school information
-  app.put("/api/owners/schools/:id", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolId = parseInt(req.params.id);
-      const updates = req.body;
-
-      const updatedSchool = await storage.updateSchool(schoolId, updates);
-      
-      // Send notification about school update
-      await EmailNotificationService.notifyPlatformAlert({
-        message: `School information updated: ${updatedSchool.name}`,
-        severity: 'Low',
-        component: 'School Management',
-        details: updates
-      });
-
-      res.json(updatedSchool);
-    } catch (error) {
-      console.error("Error updating school:", error);
-      res.status(500).json({ message: "Failed to update school" });
-    }
-  });
-
-  // Get all platform users with filtering
-  app.get("/api/owners/users", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const { role, school_id, search } = req.query;
-      
-      let whereConditions = [];
-      let params = [];
-      let paramCount = 0;
-
-      if (role) {
-        paramCount++;
-        whereConditions.push(`u.role = $${paramCount}`);
-        params.push(role);
-      }
-
-      if (school_id) {
-        paramCount++;
-        whereConditions.push(`u.school_id = $${paramCount}`);
-        params.push(school_id);
-      }
-
-      if (search) {
-        paramCount++;
-        whereConditions.push(`(u.name ILIKE $${paramCount} OR u.username ILIKE $${paramCount} OR u.email ILIKE $${paramCount})`);
-        params.push(`%${search}%`);
-      }
-
-      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-
-      const usersData = await storage.executeQuery(`
-        SELECT 
-          u.*,
-          s.name as school_name,
-          COUNT(DISTINCT st.id) as student_count,
-          COUNT(DISTINCT l.id) as lesson_count,
-          COUNT(DISTINCT sg.id) as song_count
-        FROM users u
-        LEFT JOIN schools s ON u.school_id = s.id
-        LEFT JOIN students st ON u.id = st.user_id
-        LEFT JOIN lessons l ON u.id = l.user_id
-        LEFT JOIN songs sg ON u.id = sg.user_id
-        ${whereClause}
-        GROUP BY u.id, s.name
-        ORDER BY u.created_at DESC
-      `, params);
-
-      res.json({
-        users: usersData.rows.map(user => {
-          const { password, ...userWithoutPassword } = user;
-          return userWithoutPassword;
-        })
-      });
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  // Get all schools as array (for dashboard)
-  app.get("/api/owners/all-schools", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolsData = await executeQuery(`
-        SELECT
-          s.id,
-          s.name,
-          s.city,
-          s.address,
-          s.phone,
-          s.website,
-          s.owner_id,
-          owner.name as owner_name,
-          s.created_at,
-          COUNT(DISTINCT CASE WHEN u.role IN ('teacher', 'school_owner') THEN u.id END) as total_teachers,
-          COUNT(DISTINCT CASE WHEN u.role = 'student' THEN u.id END) as total_students,
-          COUNT(DISTINCT l.id) as total_lessons,
-          COUNT(DISTINCT sg.id) as total_songs,
-          COALESCE(ss.status, 'inactive') as subscription_status
-        FROM schools s
-        LEFT JOIN users owner ON s.owner_id = owner.id
-        LEFT JOIN users u ON s.id = u.school_id
-        LEFT JOIN lessons l ON u.id = l.user_id
-        LEFT JOIN songs sg ON u.id = sg.user_id
-        LEFT JOIN school_subscriptions ss ON s.id = ss.school_id
-        GROUP BY s.id, owner.name, ss.status
-        ORDER BY s.created_at DESC
-      `);
-
-      res.json(schoolsData.rows);
-    } catch (error) {
-      console.error("Error fetching all schools:", error);
-      res.status(500).json({ message: "Failed to fetch schools" });
-    }
-  });
-
-  // Get all users as array (for dashboard)
-  app.get("/api/owners/all-users", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const usersData = await executeQuery(`
-        SELECT 
-          u.id,
-          u.username,
-          u.name,
-          u.email,
-          u.role,
-          u.school_id,
-          u.created_at,
-          u.last_login_at,
-          s.name as school_name
-        FROM users u
-        LEFT JOIN schools s ON u.school_id = s.id
-        ORDER BY u.created_at DESC
-        LIMIT 500
-      `);
-
-      res.json(usersData.rows);
-    } catch (error) {
-      console.error("Error fetching all users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  // Platform Owner Customer Service Endpoints
-  
-  // Reset password for any user (customer service)
-  app.post("/api/platform/users/:id/reset-password", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const { newPassword, reason } = req.body;
-
-      if (!newPassword || newPassword.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters" });
-      }
-
-      // Get user details for logging
-      const userResult = await storage.executeQuery(`
-        SELECT id, username, email, role FROM users WHERE id = $1
-      `, [userId]);
-
-      if (!userResult.rows.length) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const user = userResult.rows[0];
-
-      // Hash the new password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      // Update password and set must_change_password flag
-      await storage.executeQuery(`
-        UPDATE users 
-        SET password = $1, must_change_password = true, updated_at = NOW()
-        WHERE id = $2
-      `, [hashedPassword, userId]);
-
-      // Log admin action
-      await logAdminAction(req, 'password_reset', 'user', userId, {
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        reason: reason || 'Customer service password reset'
-      });
-
-      res.json({ 
-        message: "Password reset successfully. User must change password on next login.",
-        userId: userId,
-        username: user.username
-      });
-    } catch (error) {
-      console.error("Error resetting user password:", error);
-      res.status(500).json({ message: "Failed to reset password" });
-    }
-  });
-
-  // Update user details (customer service)
-  app.put("/api/platform/users/:id", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const updates = req.body;
-
-      // Get current user data for audit
-      const currentUserResult = await storage.executeQuery(`
-        SELECT * FROM users WHERE id = $1
-      `, [userId]);
-
-      if (!currentUserResult.rows.length) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const currentUser = currentUserResult.rows[0];
-
-      // Build update query dynamically
-      const allowedFields = ['name', 'email', 'username', 'role', 'school_id', 'instruments', 'bio'];
-      const updateFields = [];
-      const updateValues = [];
-      let paramCount = 0;
-
-      for (const [key, value] of Object.entries(updates)) {
-        if (allowedFields.includes(key)) {
-          paramCount++;
-          updateFields.push(`${key} = $${paramCount}`);
-          updateValues.push(value);
+      req.login(user, async (loginError) => {
+        if (loginError) {
+          return next(loginError);
         }
-      }
 
-      if (updateFields.length === 0) {
-        return res.status(400).json({ message: "No valid fields to update" });
-      }
-
-      paramCount++;
-      updateValues.push(userId);
-
-      await storage.executeQuery(`
-        UPDATE users 
-        SET ${updateFields.join(', ')}, updated_at = NOW()
-        WHERE id = $${paramCount}
-      `, updateValues);
-
-      // Log admin action
-      await logAdminAction(req, 'user_update', 'user', userId, {
-        username: currentUser.username,
-        updates: updates,
-        oldValues: Object.keys(updates).reduce((acc, key) => {
-          acc[key] = currentUser[key];
-          return acc;
-        }, {} as any)
-      });
-
-      res.json({ message: "User updated successfully" });
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user" });
-    }
-  });
-
-  // Create new user (school owner or other roles) - Platform owner only
-  app.post("/api/platform/users", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const { username, email, name, password, role, schoolId } = req.body;
-
-      // Validate required fields
-      if (!username || !email || !name || !password) {
-        return res.status(400).json({ message: "Username, email, name, and password are required" });
-      }
-
-      // Validate role
-      const validRoles = ['school_owner', 'teacher', 'student'];
-      if (role && !validRoles.includes(role)) {
-        return res.status(400).json({ message: "Invalid role. Must be one of: school_owner, teacher, student" });
-      }
-
-      // Check if username already exists
-      const existingUserByUsername = await storage.executeQuery(
-        'SELECT id FROM users WHERE username = $1',
-        [username]
-      );
-      if (existingUserByUsername.rows.length > 0) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      // Check if email already exists
-      const existingUserByEmail = await storage.executeQuery(
-        'SELECT id FROM users WHERE email = $1',
-        [email]
-      );
-      if (existingUserByEmail.rows.length > 0) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create the user
-      const result = await storage.executeQuery(`
-        INSERT INTO users (username, email, name, password, role, school_id, must_change_password)
-        VALUES ($1, $2, $3, $4, $5, $6, true)
-        RETURNING id, username, email, name, role, school_id
-      `, [username, email, name, hashedPassword, role || 'school_owner', schoolId || null]);
-
-      const newUser = result.rows[0];
-
-      // If schoolId is provided and user is school_owner, create school membership
-      if (schoolId && (role === 'school_owner' || role === 'teacher')) {
-        await storage.executeQuery(`
-          INSERT INTO school_memberships (school_id, user_id, role)
-          VALUES ($1, $2, $3)
-          ON CONFLICT DO NOTHING
-        `, [schoolId, newUser.id, role === 'school_owner' ? 'owner' : 'teacher']);
-      }
-
-      // Log admin action
-      await logAdminAction(req, 'user_create', 'user', newUser.id, {
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-        schoolId: newUser.school_id
-      });
-
-      res.status(201).json({
-        message: "User created successfully",
-        user: newUser
-      });
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(500).json({ message: "Failed to create user" });
-    }
-  });
-
-  // Create new school - Platform owner only
-  app.post("/api/platform/schools", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const { name, ownerId, city, address, phone, website, instruments, description } = req.body;
-
-      // Validate required fields
-      if (!name) {
-        return res.status(400).json({ message: "School name is required" });
-      }
-
-      // If ownerId is provided, validate it exists and is a school_owner
-      if (ownerId) {
-        const ownerResult = await storage.executeQuery(
-          'SELECT id, role FROM users WHERE id = $1',
-          [ownerId]
-        );
-        if (ownerResult.rows.length === 0) {
-          return res.status(400).json({ message: "Owner user not found" });
-        }
-        if (ownerResult.rows[0].role !== 'school_owner') {
-          return res.status(400).json({ message: "Assigned owner must have school_owner role" });
-        }
-      }
-
-      // Create the school
-      const result = await storage.executeQuery(`
-        INSERT INTO schools (name, owner_id, city, address, phone, website, instruments, description, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-        RETURNING *
-      `, [name, ownerId || null, city || null, address || null, phone || null, website || null, instruments || null, description || null]);
-
-      const newSchool = result.rows[0];
-
-      // If ownerId is provided, create school membership and update user's schoolId
-      if (ownerId) {
-        await storage.executeQuery(`
-          INSERT INTO school_memberships (school_id, user_id, role)
-          VALUES ($1, $2, 'owner')
-          ON CONFLICT DO NOTHING
-        `, [newSchool.id, ownerId]);
-
-        // Update the owner's schoolId
-        await storage.executeQuery(`
-          UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
-        `, [newSchool.id, ownerId]);
-      }
-
-      // Log admin action
-      await logAdminAction(req, 'school_create', 'school', newSchool.id, {
-        name: newSchool.name,
-        ownerId: newSchool.owner_id,
-        city: newSchool.city
-      });
-
-      res.status(201).json({
-        message: "School created successfully",
-        school: newSchool
-      });
-    } catch (error) {
-      console.error("Error creating school:", error);
-      res.status(500).json({ message: "Failed to create school" });
-    }
-  });
-
-  // Assign owner to school - Platform owner only
-  app.post("/api/platform/schools/:id/assign-owner", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolId = parseInt(req.params.id);
-      const { ownerId } = req.body;
-
-      if (isNaN(schoolId)) {
-        return res.status(400).json({ message: "Invalid school ID" });
-      }
-
-      if (!ownerId) {
-        return res.status(400).json({ message: "Owner ID is required" });
-      }
-
-      // Validate school exists
-      const schoolResult = await storage.executeQuery(
-        'SELECT * FROM schools WHERE id = $1',
-        [schoolId]
-      );
-      if (schoolResult.rows.length === 0) {
-        return res.status(404).json({ message: "School not found" });
-      }
-
-      // Validate owner exists and is school_owner
-      const ownerResult = await storage.executeQuery(
-        'SELECT id, role, name FROM users WHERE id = $1',
-        [ownerId]
-      );
-      if (ownerResult.rows.length === 0) {
-        return res.status(400).json({ message: "Owner user not found" });
-      }
-      if (ownerResult.rows[0].role !== 'school_owner') {
-        return res.status(400).json({ message: "Assigned user must have school_owner role" });
-      }
-
-      // Update school's owner_id
-      await storage.executeQuery(`
-        UPDATE schools SET owner_id = $1, updated_at = NOW() WHERE id = $2
-      `, [ownerId, schoolId]);
-
-      // Create school membership for the owner
-      await storage.executeQuery(`
-        INSERT INTO school_memberships (school_id, user_id, role)
-        VALUES ($1, $2, 'owner')
-        ON CONFLICT DO NOTHING
-      `, [schoolId, ownerId]);
-
-      // Update owner's schoolId if not set
-      await storage.executeQuery(`
-        UPDATE users SET school_id = $1 WHERE id = $2 AND school_id IS NULL
-      `, [schoolId, ownerId]);
-
-      const owner = ownerResult.rows[0];
-
-      // Log admin action
-      await logAdminAction(req, 'school_assign_owner', 'school', schoolId, {
-        schoolName: schoolResult.rows[0].name,
-        newOwnerId: ownerId,
-        newOwnerName: owner.name
-      });
-
-      res.json({
-        message: "Owner assigned to school successfully",
-        schoolId,
-        ownerId,
-        ownerName: owner.name
-      });
-    } catch (error) {
-      console.error("Error assigning owner to school:", error);
-      res.status(500).json({ message: "Failed to assign owner" });
-    }
-  });
-
-  // Delete user - Platform owner only
-  app.delete("/api/platform/users/:id", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.id);
-
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-
-      // Get user details for logging
-      const userResult = await storage.executeQuery(
-        'SELECT id, username, email, role FROM users WHERE id = $1',
-        [userId]
-      );
-      if (userResult.rows.length === 0) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const user = userResult.rows[0];
-
-      // Prevent deleting platform owners
-      if (user.role === 'platform_owner') {
-        return res.status(403).json({ message: "Cannot delete platform owner accounts" });
-      }
-
-      // Delete user (cascades will handle related records)
-      await storage.executeQuery('DELETE FROM users WHERE id = $1', [userId]);
-
-      // Log admin action
-      await logAdminAction(req, 'user_delete', 'user', userId, {
-        username: user.username,
-        email: user.email,
-        role: user.role
-      });
-
-      res.json({ message: "User deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
-
-  // Delete school - Platform owner only
-  app.delete("/api/platform/schools/:id", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const schoolId = parseInt(req.params.id);
-
-      if (isNaN(schoolId)) {
-        return res.status(400).json({ message: "Invalid school ID" });
-      }
-
-      // Get school details for logging
-      const schoolResult = await storage.executeQuery(
-        'SELECT id, name FROM schools WHERE id = $1',
-        [schoolId]
-      );
-      if (schoolResult.rows.length === 0) {
-        return res.status(404).json({ message: "School not found" });
-      }
-
-      const school = schoolResult.rows[0];
-
-      // Delete school (cascades will handle related records)
-      await storage.executeQuery('DELETE FROM schools WHERE id = $1', [schoolId]);
-
-      // Log admin action
-      await logAdminAction(req, 'school_delete', 'school', schoolId, {
-        schoolName: school.name
-      });
-
-      res.json({ message: "School deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting school:", error);
-      res.status(500).json({ message: "Failed to delete school" });
-    }
-  });
-
-  // Get billing/invoices overview
-  app.get("/api/platform/billing", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const { status, school_id } = req.query;
-
-      let whereConditions = [];
-      let params = [];
-      let paramCount = 0;
-
-      if (status) {
-        paramCount++;
-        whereConditions.push(`sbs.payment_status = $${paramCount}`);
-        params.push(status);
-      }
-
-      if (school_id) {
-        paramCount++;
-        whereConditions.push(`sbs.school_id = $${paramCount}`);
-        params.push(school_id);
-      }
-
-      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-
-      const billingData = await storage.executeQuery(`
-        SELECT 
-          sbs.*,
-          s.name as school_name,
-          s.city,
-          s.email as school_email,
-          COUNT(DISTINCT u.id) as user_count
-        FROM school_billing_summary sbs
-        LEFT JOIN schools s ON sbs.school_id = s.id
-        LEFT JOIN users u ON s.id = u.school_id
-        ${whereClause}
-        GROUP BY sbs.id, s.name, s.city, s.email
-        ORDER BY sbs.next_billing_date ASC
-      `, params);
-
-      res.json({ invoices: billingData.rows });
-    } catch (error) {
-      console.error("Error fetching billing data:", error);
-      res.status(500).json({ message: "Failed to fetch billing data" });
-    }
-  });
-
-  // Update billing/payment status
-  app.put("/api/platform/billing/:id/status", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const billingId = parseInt(req.params.id);
-      const { status, notes } = req.body;
-
-      const validStatuses = ['current', 'overdue', 'suspended', 'canceled'];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({ message: "Invalid payment status" });
-      }
-
-      // Get current billing data
-      const currentBilling = await storage.executeQuery(`
-        SELECT * FROM school_billing_summary WHERE id = $1
-      `, [billingId]);
-
-      if (!currentBilling.rows.length) {
-        return res.status(404).json({ message: "Billing record not found" });
-      }
-
-      // Update status
-      await storage.executeQuery(`
-        UPDATE school_billing_summary 
-        SET payment_status = $1, updated_at = NOW()
-        WHERE id = $2
-      `, [status, billingId]);
-
-      // Log admin action
-      await logAdminAction(req, 'billing_status_update', 'billing', billingId, {
-        schoolId: currentBilling.rows[0].school_id,
-        oldStatus: currentBilling.rows[0].payment_status,
-        newStatus: status,
-        notes: notes || 'Status updated by platform admin'
-      });
-
-      res.json({ message: "Billing status updated successfully" });
-    } catch (error) {
-      console.error("Error updating billing status:", error);
-      res.status(500).json({ message: "Failed to update billing status" });
-    }
-  });
-
-  // Get admin action audit log
-  app.get("/api/platform/audit-log", requirePlatformOwner, async (req: Request, res: Response) => {
-    try {
-      const { target_type, limit = 100 } = req.query;
-
-      let whereClause = '';
-      let params = [];
-
-      if (target_type) {
-        whereClause = 'WHERE aa.target_type = $1';
-        params.push(target_type);
-      }
-
-      const auditLog = await storage.executeQuery(`
-        SELECT 
-          aa.*,
-          u.username as actor_username,
-          u.name as actor_name
-        FROM admin_actions aa
-        LEFT JOIN users u ON aa.actor_id = u.id
-        ${whereClause}
-        ORDER BY aa.created_at DESC
-        LIMIT $${params.length + 1}
-      `, [...params, limit]);
-
-      res.json({ auditLog: auditLog.rows });
-    } catch (error) {
-      console.error("Error fetching audit log:", error);
-      res.status(500).json({ message: "Failed to fetch audit log" });
-    }
-  });
-
-  // Test endpoint to demonstrate billing calculations
-  // Enhanced billing API endpoints with audit tracking
-  app.get("/api/admin/billing/health", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const health = await enhancedStripeService.getBillingHealthStatus();
-      res.json(health);
-    } catch (error) {
-      console.error("Error getting billing health:", error);
-      res.status(500).json({ message: "Failed to get billing health status" });
-    }
-  });
-
-  app.get("/api/admin/billing/alerts", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { BillingAuditService } = require("./services/billing-audit-service");
-      const limit = parseInt(req.query.limit as string) || 50;
-      const unreadOnly = req.query.unread === 'true';
-      const alerts = await BillingAuditService.getBillingAlerts(limit, unreadOnly);
-      res.json(alerts);
-    } catch (error) {
-      console.error("Error getting billing alerts:", error);
-      res.status(500).json({ message: "Failed to get billing alerts" });
-    }
-  });
-
-  app.post("/api/admin/billing/alerts/:id/resolve", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { BillingAuditService } = require("./services/billing-audit-service");
-      const alertId = parseInt(req.params.id);
-      await BillingAuditService.resolveBillingAlert(alertId, req.user!.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error resolving billing alert:", error);
-      res.status(500).json({ message: "Failed to resolve billing alert" });
-    }
-  });
-
-  app.get("/api/admin/billing/audit/:schoolId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { BillingAuditService } = require("./services/billing-audit-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const limit = parseInt(req.query.limit as string) || 100;
-      const audit = await BillingAuditService.getSchoolBillingAudit(schoolId, limit);
-      res.json(audit);
-    } catch (error) {
-      console.error("Error getting billing audit:", error);
-      res.status(500).json({ message: "Failed to get billing audit trail" });
-    }
-  });
-
-  app.post("/api/admin/billing/manual-trigger/:schoolId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const result = await enhancedStripeService.triggerSchoolBilling(schoolId, req.user!.id);
-      res.json(result);
-    } catch (error) {
-      console.error("Error triggering manual billing:", error);
-      res.status(500).json({ message: "Failed to trigger manual billing" });
-    }
-  });
-
-  app.post("/api/admin/billing/process-monthly", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const result = await enhancedStripeService.processMonthlyBilling();
-      res.json(result);
-    } catch (error) {
-      console.error("Error processing monthly billing:", error);
-      res.status(500).json({ message: "Failed to process monthly billing" });
-    }
-  });
-
-  // 3. Usage Summary per School (Backend) - Get comprehensive school usage data
-  app.get("/api/admin/billing/usage-summary/:schoolId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const summary = await enhancedStripeService.getSchoolUsageSummary(schoolId);
-      res.json(summary);
-    } catch (error) {
-      console.error("Error getting usage summary:", error);
-      res.status(500).json({ message: "Failed to get usage summary" });
-    }
-  });
-
-  app.get("/api/admin/billing/usage-summary", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      
-      // Get summaries for all schools (1-5 for testing)
-      const summaries = [];
-      for (let schoolId = 1; schoolId <= 3; schoolId++) {
         try {
-          const summary = await enhancedStripeService.getSchoolUsageSummary(schoolId);
-          summaries.push(summary);
-        } catch (error) {
-          console.error(`Failed to get summary for school ${schoolId}:`, error);
+          await storage.updateUser(user.id!, { lastLoginAt: new Date() });
+        } catch (updateError) {
+          console.warn("Failed to update owner last login time", updateError);
         }
-      }
-      
-      res.json(summaries);
+
+        res.json({ message: "Administrator authentication successful" });
+      });
     } catch (error) {
-      console.error("Error getting usage summaries:", error);
-      res.status(500).json({ message: "Failed to get usage summaries" });
-    }
-  });
-
-  // 4. Pre-billing Warning Logic - Check for usage increases before billing
-  app.post("/api/admin/billing/check-warnings", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const warnings = await enhancedStripeService.checkPreBillingWarnings();
-      res.json({ warnings, count: warnings.length, checkedAt: new Date().toISOString() });
-    } catch (error) {
-      console.error("Error checking pre-billing warnings:", error);
-      res.status(500).json({ message: "Failed to check pre-billing warnings" });
-    }
-  });
-
-  // ==================== INVOICE MANAGEMENT ENDPOINTS ====================
-
-  app.get("/api/admin/billing/invoices", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = req.query.schoolId ? parseInt(req.query.schoolId as string) : undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const invoices = await enhancedStripeService.listInvoices(schoolId, limit);
-      res.json({ invoices });
-    } catch (error: any) {
-      console.error("Error listing invoices:", error);
-      res.status(500).json({ message: error.message || "Failed to list invoices" });
-    }
-  });
-
-  app.post("/api/admin/billing/invoices", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const { schoolId, items, dueDate } = req.body;
-
-      if (!schoolId || !items || !Array.isArray(items)) {
-        return res.status(400).json({ message: "schoolId and items array required" });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Invalid administrator login data",
+          errors: error.errors,
+        });
       }
 
-      const invoice = await enhancedStripeService.createInvoice(
-        schoolId,
-        items,
-        dueDate ? new Date(dueDate) : undefined
-      );
-      res.json({ success: true, invoice });
-    } catch (error: any) {
-      console.error("Error creating invoice:", error);
-      res.status(500).json({ message: error.message || "Failed to create invoice" });
-    }
-  });
-
-  app.get("/api/admin/billing/invoices/:invoiceId/pdf", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const pdfUrl = await enhancedStripeService.getInvoicePdfUrl(req.params.invoiceId);
-      res.json({ pdfUrl });
-    } catch (error: any) {
-      console.error("Error getting invoice PDF:", error);
-      res.status(500).json({ message: error.message || "Failed to get invoice PDF" });
-    }
-  });
-
-  app.post("/api/admin/billing/invoices/:invoiceId/send", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const invoice = await enhancedStripeService.sendInvoice(req.params.invoiceId);
-      res.json({ success: true, invoice });
-    } catch (error: any) {
-      console.error("Error sending invoice:", error);
-      res.status(500).json({ message: error.message || "Failed to send invoice" });
-    }
-  });
-
-  app.post("/api/admin/billing/invoices/:invoiceId/finalize", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const invoice = await enhancedStripeService.finalizeInvoice(req.params.invoiceId);
-      res.json({ success: true, invoice });
-    } catch (error: any) {
-      console.error("Error finalizing invoice:", error);
-      res.status(500).json({ message: error.message || "Failed to finalize invoice" });
-    }
-  });
-
-  app.post("/api/admin/billing/invoices/:invoiceId/void", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const { reason } = req.body;
-      const invoice = await enhancedStripeService.voidInvoice(req.params.invoiceId, reason || 'No reason provided');
-      res.json({ success: true, invoice });
-    } catch (error: any) {
-      console.error("Error voiding invoice:", error);
-      res.status(500).json({ message: error.message || "Failed to void invoice" });
-    }
-  });
-
-  // ==================== PRICING CONTROL ENDPOINTS ====================
-
-  app.get("/api/admin/billing/pricing", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const pricing = await enhancedStripeService.listAllSchoolPricing();
-      res.json({ pricing });
-    } catch (error: any) {
-      console.error("Error listing pricing:", error);
-      res.status(500).json({ message: error.message || "Failed to list pricing" });
-    }
-  });
-
-  app.get("/api/admin/billing/pricing/:schoolId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const pricing = await enhancedStripeService.getSchoolPricing(schoolId);
-      if (!pricing) {
-        return res.status(404).json({ message: "School pricing not found" });
-      }
-      res.json(pricing);
-    } catch (error: any) {
-      console.error("Error getting school pricing:", error);
-      res.status(500).json({ message: error.message || "Failed to get school pricing" });
-    }
-  });
-
-  app.put("/api/admin/billing/pricing/:schoolId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const { monthlyPrice, reason } = req.body;
-
-      if (typeof monthlyPrice !== 'number' || monthlyPrice < 0) {
-        return res.status(400).json({ message: "Valid monthlyPrice required" });
-      }
-
-      const result = await enhancedStripeService.updateSchoolPrice(schoolId, monthlyPrice, reason || 'Price update');
-      res.json(result);
-    } catch (error: any) {
-      console.error("Error updating school pricing:", error);
-      res.status(500).json({ message: error.message || "Failed to update school pricing" });
-    }
-  });
-
-  app.post("/api/admin/billing/pricing/:schoolId/credit", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = parseInt(req.params.schoolId);
-      const { amount, reason } = req.body;
-
-      if (typeof amount !== 'number' || amount <= 0) {
-        return res.status(400).json({ message: "Valid positive amount required" });
-      }
-
-      const result = await enhancedStripeService.applyCredit(schoolId, amount, reason || 'Credit applied');
-      res.json(result);
-    } catch (error: any) {
-      console.error("Error applying credit:", error);
-      res.status(500).json({ message: error.message || "Failed to apply credit" });
-    }
-  });
-
-  // ==================== REFUND PROCESSING ENDPOINTS ====================
-
-  app.get("/api/admin/billing/payments", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = req.query.schoolId ? parseInt(req.query.schoolId as string) : undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const payments = await enhancedStripeService.listPayments(schoolId, limit);
-      res.json({ payments });
-    } catch (error: any) {
-      console.error("Error listing payments:", error);
-      res.status(500).json({ message: error.message || "Failed to list payments" });
-    }
-  });
-
-  app.get("/api/admin/billing/payments/:paymentIntentId", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const payment = await enhancedStripeService.getPaymentDetails(req.params.paymentIntentId);
-      res.json(payment);
-    } catch (error: any) {
-      console.error("Error getting payment details:", error);
-      res.status(500).json({ message: error.message || "Failed to get payment details" });
-    }
-  });
-
-  app.get("/api/admin/billing/refunds", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const schoolId = req.query.schoolId ? parseInt(req.query.schoolId as string) : undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const refunds = await enhancedStripeService.getRefundHistory(schoolId, limit);
-      res.json({ refunds });
-    } catch (error: any) {
-      console.error("Error listing refunds:", error);
-      res.status(500).json({ message: error.message || "Failed to list refunds" });
-    }
-  });
-
-  app.post("/api/admin/billing/refunds", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated() || req.user!.role !== 'platform_owner') {
-      return res.status(403).json({ message: "Platform owner access required" });
-    }
-
-    try {
-      const { enhancedStripeService } = require("./services/enhanced-stripe-service");
-      const { paymentIntentId, amount, reason, schoolId } = req.body;
-
-      if (!paymentIntentId) {
-        return res.status(400).json({ message: "paymentIntentId required" });
-      }
-
-      if (!reason) {
-        return res.status(400).json({ message: "reason required" });
-      }
-
-      const result = await enhancedStripeService.issueRefund(
-        paymentIntentId,
-        amount || null,
-        reason,
-        schoolId
-      );
-      res.json(result);
-    } catch (error: any) {
-      console.error("Error issuing refund:", error);
-      res.status(500).json({ message: error.message || "Failed to issue refund" });
+      next(error);
     }
   });
 
@@ -4519,86 +2210,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       res.json(result);
-    } catch (error) {
-      console.error("Error calculating billing:", error);
-      res.status(500).json({ message: "Failed to calculate billing" });
-    }
-  });
-
-  app.post("/api/test/billing-calculation", async (req: Request, res: Response) => {
-    try {
-      const { teachers, students, currentPlan } = req.body;
-      
-      // Simulate billing calculation
-      const standardPlanPrice = 2995; // €29.95 in cents
-      const proPlanPrice = 4995; // €49.95 in cents
-      const extraStudentBlock = 450; // €4.50 per 5 students in cents
-      
-      let breakdown = {
-        scenario: `${teachers} teachers, ${students} students`,
-        basePlan: {},
-        additionalCosts: [],
-        total: 0
-      };
-      
-      // Determine plan based on teacher count
-      if (teachers > 1) {
-        // Auto-upgrade to Pro
-        breakdown.basePlan = {
-          name: 'Pro',
-          price: proPlanPrice / 100,
-          includedTeachers: 'Unlimited',
-          includedStudents: 50,
-          reason: `Auto-upgrade: ${teachers} teachers exceed Standard limit (1)`
-        };
-        
-        // Calculate extra students beyond Pro plan (50 included)
-        const extraStudents = Math.max(0, students - 50);
-        if (extraStudents > 0) {
-          const blocks = Math.ceil(extraStudents / 5);
-          const extraCost = blocks * extraStudentBlock;
-          breakdown.additionalCosts.push({
-            type: 'extra_students',
-            description: `${extraStudents} extra students (${blocks} blocks of 5)`,
-            calculation: `${blocks} × €4.50`,
-            price: extraCost / 100
-          });
-        }
-        breakdown.total = (proPlanPrice + (breakdown.additionalCosts[0]?.price * 100 || 0)) / 100;
-        
-      } else {
-        // Standard plan
-        breakdown.basePlan = {
-          name: 'Standard',
-          price: standardPlanPrice / 100,
-          includedTeachers: 1,
-          includedStudents: 25
-        };
-        
-        // Calculate extra students beyond Standard plan (25 included)
-        const extraStudents = Math.max(0, students - 25);
-        if (extraStudents > 0) {
-          const blocks = Math.ceil(extraStudents / 5);
-          const extraCost = blocks * extraStudentBlock;
-          breakdown.additionalCosts.push({
-            type: 'extra_students',
-            description: `${extraStudents} extra students (${blocks} blocks of 5)`,
-            calculation: `${blocks} × €4.50`,
-            price: extraCost / 100
-          });
-        }
-        breakdown.total = (standardPlanPrice + (breakdown.additionalCosts[0]?.price * 100 || 0)) / 100;
-      }
-      
-      // Add billing timeline
-      breakdown.billingInfo = {
-        nextBillingDate: '2025-08-01',
-        billingCycle: 'Monthly',
-        currency: 'EUR',
-        paymentMethod: 'Stripe automatic billing'
-      };
-      
-      res.json(breakdown);
     } catch (error) {
       console.error("Error calculating billing:", error);
       res.status(500).json({ message: "Failed to calculate billing" });
@@ -4798,93 +2409,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced messaging endpoints for scale
-  app.post("/api/messages/send", async (req: Request, res: Response) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-
-      const { receiverId, receiverType, subject, content } = req.body;
-      const senderId = req.user.id;
-      const senderType = req.user.role === "student" ? "student" : "teacher";
-
-      if (!receiverId || !receiverType || !subject || !content) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      const result = await storage.createMessage({
-        senderId,
-        receiverId,
-        senderType,
-        receiverType,
-        subject,
-        content,
-        isRead: false
-      });
-
-      res.json({ 
-        success: true, 
-        messageId: result.id,
-        message: "Message sent successfully" 
-      });
-
-    } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
-
-  app.get("/api/messages/unread-count", async (req: Request, res: Response) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-
-      const userId = req.user.id;
-      const userType = req.user.role === "student" ? "student" : "teacher";
-      
-      const count = await storage.getUnreadMessageCount(userId, userType);
-      
-      res.json({ unreadCount: count });
-
-    } catch (error) {
-      console.error("Error fetching unread count:", error);
-      res.status(500).json({ unreadCount: 0 });
-    }
-  });
-
-  // Platform monitoring for thousands of users
-  app.get("/api/admin/platform-stats", async (req: Request, res: Response) => {
-    try {
-      if (!req.isAuthenticated() || req.user.role !== "platform_owner") {
-        return res.status(403).json({ message: "Platform admin access required" });
-      }
-
-      const messageStats = await storage.getMessageStats();
-      const practiceStats = await storage.getStudentPracticeStats('1h');
-      
-      res.json({
-        messaging: messageStats,
-        practice: {
-          activeStudentsLastHour: Number(practiceStats.active_students) || 0,
-          sessionsLastHour: Number(practiceStats.total_sessions) || 0,
-          avgSessionMinutes: Math.round(Number(practiceStats.avg_session_minutes) || 0)
-        },
-        timestamp: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error("Error fetching platform stats:", error);
-      res.status(500).json({ message: "Failed to fetch platform statistics" });
-    }
-  });
-
   // Admin/Teacher password reset for students
   app.post("/api/admin/students/:id/reset-password", 
     requireAuth,
     loadSchoolContext,
-    requireTeacherOrOwner,
+    requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
     try {
       const studentId = parseInt(req.params.id);
@@ -4900,7 +2429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Ensure student belongs to the same school for multi-tenant security
-      if (req.user?.role !== "platform_owner" && student.schoolId !== req.user?.schoolId) {
+      if (!req.school?.isPlatformOwner() && !req.school?.canAccessSchool(student.schoolId)) {
         return res.status(403).json({ message: "Access denied - student not in your school" });
       }
 
@@ -5105,59 +2634,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School Members Endpoints - Simplified: No complex middleware, direct query
-  app.get("/api/school/members", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const user = req.user!;
-      console.log("GET /api/school/members - user object:", JSON.stringify(user, null, 2));
-      
-      // Check role - only teachers and school owners can view members
-      if (user.role !== 'teacher' && user.role !== 'school_owner' && user.role !== 'platform_owner') {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      // Get schoolId directly from user
-      const schoolId = user.schoolId;
-      console.log("GET /api/school/members - schoolId:", schoolId, "type:", typeof schoolId);
-      
-      if (!schoolId) {
-        return res.status(400).json({ 
-          message: "No school context available",
-          debug: { userId: user.id, role: user.role, schoolId: user.schoolId }
-        });
-      }
-      
-      // Get all users (teachers and school owners) in this school
-      const result = await db.select({
-        id: users.id,
-        firstName: users.name,
-        lastName: sql`''`.as('lastName'),
-        email: users.email,
-        role: users.role,
-        isActive: sql`true`.as('isActive'),
-        joinedAt: users.createdAt,
-        lastActive: users.lastLoginAt,
-        avatar: users.avatar
-      })
-        .from(users)
-        .where(
-          and(
-            eq(users.schoolId, schoolId),
-            or(
-              eq(users.role, 'teacher'),
-              eq(users.role, 'school_owner')
-            )
-          )
-        )
-        .orderBy(users.name);
-
-      res.json(result);
-    } catch (error) {
-      console.error("Error fetching school members:", error);
-      res.status(500).json({ message: "Failed to fetch school members" });
-    }
-  });
-
   // User Notification Settings
   app.get("/api/user/notifications", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -5208,21 +2684,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School Owner Dashboard API Endpoints
-  // Note: Using the local requireSchoolOwner middleware defined earlier for backwards compatibility
-  // FIXED: Now properly uses req.user from Passport instead of req.session.user
-  const requireSchoolOwnerDashboard = (req: any, res: any, next: any) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    if (req.user.role !== 'school_owner' && req.user.role !== 'teacher') {
-      return res.status(403).json({ message: "Access denied. School owner or teacher role required." });
-    }
-    next();
-  };
-
   // Get school dashboard stats
-  app.get("/api/school/dashboard-stats", requireAuth, requireSchoolOwnerDashboard, async (req: Request, res: Response) => {
+  app.get("/api/school/dashboard-stats", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       const schoolId = req.user!.schoolId;
       
@@ -5251,7 +2714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get school student activity
-  app.get("/api/school/student-activity", requireAuth, requireSchoolOwnerDashboard, async (req: Request, res: Response) => {
+  app.get("/api/school/student-activity", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       const schoolId = req.user!.schoolId;
       
@@ -5280,7 +2743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get school performance trends
-  app.get("/api/school/performance-trends", requireAuth, requireSchoolOwnerDashboard, async (req: Request, res: Response) => {
+  app.get("/api/school/performance-trends", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       const schoolId = req.user!.schoolId;
       
@@ -5360,17 +2823,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Password Change Endpoint (with rate limiting for security)
-  app.put("/api/user/password", requireAuth, authRateLimit, async (req: Request, res: Response) => {
+  app.put("/api/user/password", requireAuth, verifySameOrigin, passwordChangeRateLimit, async (req: Request, res: Response) => {
     try {
-      console.log("Password change request for user:", req.user!.id);
-      
-      // Validate request body
-      const validatedData = passwordChangeSchema.parse(req.body);
-      
-      await storage.changeUserPassword(
-        req.user!.id, 
-        validatedData.currentPassword, 
-        validatedData.newPassword
+      const validatedData = passwordChangeRequestSchema.parse(req.body);
+
+      await changeAuthenticatedUserPassword(
+        req.user!,
+        validatedData.currentPassword,
+        validatedData.newPassword,
       );
       
       res.json({ 
@@ -5378,8 +2838,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true 
       });
     } catch (error) {
-      console.error("Error changing password:", error);
-      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           message: "Invalid password data", 
@@ -5398,6 +2856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      console.error("Error changing password:", error);
       res.status(500).json({ message: "Failed to change password" });
     }
   });
@@ -5410,83 +2869,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CRON HEALTH MONITORING API ENDPOINTS
   // ========================================
   
-  // Import cron health monitor
-  const { cronHealthMonitor } = await import("./services/cron-health-monitor");
+  if (!minimal) {
+    // Import cron health monitor
+    const { cronHealthMonitor } = await import("./services/cron-health-monitor");
 
-  // Public health check for cron jobs (minimal info) - NO AUTH
-  app.get("/health/cron", async (req: Request, res: Response) => {
-    try {
-      const summary = await cronHealthMonitor.getHealthSummary();
-      
-      res.json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        stats: {
-          totalJobs: summary.totalJobs,
-          activeJobs: summary.activeJobs,
-          healthyJobs: summary.healthyJobs,
-          failingJobs: summary.failingJobs,
-        },
-        jobs: summary.jobs.map(job => ({
-          name: job.jobName,
-          status: job.lastRunStatus,
-          nextRun: job.nextScheduledRun,
-          lastRun: job.lastRunAt,
-        })),
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      res.status(500).json({
-        success: false,
-        error: errorMessage,
-      });
-    }
-  });
-
-  // Admin endpoint: Get comprehensive health summary (with auth - platform/school owners only)
-  app.get("/api/admin/cron-health", requireAuth, authzRequireSchoolOwner(), async (req: Request, res: Response) => {
-    try {
-      const summary = await cronHealthMonitor.getHealthSummary();
-      
-      res.json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        summary,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      res.status(500).json({
-        success: false,
-        error: errorMessage,
-      });
-    }
-  });
-
-  // Admin endpoint: Get specific job health (with auth - platform/school owners only)
-  app.get("/api/admin/cron-health/:jobName", requireAuth, authzRequireSchoolOwner(), async (req: Request, res: Response) => {
-    try {
-      const { jobName } = req.params;
-      const jobHealth = await cronHealthMonitor.getJobHealth(jobName);
-      
-      if (!jobHealth) {
-        return res.status(404).json({
+    // Public health check for cron jobs (minimal info) - NO AUTH
+    app.get("/health/cron", async (req: Request, res: Response) => {
+      try {
+        const summary = await cronHealthMonitor.getHealthSummary();
+        
+        res.json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          stats: {
+            totalJobs: summary.totalJobs,
+            activeJobs: summary.activeJobs,
+            healthyJobs: summary.healthyJobs,
+            failingJobs: summary.failingJobs,
+          },
+          jobs: summary.jobs.map(job => ({
+            name: job.jobName,
+            status: job.lastRunStatus,
+            nextRun: job.nextScheduledRun,
+            lastRun: job.lastRunAt,
+          })),
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({
           success: false,
-          error: `Job '${jobName}' not found`,
+          error: errorMessage,
         });
       }
+    });
 
-      res.json({
-        success: true,
-        job: jobHealth,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      res.status(500).json({
-        success: false,
-        error: errorMessage,
-      });
-    }
-  });
+    // Admin endpoint: Get comprehensive health summary (with auth - platform/school owners only)
+    app.get("/api/admin/cron-health", requireAuth, loadSchoolContext, authzRequireSchoolOwner(), async (req: Request, res: Response) => {
+      try {
+        const summary = await cronHealthMonitor.getHealthSummary();
+        
+        res.json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          summary,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({
+          success: false,
+          error: errorMessage,
+        });
+      }
+    });
+
+    // Admin endpoint: Get specific job health (with auth - platform/school owners only)
+    app.get("/api/admin/cron-health/:jobName", requireAuth, loadSchoolContext, authzRequireSchoolOwner(), async (req: Request, res: Response) => {
+      try {
+        const { jobName } = req.params;
+        const jobHealth = await cronHealthMonitor.getJobHealth(jobName);
+        
+        if (!jobHealth) {
+          return res.status(404).json({
+            success: false,
+            error: `Job '${jobName}' not found`,
+          });
+        }
+
+        res.json({
+          success: true,
+          job: jobHealth,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({
+          success: false,
+          error: errorMessage,
+        });
+      }
+    });
+  }
 
   // ========================================
   // END CRON HEALTH MONITORING API ENDPOINTS

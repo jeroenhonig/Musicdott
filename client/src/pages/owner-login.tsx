@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { ownerLoginSchema, type OwnerLoginData } from "@shared/auth-validation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-
-const ownerLoginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type OwnerLoginData = z.infer<typeof ownerLoginSchema>;
 
 export default function OwnerLogin() {
   const [, setLocation] = useLocation();
@@ -36,23 +29,10 @@ export default function OwnerLogin() {
     setError(null);
 
     try {
-      const response = await fetch("/api/owner/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        // Redirect to owners dashboard
-        setLocation("/owners-dashboard");
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Invalid credentials");
-      }
+      await apiRequest("POST", "/api/owner/login", ownerLoginSchema.parse(data));
+      setLocation("/owners-dashboard");
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
+      setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }

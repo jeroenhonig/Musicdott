@@ -6,14 +6,14 @@
       "id": "ER-001",
       "description": "Groovescribe self-hosted query URL should route to groovescribe normalizer",
       "input": {
-        "raw": "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
+        "raw": "https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=%7Cxxxxxxxxxxxxxxxx%7C&S=%7C----O-------O---%7C&K=%7Co-------o-------%7C"
       },
       "expected": {
         "provider": "groovescribe",
         "type": "notation",
         "status": "embedded",
         "must_preserve_raw": true,
-        "embed_url_contains": "teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1"
+        "embed_url_contains": "musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=80&Measures=1"
       }
     },
     {

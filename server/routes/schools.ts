@@ -72,6 +72,7 @@ const logoUpload = multer({
 export function registerSchoolRoutes(app: Express) {
   // Apply school context loading to all school routes
   app.use('/api/schools', loadSchoolContext);
+  app.use('/api/school', loadSchoolContext);
 
   // ============================================================================
   // SCHOOL MANAGEMENT ROUTES
@@ -1112,15 +1113,10 @@ export function registerSchoolRoutes(app: Express) {
   /**
    * GET /api/school/members - Get current school members (context-based or user-based)
    */
-  app.get("/api/school/members", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/school/members", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
-      
-      // Check role - only teachers and school owners can view members
-      if (user.role !== 'teacher' && user.role !== 'school_owner' && user.role !== 'platform_owner') {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
+
       // Get schoolId from context or directly from user
       const schoolId = req.school?.id || user.schoolId;
       

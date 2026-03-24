@@ -1,8 +1,9 @@
 import { pool, db, isDatabaseAvailable } from './db';
 import { users, schools, students, lessons, songs, achievementDefinitions, schoolMemberships } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
+import { migrationRunner } from './migrations-runner';
 
 const scryptAsync = promisify(scrypt);
 
@@ -15,12 +16,23 @@ async function hashPassword(password: string): Promise<string> {
   return `${buf.toString("hex")}.${salt}`;
 }
 
-/**
- * Simple database setup - creates tables and seeds test data
- * No migrations, no complexity - just works
- */
-export async function setupDatabase() {
-  console.log('🔧 Starting database setup...');
+interface SetupDatabaseOptions {
+  migrate?: boolean;
+  seedAdminAndSchool?: boolean;
+  seedAchievements?: boolean;
+  seedTestData?: boolean;
+}
+
+export async function setupDatabase(options: SetupDatabaseOptions = {}) {
+  const defaultSeedTestData = process.env.NODE_ENV !== "production";
+  const {
+    migrate = true,
+    seedAdminAndSchool: shouldSeedAdminAndSchool = true,
+    seedAchievements: shouldSeedAchievements = true,
+    seedTestData: shouldSeedTestData = defaultSeedTestData,
+  } = options;
+
+  console.log('🔧 Starting database bootstrap...');
 
   try {
     // 1. Wait for database connection
@@ -36,448 +48,54 @@ export async function setupDatabase() {
       return { success: false, message: 'Database not available' };
     }
 
-    // 2. Create tables using drizzle push equivalent (direct SQL)
-    console.log('🔄 Creating database tables...');
-    await createTables();
-    console.log('✅ Tables created');
+    if (migrate) {
+      console.log('🔄 Running schema migrations...');
+      const migrationStatus = await createTables();
+      console.log(
+        `✅ Schema migrations complete (${migrationStatus.migrationsExecuted.length} applied, ` +
+        `${migrationStatus.migrationsPending.length} pending)`,
+      );
+    }
 
-    // 3. Seed admin user and school
-    console.log('👤 Setting up admin user...');
-    await seedAdminAndSchool();
-    console.log('✅ Admin setup complete');
+    if (shouldSeedAdminAndSchool) {
+      console.log('👤 Setting up admin user...');
+      await seedAdminAndSchool();
+      console.log('✅ Admin setup complete');
+    }
 
-    // 4. Seed achievements
-    console.log('🏆 Seeding achievements...');
-    await seedAchievements();
-    console.log('✅ Achievements seeded');
+    if (shouldSeedAchievements) {
+      console.log('🏆 Seeding achievements...');
+      await seedAchievements();
+      console.log('✅ Achievements seeded');
+    }
 
-    // 5. Seed test data
-    console.log('📚 Seeding test data...');
-    await seedTestData();
-    console.log('✅ Test data seeded');
+    if (shouldSeedTestData) {
+      console.log('📚 Seeding test data...');
+      await seedTestData();
+      console.log('✅ Test data seeded');
+    }
 
     // 6. Get status
     const status = await getDatabaseStatus();
 
-    console.log('✅ Database setup completed successfully!');
-    return { success: true, message: 'Database setup completed', status };
+    console.log('✅ Database bootstrap completed successfully!');
+    return { success: true, message: 'Database bootstrap completed', status };
 
   } catch (error) {
-    console.error('❌ Database setup failed:', error);
+    console.error('❌ Database bootstrap failed:', error);
     return {
       success: false,
-      message: 'Database setup failed',
+      message: 'Database bootstrap failed',
       error: error instanceof Error ? error.message : String(error)
     };
   }
 }
 
 /**
- * Create all tables - simple approach using raw SQL
+ * Run versioned schema migrations.
  */
 async function createTables() {
-  // Use CREATE TABLE IF NOT EXISTS for idempotency
-  const createTablesSQL = `
-    -- Set search_path
-    SET search_path TO public;
-
-    -- Migration: Make owner_id nullable (if it was NOT NULL before)
-    DO $$
-    BEGIN
-      -- Check if column exists and has NOT NULL constraint, if so remove it
-      IF EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'schools'
-        AND column_name = 'owner_id'
-        AND is_nullable = 'NO'
-      ) THEN
-        ALTER TABLE schools ALTER COLUMN owner_id DROP NOT NULL;
-        RAISE NOTICE 'Made owner_id nullable in schools table';
-      END IF;
-    END $$;
-
-    -- 1. Schools table (no dependencies)
-    CREATE TABLE IF NOT EXISTS schools (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      owner_id INTEGER,
-      address TEXT,
-      city TEXT,
-      phone TEXT,
-      website TEXT,
-      instruments TEXT,
-      description TEXT,
-      logo TEXT,
-      primary_color TEXT DEFAULT '#3b82f6',
-      secondary_color TEXT DEFAULT '#64748b',
-      accent_color TEXT DEFAULT '#10b981',
-      background_image TEXT,
-      font_family TEXT DEFAULT 'Inter',
-      custom_css TEXT,
-      branding_enabled BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 2. Users table
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER REFERENCES schools(id),
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      role TEXT NOT NULL,
-      instruments TEXT,
-      avatar TEXT,
-      bio TEXT,
-      must_change_password BOOLEAN DEFAULT FALSE,
-      last_login_at TIMESTAMP
-    );
-
-    -- 3. Students table
-    CREATE TABLE IF NOT EXISTS students (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      user_id INTEGER REFERENCES users(id),
-      account_id INTEGER,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT,
-      birthdate DATE,
-      instrument TEXT,
-      level TEXT,
-      assigned_teacher_id INTEGER REFERENCES users(id),
-      notes TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      is_active BOOLEAN DEFAULT TRUE
-    );
-
-    -- 4. Lessons table
-    CREATE TABLE IF NOT EXISTS lessons (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER REFERENCES schools(id),
-      title TEXT NOT NULL,
-      description TEXT,
-      content_type TEXT,
-      instrument TEXT,
-      level TEXT,
-      category TEXT,
-      category_id INTEGER,
-      user_id INTEGER REFERENCES users(id),
-      content_blocks TEXT,
-      order_number INTEGER,
-      is_active BOOLEAN DEFAULT TRUE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- 5. Songs table
-    CREATE TABLE IF NOT EXISTS songs (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER REFERENCES schools(id),
-      title TEXT NOT NULL,
-      artist TEXT,
-      composer TEXT,
-      genre TEXT,
-      bpm INTEGER,
-      duration TEXT,
-      description TEXT,
-      difficulty TEXT,
-      instrument TEXT,
-      level TEXT,
-      user_id INTEGER REFERENCES users(id),
-      content_blocks TEXT,
-      groove_patterns TEXT[],
-      is_active BOOLEAN DEFAULT TRUE,
-      key TEXT,
-      tempo TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- 6. Assignments table
-    CREATE TABLE IF NOT EXISTS assignments (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id),
-      student_id INTEGER NOT NULL REFERENCES students(id),
-      lesson_id INTEGER REFERENCES lessons(id),
-      song_id INTEGER REFERENCES songs(id),
-      title TEXT NOT NULL,
-      description TEXT,
-      due_date TIMESTAMP,
-      status TEXT DEFAULT 'pending'
-    );
-
-    -- 7. Sessions table
-    CREATE TABLE IF NOT EXISTS sessions (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id),
-      student_id INTEGER NOT NULL REFERENCES students(id),
-      title TEXT NOT NULL,
-      start_time TIMESTAMP NOT NULL,
-      end_time TIMESTAMP NOT NULL,
-      duration_min INTEGER DEFAULT 30,
-      notes TEXT
-    );
-
-    -- 8. Achievement definitions table
-    CREATE TABLE IF NOT EXISTS achievement_definitions (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT,
-      criteria TEXT NOT NULL,
-      badge_image TEXT,
-      points INTEGER DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      type TEXT NOT NULL DEFAULT 'general',
-      icon_name TEXT NOT NULL DEFAULT 'award',
-      badge_color TEXT NOT NULL DEFAULT 'blue',
-      xp_value INTEGER NOT NULL DEFAULT 10
-    );
-
-    -- 9. Student achievements table
-    CREATE TABLE IF NOT EXISTS student_achievements (
-      id SERIAL PRIMARY KEY,
-      student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-      achievement_type TEXT NOT NULL,
-      title TEXT NOT NULL,
-      description TEXT,
-      points_earned INTEGER DEFAULT 0,
-      badge_icon TEXT,
-      is_visible BOOLEAN DEFAULT TRUE,
-      earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 10. Recurring schedules table
-    CREATE TABLE IF NOT EXISTS recurring_schedules (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id),
-      student_id INTEGER NOT NULL REFERENCES students(id),
-      day_of_week TEXT NOT NULL,
-      start_time TEXT NOT NULL,
-      end_time TEXT NOT NULL,
-      location TEXT,
-      notes TEXT,
-      timezone TEXT DEFAULT 'Europe/Amsterdam',
-      frequency TEXT DEFAULT 'WEEKLY',
-      is_active BOOLEAN DEFAULT TRUE,
-      ical_dtstart TEXT,
-      ical_rrule TEXT,
-      ical_tzid TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 11. Practice sessions table
-    CREATE TABLE IF NOT EXISTS practice_sessions (
-      id SERIAL PRIMARY KEY,
-      student_id INTEGER NOT NULL REFERENCES students(id),
-      lesson_id INTEGER REFERENCES lessons(id),
-      song_id INTEGER REFERENCES songs(id),
-      start_time TIMESTAMP NOT NULL,
-      end_time TIMESTAMP,
-      duration INTEGER,
-      notes TEXT
-    );
-
-    -- 12. Lesson categories table
-    CREATE TABLE IF NOT EXISTS lesson_categories (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      description TEXT,
-      color TEXT DEFAULT '#3B82F6',
-      icon TEXT DEFAULT 'BookOpen',
-      user_id INTEGER NOT NULL REFERENCES users(id)
-    );
-
-    -- 13. Groove patterns table
-    CREATE TABLE IF NOT EXISTS groove_patterns (
-      id TEXT PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      description TEXT,
-      groove_data TEXT NOT NULL,
-      bpm INTEGER DEFAULT 120,
-      bars INTEGER DEFAULT 4,
-      time_signature TEXT DEFAULT '4/4',
-      difficulty TEXT DEFAULT 'beginner',
-      tags TEXT[],
-      category_id INTEGER,
-      created_by INTEGER REFERENCES users(id),
-      is_public BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 14. Notifications table
-    CREATE TABLE IF NOT EXISTS notifications (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      type TEXT NOT NULL,
-      title TEXT NOT NULL,
-      message TEXT NOT NULL,
-      link TEXT,
-      metadata JSONB,
-      is_read BOOLEAN DEFAULT FALSE NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 15. User preferences tables
-    CREATE TABLE IF NOT EXISTS user_notifications (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      settings JSONB NOT NULL DEFAULT '{}',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS user_preferences (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      settings JSONB NOT NULL DEFAULT '{}',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 16. Messages tables
-    CREATE TABLE IF NOT EXISTS messages (
-      id SERIAL PRIMARY KEY,
-      sender_id INTEGER NOT NULL REFERENCES users(id),
-      recipient_id INTEGER NOT NULL REFERENCES users(id),
-      sender_type TEXT NOT NULL,
-      recipient_type TEXT NOT NULL,
-      subject TEXT NOT NULL,
-      content TEXT NOT NULL,
-      is_read BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS message_replies (
-      id SERIAL PRIMARY KEY,
-      message_id INTEGER NOT NULL REFERENCES messages(id),
-      sender_id INTEGER NOT NULL REFERENCES users(id),
-      sender_type TEXT,
-      reply TEXT NOT NULL,
-      is_read BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS student_messages (
-      id SERIAL PRIMARY KEY,
-      student_id INTEGER NOT NULL REFERENCES students(id),
-      teacher_id INTEGER NOT NULL REFERENCES users(id),
-      subject TEXT NOT NULL,
-      message TEXT NOT NULL,
-      response TEXT,
-      is_read BOOLEAN DEFAULT FALSE,
-      response_read BOOLEAN DEFAULT FALSE,
-      responded_at TIMESTAMP,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 17. Billing tables
-    CREATE TABLE IF NOT EXISTS payment_history (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id),
-      amount INTEGER NOT NULL,
-      currency TEXT DEFAULT 'EUR',
-      status TEXT NOT NULL,
-      stripe_payment_intent_id TEXT,
-      description TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS subscriptions (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id),
-      plan_type TEXT NOT NULL DEFAULT 'standard',
-      status TEXT NOT NULL DEFAULT 'active',
-      current_period_start TIMESTAMP,
-      current_period_end TIMESTAMP,
-      stripe_subscription_id TEXT,
-      stripe_customer_id TEXT,
-      cancel_at_period_end BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS school_billing_summary (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id),
-      current_plan TEXT DEFAULT 'standard',
-      teacher_count INTEGER DEFAULT 1,
-      student_count INTEGER DEFAULT 0,
-      last_billing_amount INTEGER DEFAULT 0,
-      next_billing_amount INTEGER DEFAULT 0,
-      last_billing_date TIMESTAMP,
-      next_billing_date TIMESTAMP,
-      payment_status TEXT DEFAULT 'current',
-      stripe_customer_id TEXT,
-      stripe_subscription_id TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 18. School memberships
-    CREATE TABLE IF NOT EXISTS school_memberships (
-      id SERIAL PRIMARY KEY,
-      school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      role TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 19. Lesson progress
-    CREATE TABLE IF NOT EXISTS lesson_progress (
-      id SERIAL PRIMARY KEY,
-      student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-      lesson_id INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
-      status TEXT NOT NULL DEFAULT 'not_started',
-      progress INTEGER DEFAULT 0,
-      notes TEXT,
-      time_spent INTEGER DEFAULT 0,
-      last_practiced TIMESTAMP,
-      teacher_notes TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- 20. Cron job health (for schedulers)
-    CREATE TABLE IF NOT EXISTS cron_job_health (
-      id SERIAL PRIMARY KEY,
-      job_name TEXT NOT NULL UNIQUE,
-      last_run_at TIMESTAMP,
-      last_run_status TEXT,
-      last_run_duration INTEGER,
-      last_run_result JSONB,
-      last_error TEXT,
-      next_scheduled_run TIMESTAMP,
-      success_count INTEGER DEFAULT 0,
-      failure_count INTEGER DEFAULT 0,
-      is_active BOOLEAN DEFAULT TRUE,
-      cron_schedule TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    );
-
-    -- Create indexes
-    CREATE INDEX IF NOT EXISTS idx_users_school_id ON users(school_id);
-    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-    CREATE INDEX IF NOT EXISTS idx_students_school_id ON students(school_id);
-    CREATE INDEX IF NOT EXISTS idx_lessons_user_id ON lessons(user_id);
-    CREATE INDEX IF NOT EXISTS idx_songs_user_id ON songs(user_id);
-    CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
-  `;
-
-  await pool.query(createTablesSQL);
+  return migrationRunner.runPendingMigrations();
 }
 
 /**
@@ -495,7 +113,7 @@ async function seedAdminAndSchool() {
   let admin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1).then(r => r[0]);
 
   if (!admin) {
-    const adminPassword = await hashPassword(process.env.ADMIN_PASSWORD || 'admin123');
+    const adminPassword = await hashPassword(process.env.ADMIN_PASSWORD || 'admin');
     [admin] = await db.insert(users).values({
       username: process.env.ADMIN_USERNAME || 'admin',
       password: adminPassword,
@@ -597,6 +215,16 @@ async function seedAdminAndSchool() {
     console.log(`    ✅ Created school membership for teacher`);
   } else {
     console.log(`    ℹ️  Teacher exists: ${teacher.username} (ID: ${teacher.id})`);
+    // Ensure existing teacher is linked to the school
+    if (teacher.schoolId !== school.id) {
+      await db.update(users).set({ schoolId: school.id }).where(eq(users.id, teacher.id));
+      console.log(`    ✅ Linked existing teacher to school`);
+    }
+    await db.insert(schoolMemberships).values({
+      schoolId: school.id,
+      userId: teacher.id,
+      role: 'teacher',
+    }).onConflictDoNothing();
   }
 
   // 5. Get or create student user (tim) - FIFTH, assigned to school and teacher
@@ -633,18 +261,41 @@ async function seedAdminAndSchool() {
     console.log(`    ✅ Created student record (ID: ${studentRecord.id}) linked to user: ${studentUser.username}`);
   } else {
     console.log(`    ℹ️  Student user exists: ${studentUser.username} (ID: ${studentUser.id})`);
+    if (studentUser.schoolId !== school.id) {
+      await db.update(users).set({ schoolId: school.id }).where(eq(users.id, studentUser.id));
+      console.log(`    ✅ Linked existing student user to school`);
+    }
+    // Ensure a student record exists for the user
+    const existingStudentRecord = await db.select().from(students).where(eq(students.accountId, studentUser.id)).limit(1);
+    if (existingStudentRecord.length === 0) {
+      const [studentRecord] = await db.insert(students).values({
+        schoolId: school.id,
+        userId: teacher.id, // Creator is the teacher
+        accountId: studentUser.id, // Linked user account
+        name: studentUser.name,
+        email: studentUser.email,
+        phone: '+31 6 12345678',
+        instrument: 'drums',
+        level: 'beginner',
+        assignedTeacherId: teacher.id,
+        notes: 'Leeftijd: 14 jaar\nOuder: Jan de Vries\nOuder Email: jan.devries@example.nl',
+        isActive: true,
+      }).returning();
+      console.log(`    ✅ Created missing student record (ID: ${studentRecord.id}) for user: ${studentUser.username}`);
+    }
   }
 
-  // Print login info
-  console.log('\n╔════════════════════════════════════════════════════════════════════╗');
-  console.log('║                    LOGIN CREDENTIALS                               ║');
-  console.log('║         Muziekschool Stefan van de Brug                            ║');
-  console.log('╠════════════════════════════════════════════════════════════════════╣');
-  console.log('║ Platform Owner: admin / admin123                                   ║');
-  console.log('║ School Owner:   stefan / schoolowner123 (Stefan van de Brug)       ║');
-  console.log('║ Teacher:        mark / teacher123 (Mark Jansen)                    ║');
-  console.log('║ Student:        tim / student123 (Tim de Vries)                    ║');
-  console.log('╚════════════════════════════════════════════════════════════════════╝\n');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('\n╔════════════════════════════════════════════════════════════════════╗');
+    console.log('║                    LOGIN CREDENTIALS                               ║');
+    console.log('║         Muziekschool Stefan van de Brug                            ║');
+    console.log('╠════════════════════════════════════════════════════════════════════╣');
+    console.log('║ Platform Owner: admin / admin                                      ║');
+    console.log('║ School Owner:   stefan / schoolowner123 (Stefan van de Brug)       ║');
+    console.log('║ Teacher:        mark / teacher123 (Mark Jansen)                    ║');
+    console.log('║ Student:        tim / student123 (Tim de Vries)                    ║');
+    console.log('╚════════════════════════════════════════════════════════════════════╝\n');
+  }
 }
 
 /**
@@ -772,19 +423,31 @@ async function seedTestData() {
 /**
  * Get database status
  */
-async function getDatabaseStatus() {
+export async function getDatabaseStatus() {
   try {
-    const [userCount] = await db.select({ count: eq(users.id, users.id) }).from(users);
-    const [studentCount] = await db.select({ count: eq(students.id, students.id) }).from(students);
-    const [lessonCount] = await db.select({ count: eq(lessons.id, lessons.id) }).from(lessons);
-    const [songCount] = await db.select({ count: eq(songs.id, songs.id) }).from(songs);
+    if (!isDatabaseAvailable || !db) {
+      return {
+        connected: false,
+        migrations: await migrationRunner.getStatus(),
+        error: 'Database not available',
+      };
+    }
+
+    const [userCount, studentCount, lessonCount, songCount, migrationStatus] = await Promise.all([
+      db.select({ count: count() }).from(users).then((rows) => rows[0]),
+      db.select({ count: count() }).from(students).then((rows) => rows[0]),
+      db.select({ count: count() }).from(lessons).then((rows) => rows[0]),
+      db.select({ count: count() }).from(songs).then((rows) => rows[0]),
+      migrationRunner.getStatus(),
+    ]);
 
     return {
       connected: true,
-      users: userCount?.count || 0,
-      students: studentCount?.count || 0,
-      lessons: lessonCount?.count || 0,
-      songs: songCount?.count || 0,
+      users: Number(userCount?.count ?? 0),
+      students: Number(studentCount?.count ?? 0),
+      lessons: Number(lessonCount?.count ?? 0),
+      songs: Number(songCount?.count ?? 0),
+      migrations: migrationStatus,
     };
   } catch (error) {
     return { connected: false, error: String(error) };
@@ -793,5 +456,62 @@ async function getDatabaseStatus() {
 
 // Legacy export for compatibility
 export async function verifyDatabaseSetup() {
-  return setupDatabase();
+  return setupDatabase({
+    migrate: true,
+    seedAdminAndSchool: false,
+    seedAchievements: false,
+    seedTestData: false,
+  });
+}
+
+async function runCli() {
+  const args = new Set(process.argv.slice(2));
+
+  if (args.has("--status")) {
+    console.log(JSON.stringify(await getDatabaseStatus(), null, 2));
+    return;
+  }
+
+  if (args.has("--migrate-only")) {
+    const result = await setupDatabase({
+      migrate: true,
+      seedAdminAndSchool: false,
+      seedAchievements: false,
+      seedTestData: false,
+    });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (args.has("--seed-only")) {
+    const result = await setupDatabase({
+      migrate: false,
+      seedAdminAndSchool: true,
+      seedAchievements: true,
+      seedTestData: true,
+    });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (args.has("--seed-core-only")) {
+    const result = await setupDatabase({
+      migrate: false,
+      seedAdminAndSchool: true,
+      seedAchievements: true,
+      seedTestData: false,
+    });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  const result = await setupDatabase();
+  console.log(JSON.stringify(result, null, 2));
+}
+
+if (process.argv[1]?.endsWith("server/setup-db.ts")) {
+  void runCli().catch((error) => {
+    console.error("❌ Database bootstrap command failed:", error);
+    process.exit(1);
+  });
 }

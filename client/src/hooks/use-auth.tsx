@@ -4,10 +4,17 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, School, SchoolMembership, USER_ROLES } from "@shared/schema";
+import { User as SelectUser, School, SchoolMembership, USER_ROLES } from "@shared/schema";
+import {
+  loginCredentialsSchema,
+  passwordChangeRequestSchema,
+  registerUserSchema,
+  type LoginCredentials,
+  type PasswordChangeRequestData,
+  type RegisterUserData,
+} from "@shared/auth-validation";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
 
 // Centralized list of all user-scoped query keys
 // This ensures login/logout handle the same set of queries systematically
@@ -52,22 +59,9 @@ type AuthContextType = {
   hasRole: (role: string, schoolId?: number) => boolean;
 };
 
-type LoginData = Pick<SelectUser, "username" | "password">;
-
-type ChangePasswordData = {
-  currentPassword: string;
-  newPassword: string;
-};
-
-const registerSchema = insertUserSchema.extend({
-  username: z.string().min(3).max(50),
-  password: z.string().min(6).max(100),
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-  role: z.enum(["platform_owner", "school_owner", "teacher", "student"]).default("student"),
-});
-
-type RegisterData = z.infer<typeof registerSchema>;
+type LoginData = LoginCredentials;
+type ChangePasswordData = PasswordChangeRequestData;
+type RegisterData = RegisterUserData;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -184,59 +178,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation<Omit<SelectUser, "password">, Error, LoginData>({
     mutationFn: async (credentials: LoginData) => {
-      console.log("🔐 [LOGIN MUTATION] Starting login with:", { username: credentials.username });
-      try {
-        console.log("📤 [LOGIN MUTATION] Sending POST request to /api/login");
-        const res = await apiRequest("POST", "/api/login", credentials);
-        console.log("📥 [LOGIN MUTATION] Response received, status:", res.status);
-        
-        const userData = await res.json();
-        console.log("✅ [LOGIN MUTATION] Login successful, user data:", userData);
-        
-        // Immediately verify authentication state after login
-        setTimeout(async () => {
-          try {
-            console.log('🔍 [LOGIN MUTATION] Verifying authentication state post-login...');
-            const verifyRes = await fetch('/api/user', { 
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' }
-            });
-            if (verifyRes.ok) {
-              console.log('✅ [LOGIN MUTATION] Authentication verification successful');
-            } else {
-              console.error('❌ [LOGIN MUTATION] Authentication verification failed:', verifyRes.status);
-            }
-          } catch (verifyError) {
-            console.error('❌ [LOGIN MUTATION] Authentication verification error:', verifyError);
-          }
-        }, 100);
-        
-        return userData;
-      } catch (error) {
-        console.error("❌ [LOGIN MUTATION] Login failed with error:", error);
-        console.error("❌ [LOGIN MUTATION] Error type:", error instanceof Error ? error.constructor.name : typeof error);
-        console.error("❌ [LOGIN MUTATION] Error message:", error instanceof Error ? error.message : String(error));
-        throw error;
-      }
+      const validatedCredentials = loginCredentialsSchema.parse(credentials);
+      const res = await apiRequest("POST", "/api/login", validatedCredentials);
+      return await res.json();
     },
     onSuccess: (user) => {
-      console.log("🎯 [LOGIN] Login mutation onSuccess triggered with user:", user);
       queryClient.setQueryData(["/api/user"], user);
       
       // Invalidate all user-scoped queries using centralized list
       USER_SCOPED_QUERY_KEYS.forEach(queryKey => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       });
-      
-      console.log("✅ [LOGIN] User data set and all user-scoped queries invalidated");
-      
+
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.name}!`,
       });
     },
     onError: (error: Error) => {
-      console.error("🚨 Login mutation onError triggered:", error);
       toast({
         title: "Login failed",
         description: error.message,
@@ -247,7 +206,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation<Omit<SelectUser, "password">, Error, RegisterData>({
     mutationFn: async (userData: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", userData);
+      const validatedUserData = registerUserSchema.parse(userData);
+      const res = await apiRequest("POST", "/api/register", validatedUserData);
       return await res.json();
     },
     onSuccess: (user) => {
@@ -297,7 +257,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const changePasswordMutation = useMutation<{message: string}, Error, ChangePasswordData>({
     mutationFn: async (passwordData: ChangePasswordData) => {
-      const res = await apiRequest("PATCH", "/api/user/password", passwordData);
+      const validatedPasswordData = passwordChangeRequestSchema.parse(passwordData);
+      const res = await apiRequest("PATCH", "/api/user/password", validatedPasswordData);
       return await res.json();
     },
     onSuccess: () => {

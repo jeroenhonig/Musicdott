@@ -62,7 +62,7 @@ interface CalendarEvent {
     location?: string;
     notes?: string;
     isRecurring: boolean;
-    recurrenceType?: string;
+    frequencyLabel?: string;
     instrument?: string;
     level?: string;
     conflicted?: boolean;
@@ -114,7 +114,7 @@ export default function InteractiveCalendar({
   });
 
   const { data: teachers = [] } = useQuery<User[]>({
-    queryKey: ["/api/users/teachers"],
+    queryKey: ["/api/teachers"],
   });
 
   // Transform schedules to calendar events
@@ -154,7 +154,9 @@ export default function InteractiveCalendar({
             location: schedule.location || undefined,
             notes: schedule.notes || undefined,
             isRecurring: schedule.frequency !== 'ONCE',
-            recurrenceType: schedule.frequency,
+            frequencyLabel: String(schedule.frequency || "WEEKLY")
+              .toLowerCase()
+              .replace(/_/g, " "),
             instrument: student.instrument,
             level: student.level || undefined,
           },
@@ -185,7 +187,7 @@ export default function InteractiveCalendar({
         endTime: format(end, 'HH:mm'),
       };
       
-      return await apiRequest(`/api/recurring-schedules/${event.resource.scheduleId}`, "PUT", updatedSchedule);
+      return await apiRequest("PUT", `/api/recurring-schedules/${event.resource.scheduleId}`, updatedSchedule);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recurring-schedules"] });
@@ -210,7 +212,7 @@ export default function InteractiveCalendar({
         endTime: format(end, 'HH:mm'),
       };
       
-      return await apiRequest(`/api/recurring-schedules/${event.resource.scheduleId}`, "PUT", updatedSchedule);
+      return await apiRequest("PUT", `/api/recurring-schedules/${event.resource.scheduleId}`, updatedSchedule);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recurring-schedules"] });
@@ -478,7 +480,11 @@ export default function InteractiveCalendar({
                 <Badge variant="outline">{selectedEvent.resource.instrument}</Badge>
                 <Badge variant="outline">{selectedEvent.resource.level}</Badge>
                 {selectedEvent.resource.isRecurring && (
-                  <Badge variant="secondary">{selectedEvent.resource.recurrenceType}</Badge>
+                  <Badge variant="secondary">
+                    {selectedEvent.resource.frequencyLabel
+                      ? selectedEvent.resource.frequencyLabel.charAt(0).toUpperCase() + selectedEvent.resource.frequencyLabel.slice(1)
+                      : "Recurring"}
+                  </Badge>
                 )}
               </div>
               

@@ -1,6 +1,6 @@
 import type { EmbedModule, EmbedStatus } from "./embedTypes";
 
-const DEFAULT_PREFER_HOST = "https://teacher.musicdott.com/groovescribe/GrooveEmbed.html";
+const DEFAULT_PREFER_HOST = "https://musicdott.app/groovescribe/GrooveEmbed.html";
 const GROOVESCRIBE_PARAM_KEYS = [
   "TimeSig",
   "Div",

@@ -23,7 +23,7 @@ def normalize_groovescribe(input_str: str) -> str:
         return ""
     
     s = str(input_str).strip()
-    PREFER_HOST = "https://teacher.musicdott.com/groovescribe/GrooveEmbed.html"
+    PREFER_HOST = "https://musicdott.app/groovescribe/GrooveEmbed.html"
     
     # Case 1: Already an iframe - extract src and normalize
     if s.startswith('<iframe'):
@@ -41,7 +41,7 @@ def normalize_groovescribe(input_str: str) -> str:
             if query:
                 return f'<iframe width="100%" height="240" src="{PREFER_HOST}?{query}" frameborder="0"></iframe>'
     
-    # Case 2: Full URL (teacher.musicdott.com or mikeslessons.com)
+    # Case 2: Full URL (musicdott.app or mikeslessons.com)
     elif s.startswith('http'):
         if '?' in s:
             query = s.split('?', 1)[1]

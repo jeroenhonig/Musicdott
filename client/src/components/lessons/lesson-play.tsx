@@ -18,6 +18,7 @@ import {
 import GrooveEmbed from './groove-embed';
 import { SyncEmbedCard } from '@/components/sync/sync-embed';
 import { useTranslation } from '@/lib/i18n';
+import { sanitizeRichHtml } from '@/utils/sanitize-rich-html';
 
 interface LessonPlayProps {
   lessonId: number;
@@ -119,7 +120,7 @@ export default function LessonPlay({ lessonId, onBack }: LessonPlayProps) {
         return (
           <div key={block.id} className="prose max-w-none my-4">
             <div className="bg-white rounded-lg border p-4">
-              <div dangerouslySetInnerHTML={{ __html: block.content.html || block.content }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(block.content.html || block.content) }} />
             </div>
           </div>
         );

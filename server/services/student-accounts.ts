@@ -5,14 +5,14 @@
 
 import bcrypt from 'bcrypt';
 import { storage } from '../storage-wrapper';
-import { makeStudentUsername, generateFallbackUsername } from '@shared/utils';
+import { generateFallbackUsername } from '@shared/utils';
 import type { Student, User, StudentAccountCreate } from '@shared/schema';
 
 /**
  * Default password for new student accounts
  * Must be changed on first login (mustChangePassword = true)
  */
-const DEFAULT_STUDENT_PASSWORD = 'Drumles2025!';
+export const DEFAULT_STUDENT_PASSWORD = 'Drumles2025!';
 
 /**
  * BCrypt salt rounds for password hashing
@@ -46,9 +46,47 @@ async function checkUsernameExists(username: string): Promise<boolean> {
   }
 }
 
+function normalizeUsernamePart(value: string | null | undefined): string {
+  if (!value) return '';
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function splitName(name: string | null | undefined): { firstName: string; lastName: string } {
+  const trimmed = (name || '').trim();
+  if (!trimmed) {
+    return { firstName: '', lastName: '' };
+  }
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: '' };
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  };
+}
+
+function resolveStudentNameParts(student: Student): { firstName: string; lastName: string } {
+  const firstName = (student as any).firstName?.trim?.() || '';
+  const lastName = (student as any).lastName?.trim?.() || '';
+
+  if (firstName || lastName) {
+    return { firstName, lastName };
+  }
+
+  return splitName((student as any).name || '');
+}
+
 /**
  * Generate unique username for student
- * Uses shared utility with storage integration
+ * Format: firstname+lastname (lowercase, no spaces), with numeric suffix on collision
  */
 async function generateUniqueUsername(
   firstName: string, 
@@ -56,7 +94,24 @@ async function generateUniqueUsername(
   schoolId: number
 ): Promise<string> {
   try {
-    return await makeStudentUsername(firstName, lastName, schoolId, checkUsernameExists);
+    const base = `${normalizeUsernamePart(firstName)}${normalizeUsernamePart(lastName)}` || '';
+
+    if (!base) {
+      return generateFallbackUsername(schoolId);
+    }
+
+    if (!(await checkUsernameExists(base))) {
+      return base;
+    }
+
+    for (let i = 2; i <= 9999; i++) {
+      const candidate = `${base}${i}`;
+      if (!(await checkUsernameExists(candidate))) {
+        return candidate;
+      }
+    }
+
+    return generateFallbackUsername(schoolId);
   } catch (error) {
     console.warn(`Username generation failed for ${firstName} ${lastName}:`, error);
     // Fallback to timestamp-based username
@@ -75,9 +130,10 @@ export async function createStudentAccount(
   student: Student, 
   schoolId: number
 ): Promise<Omit<User, 'password'>> {
+  const { firstName, lastName } = resolveStudentNameParts(student);
   
   // Validate required fields
-  if (!student.firstName?.trim() || !student.lastName?.trim()) {
+  if (!firstName || !lastName) {
     throw new Error('Student must have first name and last name for account creation');
   }
   
@@ -85,12 +141,22 @@ export async function createStudentAccount(
     throw new Error('Student must have email for account creation');
   }
   
-  // Check if account already exists
-  if (student.userId) {
-    const existingUser = await storage.getUser(student.userId);
+  // Check if account already exists (accountId is canonical; userId may be teacher/creator)
+  const explicitAccountId = (student as any).accountId ?? null;
+  if (explicitAccountId) {
+    const existingUser = await storage.getUser(explicitAccountId);
     if (existingUser) {
       console.log(`Account already exists for student ${student.id}, skipping creation`);
       const { password, ...userWithoutPassword } = existingUser;
+      return userWithoutPassword;
+    }
+  }
+
+  if (!explicitAccountId && student.userId) {
+    const maybeLegacyLinkedUser = await storage.getUser(student.userId);
+    if (maybeLegacyLinkedUser?.role === 'student') {
+      console.log(`Legacy student account link found for student ${student.id}, skipping creation`);
+      const { password, ...userWithoutPassword } = maybeLegacyLinkedUser;
       return userWithoutPassword;
     }
   }
@@ -98,8 +164,8 @@ export async function createStudentAccount(
   try {
     // Generate unique username
     const username = await generateUniqueUsername(
-      student.firstName, 
-      student.lastName, 
+      firstName, 
+      lastName, 
       schoolId
     );
     
@@ -111,7 +177,7 @@ export async function createStudentAccount(
       schoolId,
       username,
       password: hashedPassword,
-      name: `${student.firstName} ${student.lastName}`,
+      name: `${firstName} ${lastName}`.trim(),
       email: student.email,
       role: 'student',
       mustChangePassword: true, // Force password change on first login
@@ -121,17 +187,15 @@ export async function createStudentAccount(
     };
     
     // Create user account
-    console.log(`Creating account for student: ${student.firstName} ${student.lastName} (${username})`);
+    console.log(`Creating account for student: ${firstName} ${lastName} (${username})`);
     const newUser = await storage.createUser(userAccountData);
     
-    // Link student to user account and sync username
+    // Link student to user account (accountId is the student-login link in current platform)
     if (newUser.id && student.id) {
       await storage.updateStudent(student.id, { 
-        userId: newUser.id,
-        username: username, // Keep students.username in sync with users.username for admin clarity
-        password: '' // Clear any placeholder password since auth uses users table
+        accountId: newUser.id,
       });
-      console.log(`Linked student ${student.id} to user account ${newUser.id} with username ${username}`);
+      console.log(`Linked student ${student.id} to student account ${newUser.id} with username ${username}`);
     }
     
     // Return user without password
@@ -140,7 +204,7 @@ export async function createStudentAccount(
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Failed to create account for student ${student.firstName} ${student.lastName}:`, errorMessage);
+    console.error(`Failed to create account for student ${firstName} ${lastName}:`, errorMessage);
     throw new Error(`Account creation failed: ${errorMessage}`);
   }
 }
@@ -203,7 +267,7 @@ export async function backfillStudentAccounts(schoolId: number): Promise<{
   const schoolStudents = allStudents.filter(s => s.schoolId === schoolId);
   
   // Filter students without user accounts
-  const studentsNeedingAccounts = schoolStudents.filter(s => !s.userId);
+  const studentsNeedingAccounts = schoolStudents.filter(s => !(s as any).accountId);
   
   console.log(`Found ${studentsNeedingAccounts.length} students needing accounts out of ${schoolStudents.length} total`);
   
@@ -241,7 +305,14 @@ export async function resetStudentPassword(studentId: number): Promise<void> {
     throw new Error(`Student ${studentId} not found`);
   }
   
-  if (!student.userId) {
+  let accountId = (student as any).accountId ?? null;
+  if (!accountId && student.userId) {
+    const maybeLegacyLinkedUser = await storage.getUser(student.userId);
+    if (maybeLegacyLinkedUser?.role === 'student') {
+      accountId = maybeLegacyLinkedUser.id;
+    }
+  }
+  if (!accountId) {
     throw new Error(`Student ${studentId} does not have a user account`);
   }
   
@@ -249,11 +320,11 @@ export async function resetStudentPassword(studentId: number): Promise<void> {
   const hashedPassword = await hashPassword(DEFAULT_STUDENT_PASSWORD);
   
   // Update user account
-  await storage.updateUser(student.userId, {
+  await storage.updateUser(accountId, {
     password: hashedPassword,
     mustChangePassword: true, // Force password change
     lastLoginAt: null // Clear last login
   });
   
-  console.log(`Password reset for student ${studentId} (user ${student.userId})`);
+  console.log(`Password reset for student ${studentId} (user ${accountId})`);
 }

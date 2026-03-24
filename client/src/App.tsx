@@ -66,6 +66,14 @@ import TablaturePage from "@/pages/tablature-page";
 import ABCNotationPage from "@/pages/abc-notation-page";
 import FlatEmbedPage from "@/pages/flat-embed-page";
 import SpeechToNotePage from "@/pages/speech-to-note-page";
+import {
+  DrumTeacherSeoPage,
+  MusicSchoolManagementSeoPage,
+  MusicSchoolSoftwareGermanySeoPage,
+  MusicSchoolSoftwareInternationalSeoPage,
+  MusicSchoolSoftwareNetherlandsSeoPage,
+  MusicTeacherSchedulingSeoPage,
+} from "@/pages/public/public-seo-pages";
 
 // Global Real-time Sync Provider Component
 function RealtimeSyncProvider({ children }: { children: React.ReactNode }) {
@@ -88,6 +96,14 @@ function RealtimeSyncProvider({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <Switch>
+      {/* Public SEO landing routes (indexable, no auth required) */}
+      <Route path="/music-school-management-software" component={MusicSchoolManagementSeoPage} />
+      <Route path="/music-teacher-scheduling-software" component={MusicTeacherSchedulingSeoPage} />
+      <Route path="/drum-teacher-software" component={DrumTeacherSeoPage} />
+      <Route path="/music-school-software/netherlands" component={MusicSchoolSoftwareNetherlandsSeoPage} />
+      <Route path="/music-school-software/germany" component={MusicSchoolSoftwareGermanySeoPage} />
+      <Route path="/music-school-software/international" component={MusicSchoolSoftwareInternationalSeoPage} />
+
       <ProtectedRoute 
         path="/" 
         component={() => (

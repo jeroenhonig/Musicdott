@@ -3,8 +3,21 @@
  * Lightweight utilities for testing critical functionality
  */
 
-import { storage } from '../../server/storage-wrapper.js';
+import { initializeApp } from '../../server/index.ts';
 import request from 'supertest';
+
+let integrationAppReady;
+let integrationServer;
+let storagePromise;
+const TEST_ORIGIN = 'http://127.0.0.1:3000';
+
+async function getStorage() {
+  if (!storagePromise) {
+    storagePromise = import('../../server/storage-wrapper.ts').then((mod) => mod.storage);
+  }
+
+  return storagePromise;
+}
 
 /**
  * Test user accounts for different roles
@@ -34,6 +47,22 @@ export const TEST_USERS = {
     role: 'school_owner',
     schoolId: 1
   },
+  PLATFORM_OWNER: {
+    username: 'test_platform_owner_001',
+    password: 'TestPass123!',
+    name: 'Test Platform Owner',
+    email: 'test.platform.owner@musicdott.test',
+    role: 'platform_owner',
+    schoolId: null
+  },
+  OTHER_SCHOOL_OWNER: {
+    username: 'test_school_owner_other_school',
+    password: 'TestPass123!',
+    name: 'Other School Owner',
+    email: 'other.owner@musicdott.test',
+    role: 'school_owner',
+    schoolId: 2
+  },
   OTHER_SCHOOL_TEACHER: {
     username: 'test_teacher_other_school',
     password: 'TestPass123!',
@@ -49,15 +78,25 @@ export const TEST_USERS = {
  */
 export async function createTestUser(userConfig) {
   try {
+    const storage = await getStorage();
+    const hashedPassword = await hashPassword(userConfig.password);
+
     // Check if user already exists
     const existingUser = await storage.getUserByUsername(userConfig.username);
     if (existingUser) {
-      console.log(`Test user ${userConfig.username} already exists`);
-      return existingUser;
+      const updatedUser = await storage.updateUser(existingUser.id, {
+        password: hashedPassword,
+        name: userConfig.name,
+        email: userConfig.email,
+        role: userConfig.role,
+        schoolId: userConfig.schoolId
+      });
+
+      console.log(`Reset test user: ${userConfig.username} (${userConfig.role})`);
+      return updatedUser;
     }
 
     // Create new test user
-    const hashedPassword = await hashPassword(userConfig.password);
     const user = await storage.createUser({
       ...userConfig,
       password: hashedPassword
@@ -88,8 +127,10 @@ async function hashPassword(password) {
  * Login user and return session cookie
  */
 export async function loginUser(app, userConfig) {
-  const response = await request(app)
+  const response = await request(integrationServer || app)
     .post('/api/login')
+    .set('Origin', TEST_ORIGIN)
+    .set('Referer', `${TEST_ORIGIN}/auth`)
     .send({
       username: userConfig.username,
       password: userConfig.password
@@ -105,7 +146,9 @@ export async function loginUser(app, userConfig) {
     throw new Error('No session cookie received after login');
   }
 
-  const sessionCookie = cookies.find(cookie => cookie.startsWith('md.sid='));
+  const sessionCookie = cookies.find((cookie) =>
+    cookie.startsWith('musicdott.sid=') || cookie.startsWith('md.sid=')
+  );
   if (!sessionCookie) {
     throw new Error('Session cookie not found in response');
   }
@@ -119,11 +162,19 @@ export async function loginUser(app, userConfig) {
 /**
  * Make authenticated request with session cookie
  */
-export async function makeAuthenticatedRequest(app, method, endpoint, sessionCookie, data = null) {
-  let req = request(app)[method.toLowerCase()](endpoint);
+export async function makeAuthenticatedRequest(app, method, endpoint, sessionCookie, data = null, headers = {}) {
+  let req = request(integrationServer || app)[method.toLowerCase()](endpoint);
   
   if (sessionCookie) {
     req = req.set('Cookie', sessionCookie);
+  }
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    req = req.set('Origin', TEST_ORIGIN).set('Referer', `${TEST_ORIGIN}/app`);
+  }
+
+  for (const [header, value] of Object.entries(headers)) {
+    req = req.set(header, value);
   }
   
   if (data) {
@@ -138,6 +189,7 @@ export async function makeAuthenticatedRequest(app, method, endpoint, sessionCoo
  */
 export async function createTestSchool(schoolData) {
   try {
+    const storage = await getStorage();
     const school = await storage.createSchool({
       name: schoolData.name || 'Test School',
       address: schoolData.address || '123 Test Street',
@@ -159,6 +211,7 @@ export async function createTestSchool(schoolData) {
  */
 export async function createTestStudent(studentData, schoolId = 1) {
   try {
+    const storage = await getStorage();
     const student = await storage.createStudent({
       firstName: studentData.firstName || 'Test',
       lastName: studentData.lastName || 'Student',
@@ -187,6 +240,7 @@ export async function createTestStudent(studentData, schoolId = 1) {
  */
 export async function createTestSong(songData, userId, schoolId = 1) {
   try {
+    const storage = await getStorage();
     const song = await storage.createSong({
       title: songData.title || 'Test Song',
       artist: songData.artist || 'Test Artist',
@@ -215,6 +269,7 @@ export async function createTestSong(songData, userId, schoolId = 1) {
  */
 export async function createTestLesson(lessonData, userId, schoolId = 1) {
   try {
+    const storage = await getStorage();
     const lesson = await storage.createLesson({
       title: lessonData.title || 'Test Lesson',
       description: lessonData.description || 'Test lesson description',
@@ -242,6 +297,7 @@ export async function cleanupTestData() {
   console.log('Starting test data cleanup...');
   
   try {
+    const storage = await getStorage();
     // Note: In a real implementation, we would have more sophisticated cleanup
     // For now, we'll rely on test users being created with predictable usernames
     
@@ -263,6 +319,52 @@ export async function cleanupTestData() {
     console.log('Test data cleanup completed');
   } catch (error) {
     console.error('Test data cleanup failed:', error);
+  }
+}
+
+export async function setupIntegrationApp() {
+  if (!integrationAppReady) {
+    integrationAppReady = initializeApp({
+      mode: 'test',
+      storageMode: 'memory',
+      enableRealtime: false,
+      enableFrontend: false,
+      enableSchedulers: false,
+      setupDatabase: false,
+      minimalRoutes: true
+    });
+  }
+
+  integrationServer = await integrationAppReady;
+
+  if (!integrationServer.listening) {
+    await new Promise((resolve, reject) => {
+      integrationServer.listen(0, '127.0.0.1', (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+
+  return integrationServer;
+}
+
+export async function teardownIntegrationApp() {
+  if (integrationServer?.listening) {
+    await new Promise((resolve, reject) => {
+      integrationServer.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
   }
 }
 
@@ -309,6 +411,9 @@ export async function setupTestEnvironment() {
   console.log('Setting up test environment...');
   
   try {
+    await setupIntegrationApp();
+    const storage = await getStorage();
+
     // Create test schools if they don't exist
     const testSchools = [
       { id: 1, name: 'Test Music School Primary' },
@@ -352,5 +457,7 @@ export default {
   assertResponseCode,
   assertResponseContains,
   wait,
+  setupIntegrationApp,
+  teardownIntegrationApp,
   setupTestEnvironment
 };

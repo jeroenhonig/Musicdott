@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeEmbedModule } from "@/shared/utils";
+import { normalizeEmbedModule } from "@shared/utils/index";
 import { assertHardGuarantees } from "../utils/embed-test-helpers";
 import fixturesData from "../fixtures/embed_registry_fixtures.json";
 

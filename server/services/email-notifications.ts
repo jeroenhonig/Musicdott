@@ -347,7 +347,7 @@ Registration completed on ${timestamp}
     await Promise.all([
       mailService.send({
         to: data.email,
-        from: 'info@musicdott.com',
+        from: 'info@musicdott.app',
         subject: 'Welcome to MusicDott - Your Account is Ready!',
         html: htmlContent,
         text: textContent
@@ -441,7 +441,7 @@ Payment reminder sent on ${timestamp}
 
     return await mailService.send({
       to: data.email,
-      from: 'info@musicdott.com',
+      from: 'info@musicdott.app',
       subject: `Payment Due - ${data.schoolName} - €${data.amount.toFixed(2)}`,
       html: htmlContent,
       text: textContent

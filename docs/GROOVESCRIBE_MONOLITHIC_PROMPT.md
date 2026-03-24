@@ -21,7 +21,7 @@ This system must never fail silently and must always return a module descriptor,
 - No dependency on Groovescribe internals or APIs
 - Works for:
   - groovescribe.com
-  - self-hosted Groovescribe (e.g., teacher.musicdott.com/groovescribe)
+  - self-hosted Groovescribe (e.g., musicdott.app/groovescribe)
   - query-based URLs
   - hash-based URLs
   - iframe HTML
@@ -36,7 +36,7 @@ You must handle all of the following:
 2) Hash / share URLs
    https://www.groovescribe.com/#/groove/ENCODED
 3) Self-hosted Groovescribe
-   https://teacher.musicdott.com/groovescribe/?TimeSig=...
+   https://musicdott.app/groovescribe/?TimeSig=...
 4) iframe HTML
    <iframe src="https://www.groovescribe.com/?TimeSig=..."></iframe>
 5) Partial or malformed but recognizable links

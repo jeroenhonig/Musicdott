@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from 'http';
-import { app } from '../../server/index.js';
+import { app } from '../../server/index.ts';
 import {
+  setupIntegrationApp,
+  teardownIntegrationApp,
   setupTestEnvironment,
   cleanupTestData,
   loginUser,
@@ -19,20 +20,15 @@ import {
 } from '../utils/test-helpers.js';
 
 describe('Songs Assignment Workflow Tests (Stefan\'s Critical Issue)', () => {
-  let server;
   let testTeacher;
   let testStudent;
   let testSong;
 
   beforeAll(async () => {
     console.log('🧪 Setting up songs assignment tests...');
-    
-    // Start server for testing
-    server = createServer(app);
-    await new Promise((resolve) => {
-      server.listen(0, resolve);
-    });
-    
+
+    await setupIntegrationApp();
+
     // Setup test environment
     await setupTestEnvironment();
     
@@ -43,14 +39,9 @@ describe('Songs Assignment Workflow Tests (Stefan\'s Critical Issue)', () => {
 
   afterAll(async () => {
     console.log('🧹 Cleaning up songs assignment tests...');
-    
-    if (server) {
-      await new Promise((resolve) => {
-        server.close(resolve);
-      });
-    }
-    
+
     await cleanupTestData();
+    await teardownIntegrationApp();
   });
 
   describe('Complete Songs Assignment Workflow', () => {

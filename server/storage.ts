@@ -52,6 +52,7 @@ export interface IStorage {
   // Student operations
   getStudents(userId: number): Promise<Student[]>;
   getStudent(id: number): Promise<Student | undefined>;
+  getStudentByUserId(userId: number): Promise<Student | undefined>;
   getStudentLessons(studentId: number): Promise<Lesson[]>;
   getStudentSongs(studentId: number): Promise<Song[]>;
   getStudentLessonProgress(studentId: number): Promise<any[]>;
@@ -382,7 +383,9 @@ export class MemStorage implements IStorage {
       role: "school_owner",
       instruments: "Drums & Percussion",
       avatar: null,
-      bio: null
+      bio: null,
+      mustChangePassword: false,
+      lastLoginAt: null,
     };
     
     this.users.set(freshUser.id, freshUser);
@@ -400,7 +403,9 @@ export class MemStorage implements IStorage {
       role: "school_owner",
       instruments: "Drums & Percussion",
       avatar: null,
-      bio: null
+      bio: null,
+      mustChangePassword: false,
+      lastLoginAt: null,
     };
     
     this.users.set(simpleUser.id, simpleUser);
@@ -411,13 +416,23 @@ export class MemStorage implements IStorage {
     const freshSchool: School = {
       id: 1,
       name: "Stefan van de Brug Drum School",
+      ownerId: 1,
       address: "Music Street 1, Amsterdam",
       city: "Amsterdam",
       phone: "+31 20 123 4567",
       website: "https://drumschool.com",
       instruments: "Drums, Percussion",
       description: "Professional drum instruction",
-      logo: null
+      logo: null,
+      primaryColor: "#3b82f6",
+      secondaryColor: "#64748b",
+      accentColor: "#10b981",
+      backgroundImage: null,
+      fontFamily: "Inter",
+      customCss: null,
+      brandingEnabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     
     this.schools.set(freshSchool.id, freshSchool);
@@ -432,7 +447,7 @@ export class MemStorage implements IStorage {
     const samplePatterns: GroovePattern[] = [
       {
         id: "basic-rock-16th",
-        schoolId: "1",
+        schoolId: 1,
         title: "Basic Rock - 16th Notes",
         description: "Essential 16th note rock pattern perfect for beginners learning steady hi-hat work",
         grooveData: "TimeSig=4/4&Div=16&Tempo=120&Measures=1&H=|xxxxxxxxxxxxxxxx|&S=|----O-------O---|&K=|o-------o-------|",
@@ -449,7 +464,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "jazz-shuffle-triplet",
-        schoolId: "1", 
+        schoolId: 1,
         title: "Jazz Shuffle",
         description: "Classic jazz shuffle with triplet feel, ride cymbal pattern, and ghost notes",
         grooveData: "TimeSig=4/4&Div=12&Tempo=100&Measures=1&H=|r--r-rr--r-r|&S=|g-gO-gg-gO-g|&K=|o--X--o--X--|",
@@ -466,7 +481,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "train-beat-advanced",
-        schoolId: "1",
+        schoolId: 1,
         title: "Train Beat",
         description: "Advanced train beat with complex ghost note patterns and cross-stick work",
         grooveData: "TimeSig=4/4&Div=16&Swing=0&Tempo=95&Measures=1&H=|----------------|&S=|ggOgggOgggOggOOg|&K=|o-x-o-x-o-x-o-x-|",
@@ -483,7 +498,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "bossa-nova-pattern",
-        schoolId: "1",
+        schoolId: 1,
         title: "Bossa Nova",
         description: "Classic Brazilian bossa nova pattern with subtle cross-stick and kick variations",
         grooveData: "TimeSig=4/4&Div=8&Tempo=140&Measures=2&H=|xxxxxxxx|xxxxxxxx|&S=|x-x--x-x|-x--x-x-|&K=|o-xoo-xo|o-xoo-xo|",
@@ -500,7 +515,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "songo-cuban-advanced",
-        schoolId: "1",
+        schoolId: 1,
         title: "Cuban Songo",
         description: "Complex Cuban songo pattern with intricate snare work and authentic groove feel",
         grooveData: "TimeSig=4/4&Div=16&Tempo=80&Measures=1&H=|x---x---x---x---|&S=|--O--g-O-gg--g-g|&K=|---o--o----o--o-|",
@@ -517,7 +532,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "basic-rock-8th",
-        schoolId: "1",
+        schoolId: 1,
         title: "8th Note Rock",
         description: "Fundamental 8th note rock beat - the foundation pattern every drummer should master",
         grooveData: "TimeSig=4/4&Div=8&Tempo=80&Measures=1&H=|xxxxxxxx|&S=|--O---O-|&K=|o---o---|",
@@ -791,6 +806,12 @@ export class MemStorage implements IStorage {
   async getStudent(id: number): Promise<Student | undefined> {
     return this.students.get(id);
   }
+
+  async getStudentByUserId(userId: number): Promise<Student | undefined> {
+    return Array.from(this.students.values()).find(
+      (student) => student.userId === userId || student.accountId === userId,
+    );
+  }
   
   async createStudent(student: InsertStudent): Promise<Student> {
     const id = ++this.studentIdCounter;
@@ -899,8 +920,32 @@ export class MemStorage implements IStorage {
   async getSessions(userId: number): Promise<Session[]> { return []; }
   async getStudentSessions(studentId: number): Promise<Session[]> { return []; }
   async getSession(id: number): Promise<Session | undefined> { return undefined; }
-  async createSession(session: InsertSession): Promise<Session> { return { id: 1, ...session } as Session; }
-  async updateSession(id: number, session: Partial<InsertSession>): Promise<Session> { return { id, ...session } as Session; }
+  async createSession(session: InsertSession): Promise<Session> {
+    return {
+      id: 1,
+      schoolId: session.schoolId,
+      userId: session.userId,
+      studentId: session.studentId,
+      title: session.title,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      durationMin: session.durationMin ?? null,
+      notes: session.notes ?? null,
+    };
+  }
+  async updateSession(id: number, session: Partial<InsertSession>): Promise<Session> {
+    const existing = this.sessionRecords.get(id);
+    if (!existing) throw new Error("Session not found");
+
+    const updated: Session = {
+      ...existing,
+      ...session,
+      durationMin: session.durationMin ?? existing.durationMin,
+      notes: session.notes ?? existing.notes,
+    };
+    this.sessionRecords.set(id, updated);
+    return updated;
+  }
   async deleteSession(id: number): Promise<boolean> { return true; }
   
   async getRecurringSchedules(userId: number): Promise<RecurringSchedule[]> {
@@ -908,7 +953,10 @@ export class MemStorage implements IStorage {
   }
   
   async getRecurringSchedulesBySchool(schoolId: number): Promise<RecurringSchedule[]> {
-    return Array.from(this.recurringSchedules.values()).filter(schedule => schedule.schoolId === schoolId);
+    return Array.from(this.recurringSchedules.values()).filter((schedule) => {
+      const user = this.users.get(schedule.userId);
+      return user?.schoolId === schoolId;
+    });
   }
   
   async getStudentRecurringSchedules(studentId: number): Promise<RecurringSchedule[]> {
@@ -973,12 +1021,14 @@ export class MemStorage implements IStorage {
         
         sessions.push({
           id: sessionId,
+          schoolId: this.users.get(schedule.userId)?.schoolId ?? 0,
           userId: schedule.userId,
           studentId: schedule.studentId,
           title: `Lesson with Student ${schedule.studentId}`,
           startTime: sessionDate,
           endTime: endTime,
-          notes: schedule.notes
+          durationMin: Math.max(0, Math.round((endTime.getTime() - sessionDate.getTime()) / 60000)),
+          notes: schedule.notes ?? null,
         });
       }
       
@@ -1024,17 +1074,14 @@ export class MemStorage implements IStorage {
       
       return {
         id: schedule.id,
+        schoolId: this.users.get(schedule.userId)?.schoolId ?? 0,
         userId: schedule.userId,
         studentId: schedule.studentId,
         title: `Lesson with Student ${schedule.studentId}`,
         startTime: sessionDate,
         endTime: endTime,
-        notes: schedule.notes,
-        location: schedule.location,
-        isRescheduled: false,
-        originalStartTime: null,
-        rescheduleRequestSent: false,
-        rescheduleApproved: false
+        durationMin: Math.max(0, Math.round((endTime.getTime() - sessionDate.getTime()) / 60000)),
+        notes: schedule.notes ?? null,
       };
     });
   }
@@ -1285,7 +1332,7 @@ export class MemStorage implements IStorage {
       ...pattern,
       id,
       description: pattern.description || null,
-      schoolId: pattern.schoolId || null,
+      schoolId: pattern.schoolId ?? 0,
       bpm: pattern.bpm || null,
       difficulty: pattern.difficulty || null,
       tags: pattern.tags || null,
@@ -1386,39 +1433,48 @@ export class MemStorage implements IStorage {
   }
   
   // Dashboard methods for MusicDott 1.0 compatibility
-  async getRecentSongs(limit: number = 6): Promise<any[]> {
+  async getRecentSongs(limit: number = 6): Promise<Song[]> {
     const songs = Array.from(this.songs.values());
     return songs
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit)
-      .map(song => ({
-        id: song.id,
-        artist: song.composer || 'Unknown Artist',
-        title: song.title,
-        modifiedDate: new Date(song.updatedAt).toLocaleDateString('nl-NL'),
-        hasPDF: song.contentBlocks && typeof song.contentBlocks === 'string' ? JSON.parse(song.contentBlocks).some((block: any) => block.type === 'pdf') : false,
-        hasNotation: song.contentBlocks && typeof song.contentBlocks === 'string' ? JSON.parse(song.contentBlocks).some((block: any) => block.type === 'groovescribe') : false,
-        hasMuseScore: song.contentBlocks && typeof song.contentBlocks === 'string' ? JSON.parse(song.contentBlocks).some((block: any) => block.type === 'musescore') : false,
-      }));
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+      .slice(0, limit);
   }
 
-  async getRecentLessons(limit: number = 6): Promise<any[]> {
+  async getRecentSongsForUser(userId: number, limit: number = 6): Promise<Song[]> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return [];
+    }
+
+    const songs = Array.from(this.songs.values()).filter((song) =>
+      user.role === "school_owner" ? song.schoolId === user.schoolId : song.userId === userId,
+    );
+
+    return songs
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+      .slice(0, limit);
+  }
+
+  async getRecentLessons(limit: number = 6): Promise<Lesson[]> {
     const lessons = Array.from(this.lessons.values());
-    const categories = Array.from(this.lessonCategories.values());
-    const categoryMap = new Map(categories.map(cat => [cat.id, cat.name]));
-    
     return lessons
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit)
-      .map(lesson => ({
-        id: lesson.id,
-        title: lesson.title,
-        category: lesson.categoryId ? categoryMap.get(lesson.categoryId) || 'Uncategorized' : 'Uncategorized',
-        modifiedDate: new Date(lesson.updatedAt).toLocaleDateString('nl-NL'),
-        hasPDF: lesson.contentBlocks && typeof lesson.contentBlocks === 'string' ? JSON.parse(lesson.contentBlocks).some((block: any) => block.type === 'pdf') : false,
-        hasNotation: lesson.contentBlocks && typeof lesson.contentBlocks === 'string' ? JSON.parse(lesson.contentBlocks).some((block: any) => block.type === 'groovescribe') : false,
-        hasMuseScore: lesson.contentBlocks && typeof lesson.contentBlocks === 'string' ? JSON.parse(lesson.contentBlocks).some((block: any) => block.type === 'musescore') : false,
-      }));
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+      .slice(0, limit);
+  }
+
+  async getRecentLessonsForUser(userId: number, limit: number = 6): Promise<Lesson[]> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return [];
+    }
+
+    const lessons = Array.from(this.lessons.values()).filter((lesson) =>
+      user.role === "school_owner" ? lesson.schoolId === user.schoolId : lesson.userId === userId,
+    );
+
+    return lessons
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+      .slice(0, limit);
   }
 
   // Multi-tenant school-scoped operations
@@ -1470,7 +1526,7 @@ export class MemStorage implements IStorage {
 
   // School-scoped groove pattern access
   async getGroovePatternsBySchool(schoolId: number): Promise<GroovePattern[]> {
-    return Array.from(this.groovePatterns.values()).filter(p => p.schoolId === schoolId.toString());
+    return Array.from(this.groovePatterns.values()).filter(p => p.schoolId === schoolId);
   }
 
   async getGroovePatternsForTeacher(teacherId: number): Promise<GroovePattern[]> {
@@ -1602,7 +1658,7 @@ export class MemStorage implements IStorage {
       
       return {
         studentId: student.id,
-        studentName: `${student.firstName} ${student.lastName}`,
+        studentName: student.name,
         completedLessons,
         totalAssignments,
         completedAssignments,
@@ -1651,7 +1707,7 @@ export class MemStorage implements IStorage {
       const isOverdue = Math.random() > 0.8;
       
       deadlines.push({
-        studentName: `${student.firstName} ${student.lastName}`,
+        studentName: student.name,
         assignmentTitle: `Practice Assignment ${i + 1}`,
         dueDate: isOverdue 
           ? new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString()
@@ -2008,12 +2064,12 @@ export class MemStorage implements IStorage {
 
   async createNotation(notation: InsertNotation): Promise<Notation> {
     const id = ++this.notationIdCounter;
-    const newNotation: Notation = {
+    const newNotation = {
       ...notation,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    } as Notation;
     this.posNotations.set(id, newNotation);
     return newNotation;
   }
@@ -2057,12 +2113,12 @@ export class MemStorage implements IStorage {
 
   async createPosSong(song: InsertPosSong): Promise<PosSong> {
     const id = ++this.posSongIdCounter;
-    const newSong: PosSong = {
+    const newSong = {
       ...song,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    } as PosSong;
     this.posSongsData.set(id, newSong);
     return newSong;
   }
@@ -2114,11 +2170,11 @@ export class MemStorage implements IStorage {
 
   async createSongNotationMapping(mapping: InsertSongNotationMapping): Promise<SongNotationMapping> {
     const id = ++this.mappingIdCounter;
-    const newMapping: SongNotationMapping = {
+    const newMapping = {
       ...mapping,
       id,
       createdAt: new Date(),
-    };
+    } as SongNotationMapping;
     this.songNotationMappings.set(id, newMapping);
     return newMapping;
   }
@@ -2146,11 +2202,11 @@ export class MemStorage implements IStorage {
 
   async createDrumblock(block: InsertDrumblock): Promise<Drumblock> {
     const id = ++this.drumblockIdCounter;
-    const newBlock: Drumblock = {
+    const newBlock = {
       ...block,
       id,
       createdAt: new Date(),
-    };
+    } as Drumblock;
     this.drumblocksData.set(id, newBlock);
     return newBlock;
   }
@@ -2186,12 +2242,12 @@ export class MemStorage implements IStorage {
   // Import Logs
   async createImportLog(log: InsertPosImportLog): Promise<PosImportLog> {
     const id = ++this.importLogIdCounter;
-    const newLog: PosImportLog = {
+    const newLog = {
       ...log,
       id,
       startedAt: new Date(),
       completedAt: null,
-    };
+    } as PosImportLog;
     this.posImportLogs.set(id, newLog);
     return newLog;
   }

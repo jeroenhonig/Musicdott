@@ -5,6 +5,8 @@
  * for storage in the database. Handles various embed types including GrooveScribe, YouTube,
  * Spotify, Apple Music, and text content.
  */
+import { normalizeRichContent } from "./grooveEmbed";
+import { sanitizeContentBlocksForStorage, type ContentBlockContract } from "@shared/content-blocks";
 
 interface ContentBlock {
   type: string;
@@ -18,7 +20,7 @@ interface ContentBlock {
 /**
  * Transform mixed HTML content into structured contentBlocks array
  */
-export function transformJsonContent(content: string): ContentBlock[] {
+export function transformJsonContent(content: string): ContentBlockContract[] {
   if (!content || content === 'nan' || content.trim() === '') {
     return [];
   }
@@ -26,7 +28,7 @@ export function transformJsonContent(content: string): ContentBlock[] {
   const contentBlocks: ContentBlock[] = [];
   
   // Clean up the content by handling escaped newlines and split by double newlines
-  const cleanContent = content
+  const cleanContent = normalizeRichContent(content)
     .replace(/\\n/g, '\n')
     .replace(/\n\n+/g, '\n\n');
   
@@ -88,7 +90,7 @@ export function transformJsonContent(content: string): ContentBlock[] {
     }
   }
   
-  return contentBlocks;
+  return sanitizeContentBlocksForStorage(contentBlocks);
 }
 
 /**
@@ -133,7 +135,7 @@ function parseYouTubeEmbed(iframe: string): ContentBlock | null {
     const videoId = videoIdMatch ? videoIdMatch[1] : null;
     
     return {
-      type: 'video',
+      type: 'youtube',
       content: iframe,
       url: url,
       title: videoId ? `YouTube Video: ${videoId}` : 'YouTube Video'
@@ -201,7 +203,7 @@ function parseGenericEmbed(iframe: string): ContentBlock | null {
     const url = srcMatch[1];
     
     return {
-      type: 'external_embed',
+      type: 'external_link',
       content: iframe,
       url: url,
       title: 'External Embed'

@@ -74,6 +74,7 @@ nginx_cache/
 
 # Backup files
 *.sql
+!server/migrations/sql/*.sql
 *.backup
 *.bak
 

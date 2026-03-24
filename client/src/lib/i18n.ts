@@ -700,8 +700,8 @@ export const translations: Translations = {
     nl: 'MusicDott 2.0 (dit platform) is in ontwikkeling'
   },
   'notice.visitMain': {
-    en: 'Visit musicdott.com for MusicDott 1.0',
-    nl: 'Bezoek musicdott.com voor MusicDott 1.0'
+    en: 'Visit musicdott.app for MusicDott 1.0',
+    nl: 'Bezoek musicdott.app voor MusicDott 1.0'
   }
 };
 

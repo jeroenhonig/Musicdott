@@ -2,6 +2,9 @@ import React, { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import GrooveEmbed from "@/components/lessons/groove-embed";
+import VideoEmbed from "@/components/lessons/video-embed";
+import { SyncEmbedCard } from "@/components/sync/sync-embed";
 import { PlayCircle, FileText, Video, Music, Guitar, FileMusic, Mic } from "lucide-react";
 import { parseSpotifyTrackId, parsePdfData, parseYouTubeVideoId } from "@/utils/content-block-parser";
 
@@ -12,37 +15,21 @@ interface SimpleLessonViewerProps {
 }
 
 export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewerProps) {
-  // Debug logging to see what we're receiving
-  console.log('SimpleLessonViewer received contentBlocks:', contentBlocks);
-  console.log('contentBlocks type:', typeof contentBlocks);
-  console.log('contentBlocks length:', Array.isArray(contentBlocks) ? contentBlocks.length : 'not array');
-  
   if (!contentBlocks || !Array.isArray(contentBlocks) || contentBlocks.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <FileText className="h-12 w-12 mx-auto mb-4" />
         <p>No content blocks available for this lesson.</p>
-        <div className="mt-4 text-xs">
-          <p>Debug info:</p>
-          <p>Type: {typeof contentBlocks}</p>
-          <p>Is Array: {Array.isArray(contentBlocks) ? 'Yes' : 'No'}</p>
-          <p>Length: {Array.isArray(contentBlocks) ? contentBlocks.length : 'N/A'}</p>
-        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-        <strong>Debug:</strong> Found {contentBlocks.length} content blocks
-      </div>
       {contentBlocks.map((block, index) => {
-        console.log(`Processing block ${index}:`, block);
         // Handle GrooveScribe patterns
-        if (block.type === 'groovescribe' && block.pattern) {
-          const cleanPattern = block.pattern.startsWith('?') ? block.pattern : `?${block.pattern}`;
-          const grooveUrl = `https://teacher.musicdott.com/groovescribe/GrooveEmbed.html${cleanPattern}`;
+        const groovePattern = block.pattern || block.data?.pattern || block.data?.groovescribe || block.data?.groove || block.content;
+        if ((block.type === 'groovescribe' || block.type === 'groove') && groovePattern) {
           
           return (
             <Card key={index} className="border-2 border-blue-200 shadow-sm">
@@ -53,32 +40,24 @@ export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewer
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 text-center">
-                  <PlayCircle className="h-12 w-12 text-blue-500 mx-auto mb-3" />
-                  <h3 className="text-base font-semibold mb-2">Interactive Drum Pattern</h3>
-                  <p className="text-gray-600 text-sm mb-3">
-                    Click to open the authentic GrooveScribe pattern with playback controls.
-                  </p>
-                  <Button
-                    onClick={() => window.open(grooveUrl, '_blank', 'noopener,noreferrer')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    size="sm"
-                  >
-                    <PlayCircle className="h-4 w-4 mr-2" />
-                    Open Pattern
-                  </Button>
-                  <div className="mt-3 text-xs text-gray-500 font-mono break-all">
-                    {block.pattern.substring(0, 60)}...
-                  </div>
-                </div>
+                <GrooveEmbed
+                  initialGrooveParams={groovePattern}
+                  editable={false}
+                  height={300}
+                />
               </CardContent>
             </Card>
           );
         }
 
         // Handle YouTube videos
-        if (block.type === 'youtube' && (block.videoId || block.id)) {
-          const videoId = block.videoId || block.id;
+        const rawVideo = block.data?.video || block.data?.youtube || block.data?.videoId || block.url || block.content || block.videoId;
+        const parsedVideoId = typeof rawVideo === 'string' ? parseYouTubeVideoId(rawVideo) : null;
+        if ((block.type === 'youtube' || block.type === 'video') && rawVideo) {
+          const embedUrl = parsedVideoId ? `https://www.youtube.com/embed/${parsedVideoId}` : undefined;
+          const normalizedVideoUrl = typeof rawVideo === 'string'
+            ? (rawVideo.includes('http') ? rawVideo : (parsedVideoId ? `https://www.youtube.com/watch?v=${parsedVideoId}` : rawVideo))
+            : '';
           return (
             <Card key={index} className="border-2 border-red-200">
               <CardHeader>
@@ -88,21 +67,25 @@ export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewer
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-video">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${videoId}`}
-                    title={block.title || 'Lesson Video'}
-                    className="w-full h-full rounded-lg"
-                    allowFullScreen
-                  />
-                </div>
+                {embedUrl ? (
+                  <div className="aspect-video">
+                    <iframe
+                      src={embedUrl}
+                      title={block.title || 'Lesson Video'}
+                      className="w-full h-full rounded-lg"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <VideoEmbed initialVideoUrl={normalizedVideoUrl} editable={false} />
+                )}
               </CardContent>
             </Card>
           );
         }
 
         // Handle text content
-        if (block.type === 'text' && (block.content || block.text)) {
+        if (block.type === 'text' && (block.content || block.text || block.data?.text)) {
           return (
             <Card key={index} className="border-l-4 border-l-green-500 border-gray-200 shadow-sm">
               <CardHeader className="pb-3">
@@ -114,7 +97,7 @@ export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewer
               <CardContent>
                 <div className="prose max-w-none">
                   <p className="text-gray-700 leading-relaxed text-sm">
-                    {block.content || block.text}
+                    {block.content || block.text || block.data?.text}
                   </p>
                 </div>
               </CardContent>
@@ -123,8 +106,8 @@ export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewer
         }
 
         // Handle Spotify content (with robust track ID parsing)
-        if (block.type === 'spotify' && (block.trackId || block.id || block.data?.spotify)) {
-          const rawTrackId = block.trackId || block.id || block.data?.spotify;
+        if (block.type === 'spotify' && (block.trackId || block.id || block.data?.spotify || block.url || block.content)) {
+          const rawTrackId = block.trackId || block.id || block.data?.spotify || block.url || block.content;
           const trackId = parseSpotifyTrackId(rawTrackId);
           
           if (!trackId) {
@@ -152,6 +135,26 @@ export default function SimpleLessonViewer({ contentBlocks }: SimpleLessonViewer
                     loading="lazy"
                   />
                 </div>
+              </CardContent>
+            </Card>
+          );
+        }
+
+        // Handle Musicdott Sync content
+        if (block.type === 'sync-embed' && block.data?.sync) {
+          return (
+            <Card key={index} className="border-2 border-violet-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PlayCircle className="h-5 w-5 text-violet-600" />
+                  {block.title || 'Musicdott Sync'}
+                </CardTitle>
+                {block.description && (
+                  <p className="text-sm text-gray-600">{block.description}</p>
+                )}
+              </CardHeader>
+              <CardContent>
+                <SyncEmbedCard url={block.data.sync} height={600} />
               </CardContent>
             </Card>
           );

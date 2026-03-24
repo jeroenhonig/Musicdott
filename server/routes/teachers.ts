@@ -3,6 +3,7 @@ import { storage } from "../storage-wrapper";
 import { USER_ROLES } from "@shared/schema";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import { loadSchoolContext } from "../middleware/authz";
 
 // Helper function to safely check if user has access to a teacher
 function hasTeacherAccess(req: Request, teacherId: number): boolean {
@@ -15,22 +16,40 @@ function hasTeacherAccess(req: Request, teacherId: number): boolean {
 // Middleware to verify teacher access
 function requireTeacherAccess(teacherIdParam: string = 'id') {
   return async (req: Request, res: Response, next: Function) => {
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
+    if (!req.school) {
+      return res.status(500).json({ message: "School context not loaded" });
+    }
+
     const teacherId = parseInt(req.params[teacherIdParam]);
-    
-    // If admin or school owner, they have access
-    if (req.user && (req.user.role === USER_ROLES.PLATFORM_OWNER || req.user.role === USER_ROLES.SCHOOL_OWNER)) {
+    if (Number.isNaN(teacherId)) {
+      return res.status(400).json({ message: "Invalid teacher id" });
+    }
+
+    const teacher = await storage.getUser(teacherId);
+    if (!teacher || teacher.role !== USER_ROLES.TEACHER) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    if (req.school.isPlatformOwner()) {
       return next();
     }
-    
-    // Otherwise, check if the user is the teacher they're trying to access
-    if (!req.user || req.user.id !== teacherId) {
+
+    if (!teacher.schoolId || !req.school.canAccessSchool(teacher.schoolId)) {
       return res.status(403).json({ message: "You don't have access to this teacher" });
     }
-    
+
+    if (req.school.isSchoolOwner(teacher.schoolId)) {
+      return next();
+    }
+
+    if (req.user.id !== teacherId) {
+      return res.status(403).json({ message: "You don't have access to this teacher" });
+    }
+
     next();
   };
 }
@@ -54,12 +73,14 @@ export function registerTeacherRoutes(app: Express) {
   // Get all teachers
   app.get(
     "/api/teachers", 
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]),
+    loadSchoolContext,
     async (req: Request, res: Response) => {
       try {
         // If school owner, only get teachers in their school
-        if (req.user.role === USER_ROLES.SCHOOL_OWNER && req.user.schoolId) {
-          const teachers = await storage.getUsersBySchool(req.user.schoolId);
+        const schoolId = req.school?.id || req.user?.schoolId;
+        if (req.user.role === USER_ROLES.SCHOOL_OWNER && schoolId) {
+          const teachers = await storage.getUsersBySchool(schoolId);
           return res.json(teachers.filter(user => user.role === USER_ROLES.TEACHER));
         }
         
@@ -77,6 +98,7 @@ export function registerTeacherRoutes(app: Express) {
   app.get(
     "/api/teachers/:id", 
     requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    loadSchoolContext,
     requireTeacherAccess(), 
     async (req: Request, res: Response) => {
       try {
@@ -100,7 +122,8 @@ export function registerTeacherRoutes(app: Express) {
   // Create a new teacher (admin or school owner only)
   app.post(
     "/api/teachers", 
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]),
+    loadSchoolContext,
     async (req: Request, res: Response) => {
       try {
         // Extend with role and set defaults
@@ -120,7 +143,7 @@ export function registerTeacherRoutes(app: Express) {
         if (req.user?.role === USER_ROLES.SCHOOL_OWNER) {
           teacherData = {
             ...teacherData,
-            schoolId: req.user?.schoolId,
+            schoolId: req.school?.id || req.user?.schoolId,
           };
         }
         
@@ -165,6 +188,7 @@ export function registerTeacherRoutes(app: Express) {
   app.put(
     "/api/teachers/:id", 
     requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    loadSchoolContext,
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -212,6 +236,7 @@ export function registerTeacherRoutes(app: Express) {
   app.delete(
     "/api/teachers/:id", 
     requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER]),
+    loadSchoolContext,
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -242,7 +267,8 @@ export function registerTeacherRoutes(app: Express) {
   // Get teacher's students
   app.get(
     "/api/teachers/:id/students", 
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]), 
+    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    loadSchoolContext,
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -266,6 +292,7 @@ export function registerTeacherRoutes(app: Express) {
   app.post(
     "/api/teachers/:id/assign-student", 
     requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    loadSchoolContext,
     requireTeacherAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -286,6 +313,23 @@ export function registerTeacherRoutes(app: Express) {
         
         if (!student) {
           return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (!req.school?.isPlatformOwner()) {
+          const teacherSchoolId = teacher.schoolId;
+          const studentSchoolId = student.schoolId;
+
+          if (!teacherSchoolId || !studentSchoolId) {
+            return res.status(400).json({ message: "Teacher or student has no school context" });
+          }
+
+          if (!req.school?.canAccessSchool(teacherSchoolId) || !req.school?.canAccessSchool(studentSchoolId)) {
+            return res.status(403).json({ message: "Cross-school teacher assignment is not allowed" });
+          }
+
+          if (teacherSchoolId !== studentSchoolId) {
+            return res.status(403).json({ message: "Teacher and student must belong to the same school" });
+          }
         }
         
         // Verify student permissions

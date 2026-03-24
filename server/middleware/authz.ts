@@ -218,55 +218,118 @@ export const requirePlatformOwner = (): RequestHandler => {
   return requireSchoolRole('platform_owner');
 };
 
+function parseSchoolId(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function extractSchoolIdFromRequest(req: Request): number | undefined {
+  const routeSchoolId = parseSchoolId(req.params.schoolId);
+  if (routeSchoolId !== undefined) {
+    return routeSchoolId;
+  }
+
+  // `/api/schools/:id` uses `id` for the school identifier.
+  if (req.originalUrl.startsWith('/api/schools/')) {
+    const schoolIdFromIdParam = parseSchoolId(req.params.id);
+    if (schoolIdFromIdParam !== undefined) {
+      return schoolIdFromIdParam;
+    }
+  }
+
+  const querySchoolId = parseSchoolId(req.query.schoolId);
+  if (querySchoolId !== undefined) {
+    return querySchoolId;
+  }
+
+  return parseSchoolId(req.body?.schoolId);
+}
+
+function resolveTargetSchoolId(req: Request): number | undefined {
+  const explicitSchoolId = extractSchoolIdFromRequest(req);
+  if (explicitSchoolId !== undefined) {
+    return explicitSchoolId;
+  }
+
+  if (req.school?.isPlatformOwner()) {
+    return 0;
+  }
+
+  return req.school?.id && req.school.id > 0 ? req.school.id : undefined;
+}
+
+function requireAuthenticatedSchoolContext(req: Request, res: Response): req is Request & { school: SchoolContext; user: User } {
+  if (!req.isAuthenticated() || !req.user) {
+    res.status(401).json({ message: 'Authentication required' });
+    return false;
+  }
+
+  if (!req.school) {
+    res.status(500).json({ message: 'School context not loaded' });
+    return false;
+  }
+
+  return true;
+}
+
 /**
- * Middleware to require school owner role - SIMPLIFIED VERSION
+ * Middleware to require school owner role for the active or requested school
  */
 export const requireSchoolOwner = (): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.isAuthenticated() || !req.user) {
-      res.status(401).json({ message: 'Authentication required' });
+    if (!requireAuthenticatedSchoolContext(req, res)) {
       return;
     }
 
-    const user = req.user as User;
-    
-    // SIMPLIFIED: Just check user role directly
-    if (user.role === USER_ROLES.PLATFORM_OWNER || 
-        user.role === USER_ROLES.SCHOOL_OWNER) {
-      return next();
+    const targetSchoolId = resolveTargetSchoolId(req);
+    if (targetSchoolId === undefined) {
+      res.status(400).json({ message: 'No school context available for this operation' });
+      return;
+    }
+
+    if (req.school.isSchoolOwner(targetSchoolId)) {
+      next();
+      return;
     }
 
     res.status(403).json({ 
-      message: 'School owner permissions required for this operation'
+      message: 'School owner permissions required for the requested school'
     });
   };
 };
 
 /**
- * Middleware to require teacher or owner role - SIMPLIFIED VERSION
+ * Middleware to require teacher or owner role for the active or requested school
  */
 export const requireTeacherOrOwner = (): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    console.log("requireTeacherOrOwner - isAuth:", req.isAuthenticated(), "user:", req.user?.id, "role:", (req.user as User)?.role, "schoolId:", (req.user as User)?.schoolId);
-    
-    if (!req.isAuthenticated() || !req.user) {
-      res.status(401).json({ message: 'Authentication required' });
+    if (!requireAuthenticatedSchoolContext(req, res)) {
       return;
     }
 
-    const user = req.user as User;
-    
-    // SIMPLIFIED: Just check user role directly, no complex school membership logic
-    if (user.role === USER_ROLES.PLATFORM_OWNER || 
-        user.role === USER_ROLES.SCHOOL_OWNER || 
-        user.role === USER_ROLES.TEACHER) {
-      console.log("requireTeacherOrOwner - ALLOWED for role:", user.role);
-      return next();
+    const targetSchoolId = resolveTargetSchoolId(req);
+    if (targetSchoolId === undefined) {
+      res.status(400).json({ message: 'No school context available for this operation' });
+      return;
     }
 
-    console.log("requireTeacherOrOwner - DENIED for role:", user.role);
+    if (req.school.isSchoolOwner(targetSchoolId) || req.school.isTeacher(targetSchoolId)) {
+      next();
+      return;
+    }
+
     res.status(403).json({ 
-      message: 'School or teacher permissions required for this operation'
+      message: 'Teacher or school owner permissions required for the requested school'
     });
   };
 };
@@ -276,19 +339,17 @@ export const requireTeacherOrOwner = (): RequestHandler => {
  */
 export const requireSameSchool = (): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.isAuthenticated() || !req.user) {
-      res.status(401).json({ message: 'Authentication required' });
+    if (!requireAuthenticatedSchoolContext(req, res)) {
       return;
     }
 
-    if (!req.school) {
-      res.status(500).json({ message: 'School context not loaded' });
+    const schoolId = resolveTargetSchoolId(req);
+    if (schoolId === undefined) {
+      res.status(400).json({ message: 'No school context available for this operation' });
       return;
     }
 
-    const schoolId = extractSchoolIdFromRequest(req);
-    
-    if (schoolId && !req.school.canAccessSchool(schoolId)) {
+    if (schoolId !== 0 && !req.school.canAccessSchool(schoolId)) {
       res.status(403).json({ 
         message: 'Access denied. You can only access data from your school.'
       });
@@ -460,24 +521,6 @@ declare global {
       };
     }
   }
-}
-
-/**
- * Helper function to extract schoolId from request
- */
-function extractSchoolIdFromRequest(req: Request): number | undefined {
-  // Try to get schoolId from various sources
-  if (req.params.schoolId) {
-    return parseInt(req.params.schoolId);
-  }
-  if (req.query.schoolId) {
-    return parseInt(req.query.schoolId as string);
-  }
-  if (req.body.schoolId) {
-    return parseInt(req.body.schoolId);
-  }
-  // Fallback to user's primary school
-  return req.school?.id;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeSpotifyEmbed } from "@/shared/utils";
+import { normalizeSpotifyEmbed } from "@shared/utils/index";
 import { assertHardGuarantees } from "../utils/embed-test-helpers";
 import fixturesData from "../fixtures/spotify_embed_fixtures.json";
 

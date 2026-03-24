@@ -83,7 +83,7 @@ export default function LessonContentViewer({ contentBlocksJson }: LessonContent
                   
                   // Log the exact iframe URL that will be constructed
                   if (pattern) {
-                    const iframeUrl = `https://teacher.musicdott.com/groovescribe/GrooveEmbed.html${pattern}`;
+                    const iframeUrl = `https://musicdott.app/groovescribe/GrooveEmbed.html${pattern}`;
                     console.log('🎯 Expected iframe URL:', iframeUrl);
                     console.log('🎯 URL length:', iframeUrl.length);
                     console.log('🎯 Contains drum data:', pattern.includes('&H=|') || pattern.includes('&S=|') || pattern.includes('&K=|'));

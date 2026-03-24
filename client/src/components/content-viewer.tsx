@@ -13,6 +13,7 @@ import {
   X
 } from "lucide-react";
 import YouTubeContentBlock from "./youtube-content-block";
+import { sanitizeRichHtml } from "@/utils/sanitize-rich-html";
 
 interface YouTubeBlock {
   id: string;
@@ -84,7 +85,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
     // Wrap in paragraph
     html = '<p class="mb-4">' + html + '</p>';
     
-    return html;
+    return sanitizeRichHtml(html);
   };
 
   return (

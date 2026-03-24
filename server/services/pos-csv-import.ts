@@ -16,6 +16,7 @@ import iconv from "iconv-lite";
 import { randomUUID } from "crypto";
 import { storage } from "../storage-wrapper";
 import { parseNotation, extractDrumblocks } from "./notation-parser";
+import { normalizeEmbedModule } from "@shared/utils/index";
 import type {
   InsertNotation,
   InsertPosSong,
@@ -26,6 +27,7 @@ import type {
   BatchResult,
   ParsedNotation,
 } from "@shared/pos-schema";
+import type { EmbedModule } from "@shared/utils/embedTypes";
 
 // ============================================
 // CSV Parsing Utilities
@@ -42,10 +44,75 @@ export function decodeLatin1(buffer: Buffer): string {
  * Detect delimiter (semicolon or comma)
  */
 function detectDelimiter(content: string): string {
-  const firstLine = content.split("\n")[0];
+  const firstLine = content.split(/\r?\n/)[0];
   const semicolonCount = (firstLine.match(/;/g) || []).length;
   const commaCount = (firstLine.match(/,/g) || []).length;
   return semicolonCount > commaCount ? ";" : ",";
+}
+
+/**
+ * Split CSV content into records while preserving newlines inside quoted fields.
+ */
+function splitCSVRecords(content: string): string[] {
+  const records: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+
+    if (char === '"') {
+      if (inQuotes && content[i + 1] === '"') {
+        current += '""';
+        i++;
+        continue;
+      }
+
+      inQuotes = !inQuotes;
+      current += char;
+      continue;
+    }
+
+    if (!inQuotes && (char === "\n" || char === "\r")) {
+      if (char === "\r" && content[i + 1] === "\n") {
+        i++;
+      }
+
+      if (current.trim()) {
+        records.push(current);
+      }
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (current.trim()) {
+    records.push(current);
+  }
+
+  return records;
+}
+
+/**
+ * Normalize known POS export header variants to the canonical field names used internally.
+ */
+function normalizeHeader(header: string): string {
+  const trimmed = header.trim().replace(/^\uFEFF/, "");
+  const normalized = trimmed.toLowerCase();
+
+  const headerMap: Record<string, string> = {
+    noid: "noID",
+    nomsid: "noMSID",
+    msid: "msid",
+    soid: "soID",
+    somsid: "soMSID",
+    souitlegtekst: "soUitlegtekst",
+    souitlegvideo: "soUitlegVideo",
+  };
+
+  return headerMap[normalized] || trimmed;
 }
 
 /**
@@ -54,12 +121,12 @@ function detectDelimiter(content: string): string {
  */
 export function parseCSV(content: string): Record<string, string>[] {
   const delimiter = detectDelimiter(content);
-  const lines = content.split("\n").filter((line) => line.trim());
+  const lines = splitCSVRecords(content);
 
   if (lines.length === 0) return [];
 
   // Parse headers
-  const headers = parseCSVLine(lines[0], delimiter);
+  const headers = parseCSVLine(lines[0], delimiter).map(normalizeHeader);
   const rows: Record<string, string>[] = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -154,8 +221,8 @@ export function cleanText(text: string | null | undefined): string | null {
     "â€™": "'",
     "â€œ": '"',
     "â€": '"',
-    "â€"": "—",
-    "â€"": "–",
+    "â€”": "—",
+    "â€“": "–",
     "Â": "",
   };
 
@@ -344,11 +411,155 @@ export interface NotationImportRow {
   noHoofdstuk?: string;
   noVolgnummer?: string;
   noNotatie?: string;
+  noPDFlesson?: string;
+  noMusescore?: string;
+  musicxml?: string;
+  noMP3?: string;
   noOpmerkingen?: string;
+  noVideo?: string;
   noAangemaakt?: string;
   noGewijzigd?: string;
   noMSID?: string;
   noGewijzigddoor?: string;
+  msid?: string;
+  noDatumGemaakt?: string;
+  noTijdGemaakt?: string;
+  noDatumGewijzigd?: string;
+  noTijdGewijzigd?: string;
+  [key: string]: string | undefined;
+}
+
+interface NotationAttachmentItem {
+  key: string;
+  label: string;
+  raw: string;
+  module: EmbedModule;
+}
+
+function notationTrimToNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function buildNotationModule(raw: string, label: string): EmbedModule {
+  const normalizedInput = raw.trim();
+
+  if (/\.pdf(?:$|[?#])/i.test(normalizedInput)) {
+    return {
+      type: "pdf",
+      provider: "external",
+      status: "fallback",
+      embed: {
+        embed_url: null,
+        raw: normalizedInput,
+      },
+      fallback: {
+        label,
+        url: normalizedInput,
+      },
+    };
+  }
+
+  const normalized = normalizeEmbedModule(normalizedInput);
+  if (normalized.fallback) {
+    return {
+      ...normalized,
+      fallback: {
+        ...normalized.fallback,
+        label,
+      },
+    };
+  }
+
+  return normalized;
+}
+
+function extractNotationAttachments(row: NotationImportRow): NotationAttachmentItem[] {
+  const candidates: Array<{ key: keyof NotationImportRow; label: string }> = [
+    { key: "noPDFlesson", label: "Lesson PDF" },
+    { key: "noMusescore", label: "MuseScore" },
+    { key: "musicxml", label: "MusicXML" },
+  ];
+
+  const items: NotationAttachmentItem[] = [];
+
+  for (const candidate of candidates) {
+    const raw = notationTrimToNull(row[candidate.key]);
+    if (!raw) continue;
+
+    items.push({
+      key: String(candidate.key),
+      label: candidate.label,
+      raw,
+      module: buildNotationModule(raw, candidate.label),
+    });
+  }
+
+  return items;
+}
+
+function buildNotationMediaJson(
+  row: NotationImportRow,
+  parsedNotation: ParsedNotation | null,
+  attachments: NotationAttachmentItem[]
+) {
+  const notationRaw = notationTrimToNull(row.noNotatie);
+  const noVideoRaw = notationTrimToNull(row.noVideo);
+  const noMp3Raw = notationTrimToNull(row.noMP3);
+
+  const mediaModules: Record<string, EmbedModule> = {};
+  if (noVideoRaw) {
+    mediaModules.noVideo = buildNotationModule(noVideoRaw, "Lesson Video");
+  }
+  if (noMp3Raw) {
+    const mp3Module = buildNotationModule(noMp3Raw, "Lesson MP3");
+    mediaModules.noMP3 = mp3Module.type === "external"
+      ? { ...mp3Module, type: "audio" }
+      : mp3Module;
+  }
+
+  return {
+    notationModule: notationRaw ? buildNotationModule(notationRaw, "Groove Notation") : null,
+    mediaModules,
+    attachments,
+    parser: parsedNotation
+      ? {
+          status: parsedNotation.status,
+          errors: parsedNotation.meta?.errors ?? [],
+          warnings: parsedNotation.meta?.warnings ?? [],
+          tempo: parsedNotation.tempo,
+          measures: parsedNotation.measures,
+          division: parsedNotation.division,
+        }
+      : null,
+  };
+}
+
+function buildNotationRawJson(
+  row: NotationImportRow,
+  batchId: string,
+  parsedNotation: ParsedNotation | null,
+  attachments: NotationAttachmentItem[]
+) {
+  return {
+    source: "POS_Notatie.csv",
+    importBatchId: batchId,
+    originalRow: row,
+    attachments: attachments.map((item) => ({
+      key: item.key,
+      label: item.label,
+      raw: item.raw,
+    })),
+    parserStatus: parsedNotation?.status ?? null,
+  };
+}
+
+function buildDateTime(datePart?: string | null, timePart?: string | null): string | null {
+  const date = datePart?.trim();
+  const time = timePart?.trim();
+
+  if (!date) return null;
+  return time ? `${date} ${time}` : date;
 }
 
 /**
@@ -367,6 +578,13 @@ export function transformNotationRow(
     .filter(Boolean)
     .join(" - ") || "Untitled Notation";
 
+  const createdAt = row.noAangemaakt || buildDateTime(row.noDatumGemaakt, row.noTijdGemaakt);
+  const updatedAt = row.noGewijzigd || buildDateTime(row.noDatumGewijzigd, row.noTijdGewijzigd);
+  const msid = row.noMSID || row.msid;
+  const attachments = extractNotationAttachments(row);
+  const mediaJsonb = buildNotationMediaJson(row, parsedNotation, attachments);
+  const rawJsonb = buildNotationRawJson(row, batchId, parsedNotation, attachments);
+
   return {
     schoolId,
     // Original POS fields (lossless)
@@ -376,9 +594,9 @@ export function transformNotationRow(
     posVolgnummer: row.noVolgnummer ? parseInt(row.noVolgnummer, 10) : null,
     posNotatie: row.noNotatie || null, // ALWAYS preserved
     posOpmerkingen: cleanText(row.noOpmerkingen),
-    posAangemaakt: parseDate(row.noAangemaakt),
-    posGewijzigd: parseDate(row.noGewijzigd),
-    posMsid: row.noMSID ? parseInt(row.noMSID, 10) : null,
+    posAangemaakt: parseDate(createdAt),
+    posGewijzigd: parseDate(updatedAt),
+    posMsid: msid ? parseInt(msid, 10) : null,
     posGewijzigddoor: row.noGewijzigddoor || null,
 
     // Normalized fields
@@ -389,6 +607,10 @@ export function transformNotationRow(
     // Parsed notation
     parsedNotation: parsedNotation ? JSON.stringify(parsedNotation) : null,
     parserStatus: parsedNotation?.status || null,
+
+    // Embed/media JSON storage
+    mediaJsonb,
+    rawJsonb,
 
     // Metadata
     importBatchId: batchId,
@@ -530,10 +752,212 @@ export interface SongImportRow {
   soLyrics?: string;
   soUitlegtekst?: string;
   soUitlegvideo?: string;
+  soUitlegVideo?: string;
   soAangemaakt?: string;
   soGewijzigd?: string;
   soMSID?: string;
   soGewijzigddoor?: string;
+  msid?: string;
+  soUitlegTekst?: string;
+  soDatumGemaakt?: string;
+  soTijdGemaakt?: string;
+  soDatumGewijzigd?: string;
+  soTijdGewijzigd?: string;
+  soNotatie01?: string;
+  soOpmerkingen01?: string;
+  soNotatie02?: string;
+  soOpmerkingen02?: string;
+  soNotatie03?: string;
+  soOpmerkingen03?: string;
+  soNotatie04?: string;
+  soOpmerkingen04?: string;
+  soNotatie05?: string;
+  soOpmerkingen05?: string;
+  soNotatie06?: string;
+  soOpmerkingen06?: string;
+  soNotatie07?: string;
+  soOpmerkingen07?: string;
+  soNotatie08?: string;
+  soOpmerkingen08?: string;
+  soPDFsong?: string;
+  soMusescore?: string;
+  soFlatio?: string;
+  soMusicXML?: string;
+  [key: string]: string | undefined;
+}
+
+interface SongNotationSlot {
+  index: number;
+  notation: string | null;
+  opmerkingen: string | null;
+  hasNotation: boolean;
+  parsedStatus: "ok" | "partial" | "failed" | null;
+  notationModule: EmbedModule | null;
+}
+
+interface SongAttachmentItem {
+  key: string;
+  label: string;
+  raw: string;
+  module: EmbedModule;
+}
+
+function nonEmpty(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function buildPdfModule(raw: string): EmbedModule {
+  return {
+    type: "pdf",
+    provider: "external",
+    status: "fallback",
+    embed: {
+      embed_url: null,
+      raw,
+    },
+    fallback: {
+      label: "Open PDF",
+      url: raw,
+    },
+  };
+}
+
+function buildAttachmentModule(raw: string, label: string): EmbedModule {
+  const normalizedInput = raw.trim();
+
+  if (/\.pdf(?:$|[?#])/i.test(normalizedInput)) {
+    return buildPdfModule(normalizedInput);
+  }
+
+  const normalized = normalizeEmbedModule(normalizedInput);
+  if (normalized.fallback) {
+    return {
+      ...normalized,
+      fallback: {
+        ...normalized.fallback,
+        label,
+      },
+    };
+  }
+
+  return normalized;
+}
+
+function extractSongNotationSlots(row: SongImportRow): SongNotationSlot[] {
+  const slots: SongNotationSlot[] = [];
+
+  for (let i = 1; i <= 8; i++) {
+    const suffix = String(i).padStart(2, "0");
+    const notation = nonEmpty(row[`soNotatie${suffix}`]);
+    const opmerkingen = nonEmpty(row[`soOpmerkingen${suffix}`]);
+
+    if (!notation && !opmerkingen) continue;
+
+    let parsedStatus: SongNotationSlot["parsedStatus"] = null;
+    let notationModule: EmbedModule | null = null;
+
+    if (notation) {
+      notationModule = normalizeEmbedModule(notation);
+
+      if (/(?:^|[?&#])(?:TimeSig|Div|Tempo|H|S|K|T|C|Measures)=/i.test(notation)) {
+        parsedStatus = parseNotation(notation)?.status ?? null;
+      }
+    }
+
+    slots.push({
+      index: i,
+      notation,
+      opmerkingen,
+      hasNotation: !!notation,
+      parsedStatus,
+      notationModule,
+    });
+  }
+
+  return slots;
+}
+
+function extractSongAttachments(row: SongImportRow): SongAttachmentItem[] {
+  const candidates: Array<{ key: keyof SongImportRow; label: string }> = [
+    { key: "soPDFsong", label: "Song PDF" },
+    { key: "soMusescore", label: "MuseScore" },
+    { key: "soFlatio", label: "Flat.io" },
+    { key: "soMusicXML", label: "MusicXML" },
+    { key: "soUitlegVideo", label: "Explanation Video" },
+  ];
+
+  const items: SongAttachmentItem[] = [];
+
+  for (const candidate of candidates) {
+    const raw = nonEmpty(row[candidate.key]);
+    if (!raw) continue;
+
+    items.push({
+      key: String(candidate.key),
+      label: candidate.label,
+      raw,
+      module: buildAttachmentModule(raw, candidate.label),
+    });
+  }
+
+  return items;
+}
+
+function buildSongEmbedsJson(
+  row: SongImportRow,
+  baseEmbeds: SongEmbeds,
+  notationSlots: SongNotationSlot[],
+  attachments: SongAttachmentItem[]
+) {
+  const directMediaFields: Array<{ key: keyof SongImportRow; label: string }> = [
+    { key: "soYouTube", label: "YouTube" },
+    { key: "soSpotify", label: "Spotify" },
+    { key: "soAppleMusic", label: "Apple Music" },
+  ];
+
+  const mediaModules: Record<string, EmbedModule> = {};
+  for (const field of directMediaFields) {
+    const raw = nonEmpty(row[field.key]);
+    if (!raw) continue;
+    mediaModules[String(field.key)] = buildAttachmentModule(raw, field.label);
+  }
+
+  const explanationVideo = nonEmpty(row.soUitlegVideo || row.soUitlegvideo);
+  if (explanationVideo) {
+    mediaModules.soUitlegVideo = buildAttachmentModule(explanationVideo, "Explanation Video");
+  }
+
+  return {
+    embeds: baseEmbeds,
+    mediaModules,
+    notationSlots,
+    attachments,
+  };
+}
+
+function buildSongRawJson(
+  row: SongImportRow,
+  batchId: string,
+  notationSlots: SongNotationSlot[],
+  attachments: SongAttachmentItem[]
+) {
+  return {
+    source: "POS_Songs.csv",
+    importBatchId: batchId,
+    originalRow: row,
+    notationSlots: notationSlots.map((slot) => ({
+      index: slot.index,
+      notation: slot.notation,
+      opmerkingen: slot.opmerkingen,
+      parsedStatus: slot.parsedStatus,
+    })),
+    attachments: attachments.map((item) => ({
+      key: item.key,
+      label: item.label,
+      raw: item.raw,
+    })),
+  };
 }
 
 /**
@@ -546,6 +970,15 @@ export function transformSongRow(
 ): InsertPosSong {
   // Extract embeds
   const embeds = extractSongEmbeds(row as Record<string, string>);
+  const notationSlots = extractSongNotationSlots(row);
+  const attachments = extractSongAttachments(row);
+  const embedsJsonb = buildSongEmbedsJson(row, embeds, notationSlots, attachments);
+  const rawJsonb = buildSongRawJson(row, batchId, notationSlots, attachments);
+  const explanationText = row.soUitlegtekst || row.soUitlegTekst;
+  const explanationVideo = row.soUitlegvideo || row.soUitlegVideo;
+  const createdAt = row.soAangemaakt || buildDateTime(row.soDatumGemaakt, row.soTijdGemaakt);
+  const updatedAt = row.soGewijzigd || buildDateTime(row.soDatumGewijzigd, row.soTijdGewijzigd);
+  const msid = row.soMSID || row.msid;
 
   return {
     schoolId,
@@ -560,16 +993,18 @@ export function transformSongRow(
     posSpotify: row.soSpotify || null,
     posAppleMusic: row.soAppleMusic || null,
     posLyrics: row.soLyrics || null,
-    posUitlegtekst: cleanText(row.soUitlegtekst),
-    posUitlegvideo: row.soUitlegvideo || null,
-    posAangemaakt: parseDate(row.soAangemaakt),
-    posGewijzigd: parseDate(row.soGewijzigd),
-    posMsid: row.soMSID ? parseInt(row.soMSID, 10) : null,
+    posUitlegtekst: cleanText(explanationText),
+    posUitlegvideo: explanationVideo || null,
+    posAangemaakt: parseDate(createdAt),
+    posGewijzigd: parseDate(updatedAt),
+    posMsid: msid ? parseInt(msid, 10) : null,
     posGewijzigddoor: row.soGewijzigddoor || null,
 
     // Normalized embeds
     embeds: Object.keys(embeds).length > 0 ? JSON.stringify(embeds) : null,
+    embedsJsonb,
     lyricsClean: cleanText(row.soLyrics),
+    rawJsonb,
 
     // Link to main songs table (null initially)
     linkedSongId: null,

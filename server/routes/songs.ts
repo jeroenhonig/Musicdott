@@ -1,87 +1,56 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage-wrapper";
-import { USER_ROLES } from "@shared/schema";
 import { insertSongSchema } from "@shared/schema";
 import { z } from "zod";
 import { 
   loadSchoolContext, 
-  requireTeacherOrOwner, 
-  applySchoolFiltering 
+  requireTeacherOrOwner
 } from "../middleware/authz";
 import { requireAuth } from "../auth";
-
-// Helper function to check if the user has access to a song
-function hasSongAccess(req: Request, songId: number): boolean {
-  if (!req.isAuthenticated() || !req.user) return false;
-  
-  // Platform owner has access to all songs
-  if (req.user.role === USER_ROLES.PLATFORM_OWNER) return true;
-  
-  // For other users, we'll need to check the song's owner
-  // This requires async operation, handled in the middleware
-  return true;
-}
 
 // Middleware to verify song access
 function requireSongAccess(songIdParam: string = 'id') {
   return async (req: Request, res: Response, next: Function) => {
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
+    if (!req.school) {
+      return res.status(500).json({ message: "School context not loaded" });
+    }
+
     const songId = parseInt(req.params[songIdParam]);
+    if (Number.isNaN(songId)) {
+      return next('route');
+    }
+
     const song = await storage.getSong(songId);
-    
+
     if (!song) {
       return res.status(404).json({ message: "Song not found" });
     }
-    
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    // Platform owner has access to all songs
-    if (req.user.role === USER_ROLES.PLATFORM_OWNER) {
+
+    if (req.school.isPlatformOwner()) {
       return next();
     }
-    
-    // Creator has access to their songs
+
+    if (song.schoolId && !req.school.canAccessSchool(song.schoolId)) {
+      return res.status(403).json({ message: "You don't have access to this song" });
+    }
+
+    if (song.schoolId && req.school.isStudent(song.schoolId)) {
+      return res.status(403).json({ message: "You don't have access to this song" });
+    }
+
     if (song.userId === req.user.id) {
       return next();
     }
-    
-    // School owner has access to songs created by teachers in their school
-    if (req.user.role === USER_ROLES.SCHOOL_OWNER && song.userId) {
-      const songCreator = await storage.getUser(song.userId);
-      if (songCreator && songCreator.schoolId === req.user.schoolId) {
-        return next();
-      }
-    }
-    
-    // Teachers can access songs from other teachers in their school
-    if (req.user.role === USER_ROLES.TEACHER && song.userId) {
-      const songCreator = await storage.getUser(song.userId);
-      if (songCreator && songCreator.schoolId === req.user.schoolId) {
-        return next();
-      }
-    }
-    
-    return res.status(403).json({ message: "You don't have access to this song" });
-  };
-}
 
-// Authorization middleware for role-based access
-function requireRole(roles: string[]) {
-  return (req: Request, res: Response, next: Function) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (song.schoolId && (req.school.isSchoolOwner(song.schoolId) || req.school.isTeacher(song.schoolId))) {
+      return next();
     }
-    
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Unauthorized role" });
-    }
-    
-    next();
+
+    return res.status(403).json({ message: "You don't have access to this song" });
   };
 }
 
@@ -128,7 +97,8 @@ export function registerSongRoutes(app: Express) {
   // Get a specific song
   app.get(
     "/api/songs/:id", 
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
+    requireAuth,
+    loadSchoolContext,
     requireSongAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -150,11 +120,18 @@ export function registerSongRoutes(app: Express) {
   // Create a new song
   app.post(
     "/api/songs",
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireAuth,
+    loadSchoolContext,
+    requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
       try {
         if (!req.user) {
           return res.status(401).json({ message: "Not authenticated" });
+        }
+
+        const schoolId = req.school?.id || req.user.schoolId;
+        if (!schoolId) {
+          return res.status(400).json({ message: "No school context available" });
         }
         
         // Parse the request body without userId/schoolId (they're omitted from schema)
@@ -164,7 +141,7 @@ export function registerSongRoutes(app: Express) {
         const validatedData = {
           ...parsedBody,
           userId: req.user.id,
-          schoolId: req.user.schoolId
+          schoolId
         };
         
         const song = await storage.createSong(validatedData);
@@ -185,7 +162,8 @@ export function registerSongRoutes(app: Express) {
   // Update a song
   app.put(
     "/api/songs/:id",
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireAuth,
+    loadSchoolContext,
     requireSongAccess(),
     async (req: Request, res: Response) => {
       try {
@@ -218,7 +196,8 @@ export function registerSongRoutes(app: Express) {
   // Delete a song
   app.delete(
     "/api/songs/:id",
-    requireRole([USER_ROLES.PLATFORM_OWNER, USER_ROLES.SCHOOL_OWNER, USER_ROLES.TEACHER]),
+    requireAuth,
+    loadSchoolContext,
     requireSongAccess(),
     async (req: Request, res: Response) => {
       try {

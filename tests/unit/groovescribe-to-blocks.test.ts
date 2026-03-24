@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { groovescribeToBlocks } from "@/shared/utils";
+import { groovescribeToBlocks } from "@shared/utils/index";
 
-const RAW_URL = "https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&Div=16&Tempo=90";
+const RAW_URL = "https://musicdott.app/groovescribe/?TimeSig=4/4&Div=16&Tempo=90";
 
 const baseInput = {
   rawUrl: RAW_URL,

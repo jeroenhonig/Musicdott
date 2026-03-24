@@ -15,12 +15,12 @@ import { useToast } from "@/hooks/use-toast";
 // Configuration
 // --------------
 const ALLOWED_HOSTS = new Set([
-  'teacher.musicdott.com',
+  'musicdott.app',
   'www.mikeslessons.com', 
   'mikeslessons.com'
 ]);
 
-const DEFAULT_HOST = "teacher.musicdott.com";
+const DEFAULT_HOST = "musicdott.app";
 const DEFAULT_EMBED_PATH = "/groovescribe/GrooveEmbed.html";
 
 const OPTIONAL_PARAMS = ['A', 'V', 'Notes', 'Title', 'CountIn', 'Swing', 'Layout'];
@@ -235,7 +235,7 @@ export function GrooveConverter() {
             Paste GrooveScribe Link or Query String
           </label>
           <Input
-            placeholder="https://teacher.musicdott.com/groovescribe/?TimeSig=4/4&... or ?TimeSig=4/4&..."
+            placeholder="https://musicdott.app/groovescribe/?TimeSig=4/4&... or ?TimeSig=4/4&..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="font-mono text-sm"
@@ -275,7 +275,7 @@ export function GrooveConverter() {
         <div className="text-xs text-gray-500 space-y-1">
           <p><strong>Supported inputs:</strong></p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Full URLs: https://teacher.musicdott.com/groovescribe/?TimeSig=...</li>
+            <li>Full URLs: https://musicdott.app/groovescribe/?TimeSig=...</li>
             <li>Full URLs: https://www.mikeslessons.com/groove/?TimeSig=...</li>
             <li>Query strings: ?TimeSig=4/4&Div=16&Tempo=80&...</li>
             <li>Bare queries: TimeSig=4/4&Div=16&Tempo=80&...</li>

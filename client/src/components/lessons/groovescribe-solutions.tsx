@@ -56,7 +56,7 @@ export default function GrooveScribeSolutions({
     let cleanParams = inputValue;
     
     // Extract pattern from full URL
-    if (inputValue.includes('mikeslessons.com/groove') || inputValue.includes('teacher.musicdott.com')) {
+    if (inputValue.includes('mikeslessons.com/groove') || inputValue.includes('musicdott.app')) {
       const questionMarkIndex = inputValue.indexOf('?');
       if (questionMarkIndex !== -1) {
         cleanParams = inputValue.substring(questionMarkIndex);

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { passwordChangeRequestSchema } from "@shared/auth-validation";
 import {
   Dialog,
   DialogContent,
@@ -28,15 +29,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { AlertTriangle, Key, Lock } from "lucide-react";
 
-const passwordChangeSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string()
-    .min(8, "New password must be at least 8 characters")
-    .max(100, "New password must be less than 100 characters")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+const passwordChangeSchema = passwordChangeRequestSchema.extend({
   confirmPassword: z.string()
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",
@@ -79,9 +72,8 @@ export function PasswordChangeDialog({
       // Reset form and close dialog on success
       form.reset();
       onClose();
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation's onError callback
-      console.error("Password change failed:", error);
     }
   };
 
@@ -169,7 +161,7 @@ export function PasswordChangeDialog({
                       <Input
                         {...field}
                         type={showNewPassword ? "text" : "password"}
-                        placeholder="Enter new password (min. 6 characters)"
+                        placeholder="Use 8+ characters with upper/lowercase, a number, and a symbol"
                         disabled={isPending}
                         data-testid="input-new-password"
                       />

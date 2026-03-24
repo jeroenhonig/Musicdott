@@ -54,11 +54,16 @@ interface RecurringSchedule {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
-  recurrenceType: string;
+  recurrenceType?: string;
+  frequency?: string;
   biWeeklyPattern: string | null;
   isActive: boolean;
   location: string | null;
   notes: string | null;
+}
+
+function getScheduleFrequency(schedule: RecurringSchedule): string {
+  return String(schedule.frequency || schedule.recurrenceType || "").toLowerCase();
 }
 
 const DAYS_OF_WEEK = [
@@ -72,9 +77,9 @@ const DAYS_OF_WEEK = [
 ];
 
 const RECURRENCE_TYPES = [
-  { value: "weekly", label: "Weekly" },
-  { value: "biweekly", label: "Biweekly" },
-  { value: "monthly", label: "Monthly" },
+  { value: "WEEKLY", label: "Weekly" },
+  { value: "BIWEEKLY", label: "Biweekly" },
+  { value: "MONTHLY", label: "Monthly" },
 ];
 
 interface RecurringScheduleListProps {
@@ -94,7 +99,7 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
     dayOfWeek: "",
     startTime: "",
     endTime: "",
-    recurrenceType: "",
+    frequency: "",
     biWeeklyPattern: "",
     location: "",
     notes: "",
@@ -130,7 +135,7 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
       dayOfWeek: "",
       startTime: "",
       endTime: "",
-      recurrenceType: "",
+      frequency: "",
       biWeeklyPattern: "",
       location: "",
       notes: "",
@@ -145,7 +150,7 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       // Clear biWeeklyPattern when recurrence type changes away from biweekly
-      if (field === 'recurrenceType' && value !== 'biweekly') {
+      if (field === 'frequency' && value !== 'BIWEEKLY') {
         newData.biWeeklyPattern = '';
       }
       return newData;
@@ -251,7 +256,7 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
                 <Label htmlFor="recurrence" className="text-right">
                   Recurrence
                 </Label>
-                <Select value={formData.recurrenceType} onValueChange={(value) => handleFormChange('recurrenceType', value)}>
+                <Select value={formData.frequency} onValueChange={(value) => handleFormChange('frequency', value)}>
                   <SelectTrigger id="recurrence" className="col-span-3" data-testid="select-recurrence">
                     <SelectValue placeholder="Select recurrence type" />
                   </SelectTrigger>
@@ -266,7 +271,7 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
               </div>
               
               {/* Conditional bi-weekly pattern selector */}
-              {formData.recurrenceType === 'biweekly' && (
+              {formData.frequency === 'BIWEEKLY' && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="biweekly-pattern" className="text-right">
                     Weeks
@@ -360,8 +365,10 @@ export function RecurringScheduleList({ teacherId }: RecurringScheduleListProps)
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {schedule.recurrenceType.charAt(0).toUpperCase() + 
-                         schedule.recurrenceType.slice(1)}
+                        {(() => {
+                          const recurrence = getScheduleFrequency(schedule) || "weekly";
+                          return recurrence.charAt(0).toUpperCase() + recurrence.slice(1);
+                        })()}
                         {schedule.biWeeklyPattern ? 
                           ` (${schedule.biWeeklyPattern === 'even' ? 'Even' : 'Odd'} weeks)` : 
                           ''

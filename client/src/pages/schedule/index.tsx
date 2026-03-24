@@ -130,7 +130,7 @@ export default function SchedulePage() {
   });
 
   const { data: teachers = [], isLoading: teachersLoading, error: teachersError } = useQuery<User[]>({
-    queryKey: ["/api/users/teachers"],
+    queryKey: ["/api/teachers"],
     enabled: !!user,
   });
 
@@ -221,7 +221,7 @@ export default function SchedulePage() {
   // Create schedule mutation
   const createScheduleMutation = useMutation({
     mutationFn: async (values: ScheduleFormValues) => {
-      const response = await apiRequest("/api/recurring-schedules", "POST", values);
+      const response = await apiRequest("POST", "/api/recurring-schedules", values);
       return response;
     },
     onSuccess: () => {
@@ -249,7 +249,7 @@ export default function SchedulePage() {
   // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/recurring-schedules/${id}`, "DELETE");
+      await apiRequest("DELETE", `/api/recurring-schedules/${id}`);
     },
     onSuccess: () => {
       if (!isMountedRef.current) return;
@@ -275,7 +275,7 @@ export default function SchedulePage() {
   // Delete individual session mutation
   const deleteSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
-      return await apiRequest(`/api/sessions/${sessionId}`, "DELETE");
+      return await apiRequest("DELETE", `/api/sessions/${sessionId}`);
     },
     onSuccess: () => {
       if (!isMountedRef.current) return;

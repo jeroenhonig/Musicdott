@@ -184,7 +184,7 @@ docker compose logs -f app
 
 ### 8.1 Voer database schema uit
 ```bash
-docker compose exec app npm run db:push
+docker compose exec app npm run db:migrate
 ```
 
 ### 8.2 Verificeer database (optioneel)
@@ -385,7 +385,7 @@ sudo ufw allow 443/tcp
 
 Voor vragen of problemen:
 - GitHub Issues: https://github.com/jeroenhonig/Musicdott/issues
-- Documentatie: README.md en DEPLOYMENT.md
+- Documentatie: ../README.md en ./DEPLOYMENT.md
 
 ---
 

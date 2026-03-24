@@ -18,7 +18,7 @@ Provide a deterministic, lossless, and non-destructive way to accept any Grooves
 Accept all of the following:
 - Full URLs (official or self-hosted)
 - Hash/share URLs (e.g., #/groove/ENCODED)
-- Self-hosted Groovescribe (e.g., teacher.musicdott.com/groovescribe)
+- Self-hosted Groovescribe (e.g., musicdott.app/groovescribe)
 - iframe HTML with a Groovescribe src
 - Partial or malformed but recognizable links
 - Query-only strings with musical params

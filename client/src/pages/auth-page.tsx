@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
-import { z } from "zod";
+import { loginCredentialsSchema } from "@shared/auth-validation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -35,10 +36,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CompactLanguageSelector } from "@/components/language/language-selector";
 import { PasswordChangeDialog } from "@/components/password-change-dialog";
 
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
+const loginSchema = loginCredentialsSchema;
 
 export default function AuthPage() {
   const { user, loginMutation } = useAuth();
@@ -49,18 +47,14 @@ export default function AuthPage() {
 
   // Handle authentication and password change flow
   useEffect(() => {
-    console.log("🔍 Auth page useEffect - user state:", user);
     if (user) {
       if (user.mustChangePassword) {
-        console.log("🔑 User must change password");
         setShowPasswordChange(true);
       } else {
         // Redirect platform owners to their separate dashboard
         if (user.role === 'platform_owner') {
-          console.log("🚀 Platform owner logged in, navigating to owners dashboard...");
           navigate("/owners-dashboard");
         } else {
-          console.log("🚀 User logged in, navigating to dashboard...");
           navigate("/");
         }
       }
@@ -91,7 +85,6 @@ export default function AuthPage() {
 
   // Handle login form submission
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    console.log("🎯 Form submitted with values:", { username: values.username });
     loginMutation.mutate({
       username: values.username,
       password: values.password,

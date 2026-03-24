@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from 'http';
-import { app } from '../../server/index.js';
+import { app } from '../../server/index.ts';
 import {
+  setupIntegrationApp,
+  teardownIntegrationApp,
   setupTestEnvironment,
   cleanupTestData,
   loginUser,
@@ -20,7 +21,6 @@ import {
 } from '../utils/test-helpers.js';
 
 describe('Multi-Tenant Security Tests', () => {
-  let server;
   let school1Teacher;
   let school2Teacher;
   let testSchool1;
@@ -28,13 +28,9 @@ describe('Multi-Tenant Security Tests', () => {
 
   beforeAll(async () => {
     console.log('🧪 Setting up multi-tenant security tests...');
-    
-    // Start server for testing
-    server = createServer(app);
-    await new Promise((resolve) => {
-      server.listen(0, resolve);
-    });
-    
+
+    await setupIntegrationApp();
+
     // Setup test environment
     await setupTestEnvironment();
     
@@ -48,14 +44,9 @@ describe('Multi-Tenant Security Tests', () => {
 
   afterAll(async () => {
     console.log('🧹 Cleaning up multi-tenant security tests...');
-    
-    if (server) {
-      await new Promise((resolve) => {
-        server.close(resolve);
-      });
-    }
-    
+
     await cleanupTestData();
+    await teardownIntegrationApp();
   });
 
   describe('School Data Isolation', () => {
@@ -188,6 +179,150 @@ describe('Multi-Tenant Security Tests', () => {
   });
 
   describe('Cross-Tenant Access Prevention', () => {
+    it('should block teachers from reading another school detail page', async () => {
+      const { cookie: school1Cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app, 'GET', '/api/schools/2', school1Cookie
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should block teachers from listing another school members', async () => {
+      const { cookie: school1Cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app, 'GET', '/api/schools/2/members', school1Cookie
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should block teachers from opening another school song by id', async () => {
+      const crossTenantSong = await createTestSong({
+        title: `Cross Tenant Song ${Date.now()}`,
+        artist: 'School 1 Artist'
+      }, school1Teacher.id, school1Teacher.schoolId);
+
+      const { cookie: school2Cookie } = await loginUser(app, TEST_USERS.OTHER_SCHOOL_TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'GET',
+        `/api/songs/${crossTenantSong.id}`,
+        school2Cookie
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should block school owners from updating another school', async () => {
+      const { cookie: ownerCookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'PUT',
+        '/api/schools/2',
+        ownerCookie,
+        { name: 'Unauthorized Rename Attempt' }
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should block school owners from reading a teacher in another school', async () => {
+      const { cookie: ownerCookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'GET',
+        `/api/teachers/${school2Teacher.id}`,
+        ownerCookie
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should not leak other-school users in the messaging directory', async () => {
+      const { cookie: school1Cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'GET',
+        '/api/users',
+        school1Cookie
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.some((user) => user.username === TEST_USERS.OTHER_SCHOOL_TEACHER.username)).toBe(false);
+      expect(response.body.some((user) => user.username === TEST_USERS.OTHER_SCHOOL_OWNER.username)).toBe(false);
+    });
+
+    it('should block school owners from importing students into another school', async () => {
+      const { cookie: ownerCookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'POST',
+        '/api/import/students',
+        ownerCookie,
+        {
+          filePath: 'export/nonexistent.csv',
+          schoolId: 2
+        }
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should block teachers from importing schedules for users in another school', async () => {
+      const { cookie: school1Cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'POST',
+        '/api/import/schedule',
+        school1Cookie,
+        {
+          filePath: 'export/nonexistent.csv',
+          defaultUserId: school2Teacher.id
+        }
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should allow school owners to read teachers in their own school only', async () => {
+      const { cookie: ownerCookie } = await loginUser(app, TEST_USERS.SCHOOL_OWNER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'GET',
+        `/api/teachers/${school1Teacher.id}`,
+        ownerCookie
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(school1Teacher.id);
+    });
+
+    it('should allow school owners to update their own school', async () => {
+      const { cookie: ownerCookie } = await loginUser(app, TEST_USERS.OTHER_SCHOOL_OWNER);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        'PUT',
+        '/api/schools/2',
+        ownerCookie,
+        { name: 'Test Music School Secondary Updated' }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(2);
+      expect(response.body.name).toBe('Test Music School Secondary Updated');
+    });
+
     it('should prevent access to other school\'s specific resources', async () => {
       console.log('🚫 Testing cross-tenant access prevention...');
       

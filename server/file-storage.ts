@@ -376,6 +376,11 @@ export class FileStorage implements IStorage {
     return students.find(s => s.id === id);
   }
 
+  async getStudentByUserId(userId: number): Promise<Student | undefined> {
+    const students = this.getCollection('students');
+    return students.find((student) => student.userId === userId || student.accountId === userId);
+  }
+
   async getStudents(userId: number): Promise<Student[]> {
     const students = this.getCollection('students');
     // Find user to get their schoolId

@@ -11,10 +11,14 @@ import { requireAuth } from "../auth";
 import { loadSchoolContext, requireTeacherOrOwner } from "../middleware/authz";
 import { z } from "zod";
 import { insertLessonSchema, insertSongSchema, USER_ROLES } from "@shared/schema";
+import { sanitizeContentBlocksForStorage } from "@shared/content-blocks";
 import { transformJsonContent, normalizeDescription, normalizeLevel } from "../utils/json-content-transformer";
 import { optimizedSongImport, fixExistingCorruptedSongs } from "../utils/optimized-import";
 
 const router = Router();
+
+const normalizeImportTitle = (value: string): string =>
+  value.trim().toLowerCase().replace(/\s+/g, " ");
 
 // Validation schema for import request
 const importRequestSchema = z.object({
@@ -43,7 +47,7 @@ const importRequestSchema = z.object({
  * Import lessons and songs from JSON format.
  * Requires teacher or school owner role.
  */
-router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwner, async (req: Request, res: Response) => {
+router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
   try {
     console.log("Starting JSON import process...");
     
@@ -79,6 +83,10 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
     if (lessons && lessons.length > 0) {
       console.log(`Processing ${lessons.length} lessons...`);
       importStats.lessons.total = lessons.length;
+      const existingLessons = await storage.getLessonsBySchool(schoolId);
+      const existingLessonTitles = new Set(
+        existingLessons.map((lesson) => normalizeImportTitle(lesson.title || ""))
+      );
       
       for (const lessonData of lessons) {
         try {
@@ -88,9 +96,9 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
             continue;
           }
           
-          // Check if lesson already exists
-          const existingLessons = await storage.getLessonsBySchool(schoolId);
-          const exists = existingLessons.some(lesson => lesson.title === lessonData.title);
+          // Check if lesson already exists (O(1) lookup)
+          const normalizedTitle = normalizeImportTitle(lessonData.title);
+          const exists = existingLessonTitles.has(normalizedTitle);
           
           if (exists) {
             console.log(`Lesson "${lessonData.title}" already exists, skipping...`);
@@ -99,7 +107,9 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
           }
           
           // Transform content to contentBlocks
-          const contentBlocks = transformJsonContent(lessonData.content || '');
+          const contentBlocks = sanitizeContentBlocksForStorage(
+            transformJsonContent(lessonData.content || '')
+          );
           
           // Prepare lesson data for database
           const lessonToCreate = {
@@ -120,6 +130,7 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
           
           // Create lesson
           await storage.createLesson(validatedLessonData);
+          existingLessonTitles.add(normalizedTitle);
           importStats.lessons.imported++;
           
           console.log(`Successfully imported lesson: "${lessonData.title}"`);
@@ -161,6 +172,7 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
       return res.status(400).json({
         success: false,
         message: "Invalid request data",
+        code: "JSON_IMPORT_VALIDATION_ERROR",
         errors: error.errors
       });
     }
@@ -168,6 +180,7 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
     res.status(500).json({
       success: false,
       message: "Import failed due to server error",
+      code: "JSON_IMPORT_SERVER_ERROR",
       error: error instanceof Error ? error.message : String(error)
     });
   }
@@ -179,7 +192,7 @@ router.post("/json-content", requireAuth, loadSchoolContext, requireTeacherOrOwn
  * Fix existing corrupted songs in the database.
  * Requires teacher or school owner role.
  */
-router.post("/fix-corrupted", requireAuth, loadSchoolContext, requireTeacherOrOwner, async (req: Request, res: Response) => {
+router.post("/fix-corrupted", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
   try {
     const user = req.user!;
     const schoolId = user.schoolId!;
@@ -199,6 +212,8 @@ router.post("/fix-corrupted", requireAuth, loadSchoolContext, requireTeacherOrOw
     res.status(500).json({
       success: false,
       message: "Failed to fix corrupted songs",
+      code: "JSON_IMPORT_FIX_CORRUPTED_ERROR",
+      context: { route: "/api/import/fix-corrupted" },
       error: error instanceof Error ? error.message : String(error)
     });
   }
@@ -210,7 +225,7 @@ router.post("/fix-corrupted", requireAuth, loadSchoolContext, requireTeacherOrOw
  * Get import status and recent import history.
  * Requires teacher or school owner role.
  */
-router.get("/status", requireAuth, loadSchoolContext, requireTeacherOrOwner, async (req: Request, res: Response) => {
+router.get("/status", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
   try {
     // For now, return basic status - in a full implementation this would track import jobs
     const importStatus = {
@@ -231,6 +246,8 @@ router.get("/status", requireAuth, loadSchoolContext, requireTeacherOrOwner, asy
     res.status(500).json({
       success: false,
       message: "Failed to get import status",
+      code: "JSON_IMPORT_STATUS_ERROR",
+      context: { route: "/api/import/status" },
       error: error instanceof Error ? error.message : String(error)
     });
   }

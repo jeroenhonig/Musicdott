@@ -163,11 +163,14 @@ export default function ContentBlockManager({
   };
 
   const renderBlockContent = (block: ContentBlock, index: number) => {
+    const grooveParams = block.pattern || block.data?.groove || (block as any).data?.groovescribe || (block as any).data?.pattern;
+    const videoValue = block.data?.video || (block as any).data?.youtube || (block as any).data?.videoId || block.videoId;
+
     // Handle imported groovescribe blocks
-    if (block.type === 'groovescribe' && block.pattern) {
+    if (block.type === 'groovescribe' && grooveParams) {
       return (
         <GrooveEmbed
-          initialGrooveParams={block.pattern}
+          initialGrooveParams={grooveParams}
           editable={editable}
           onSave={(params) => handleUpdateBlock(block.id, { groove: params })}
         />
@@ -175,10 +178,13 @@ export default function ContentBlockManager({
     }
 
     // Handle imported youtube blocks
-    if (block.type === 'youtube' && block.videoId) {
+    if (block.type === 'youtube' && videoValue) {
+      const normalizedUrl = typeof videoValue === 'string' && videoValue.includes('http')
+        ? videoValue
+        : `https://www.youtube.com/watch?v=${videoValue}`;
       return (
         <VideoEmbed
-          initialVideoUrl={`https://www.youtube.com/watch?v=${block.videoId}`}
+          initialVideoUrl={normalizedUrl}
           editable={editable}
           onSave={(url) => handleUpdateBlock(block.id, { video: url })}
         />
@@ -187,18 +193,22 @@ export default function ContentBlockManager({
 
     switch (block.type) {
       case 'groove':
+      case 'groovescribe':
         return (
           <GrooveEmbed
-            initialGrooveParams={block.data.groove}
+            initialGrooveParams={grooveParams}
             editable={editable}
             onSave={(params) => handleUpdateBlock(block.id, { groove: params })}
           />
         );
 
       case 'video':
+      case 'youtube':
         return (
           <VideoEmbed
-            initialVideoUrl={block.data.video || ''}
+            initialVideoUrl={typeof videoValue === 'string'
+              ? (videoValue.includes('http') ? videoValue : `https://www.youtube.com/watch?v=${videoValue}`)
+              : ''}
             editable={editable}
             onSave={(url) => handleUpdateBlock(block.id, { video: url })}
           />

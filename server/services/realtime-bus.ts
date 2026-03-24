@@ -12,6 +12,8 @@ import { storage } from "../storage-wrapper";
 import passport from "passport";
 import { IStorage } from "../storage";
 import {
+  EVENT_ACTIONS,
+  EVENT_ENTITIES,
   EVENT_TYPES,
   validateRealtimeEvent,
   createRealtimeEvent,
@@ -495,9 +497,7 @@ export class RealtimeBus {
       // Create practice session
       const practiceSession = await this.storage.createPracticeSession({
         studentId: client.studentId,
-        startTime: new Date(),
-        isActive: true,
-        assignmentId: data.assignmentId
+        startTime: new Date()
       });
 
       // Emit to teachers in the school
@@ -614,9 +614,9 @@ export class RealtimeBus {
       // Broadcast to teachers that student started a lesson
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'lesson.started',
-          entity: 'lesson',
-          action: 'start',
+          type: EVENT_TYPES.LESSON_START,
+          entity: EVENT_ENTITIES.LESSON,
+          action: EVENT_ACTIONS.START,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -635,7 +635,7 @@ export class RealtimeBus {
 
       // Confirm to student
       socket.emit('lesson_started', {
-        type: 'lesson.started',
+        type: EVENT_TYPES.LESSON_START,
         data: { lessonId: data.lessonId, startTime: new Date().toISOString() }
       });
 
@@ -664,9 +664,9 @@ export class RealtimeBus {
       // Broadcast progress to teachers
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'lesson.progress',
-          entity: 'lesson',
-          action: 'update',
+          type: EVENT_TYPES.LESSON_PROGRESS,
+          entity: EVENT_ENTITIES.LESSON,
+          action: EVENT_ACTIONS.PROGRESS,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -710,9 +710,9 @@ export class RealtimeBus {
       // Broadcast completion to teachers
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'lesson.completed',
-          entity: 'lesson',
-          action: 'complete',
+          type: EVENT_TYPES.LESSON_COMPLETE,
+          entity: EVENT_ENTITIES.LESSON,
+          action: EVENT_ACTIONS.COMPLETE,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -733,7 +733,7 @@ export class RealtimeBus {
 
       // Confirm to student
       socket.emit('lesson_completed', {
-        type: 'lesson.completed',
+        type: EVENT_TYPES.LESSON_COMPLETE,
         data: { lessonId: data.lessonId, completedAt: new Date().toISOString() }
       });
 
@@ -762,9 +762,9 @@ export class RealtimeBus {
       // Broadcast to teachers that student is practicing a song
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'song.practiced',
-          entity: 'song',
-          action: 'practice',
+          type: EVENT_TYPES.SONG_PRACTICE,
+          entity: EVENT_ENTITIES.SONG,
+          action: EVENT_ACTIONS.PRACTICE,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -807,9 +807,9 @@ export class RealtimeBus {
       // Broadcast to teachers (optional, less critical event)
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'song.favorited',
-          entity: 'song',
-          action: 'favorite',
+          type: EVENT_TYPES.SONG_FAVORITE,
+          entity: EVENT_ENTITIES.SONG,
+          action: EVENT_ACTIONS.UPDATE,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -851,9 +851,9 @@ export class RealtimeBus {
       // Broadcast progress to teachers
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'song.progress',
-          entity: 'song',
-          action: 'update',
+          type: EVENT_TYPES.SONG_PROGRESS,
+          entity: EVENT_ENTITIES.SONG,
+          action: EVENT_ACTIONS.PROGRESS,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -898,9 +898,9 @@ export class RealtimeBus {
       // Optionally broadcast student activity to teachers
       if (socket.user!.schoolId && data.activity) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'student.active',
-          entity: 'student',
-          action: 'activity',
+          type: EVENT_TYPES.STUDENT_UPDATE,
+          entity: EVENT_ENTITIES.STUDENT,
+          action: EVENT_ACTIONS.UPDATE,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -938,9 +938,9 @@ export class RealtimeBus {
       // Optionally broadcast student idle status to teachers
       if (socket.user!.schoolId) {
         this.emitToTeachers(socket.user!.schoolId, {
-          type: 'student.idle',
-          entity: 'student', 
-          action: 'idle',
+          type: EVENT_TYPES.STUDENT_UPDATE,
+          entity: EVENT_ENTITIES.STUDENT,
+          action: EVENT_ACTIONS.UPDATE,
           data: {
             studentId: client.studentId,
             studentName: socket.user!.username,
@@ -972,6 +972,11 @@ export class RealtimeBus {
         return;
       }
 
+      if (!socket.user!.schoolId) {
+        socket.emit('error', { message: 'School context required for chat messages' });
+        return;
+      }
+
       // Determine recipient room
       let recipientRoom: string;
       if (recipientRole === 'teacher') {
@@ -984,9 +989,9 @@ export class RealtimeBus {
 
       // Create chat event
       const chatEvent: RealtimeEvent = {
-        type: 'chat.message',
-        entity: 'chat',
-        action: 'message',
+        type: EVENT_TYPES.CHAT_MESSAGE,
+        entity: EVENT_ENTITIES.CHAT,
+        action: EVENT_ACTIONS.MESSAGE,
         data: {
           senderId: socket.user!.role === 'teacher' ? socket.user!.id : (this.clients.get(socket.id)?.studentId || socket.user!.id),
           senderName: socket.user!.username,
@@ -1047,7 +1052,7 @@ export class RealtimeBus {
       }
 
       // Add metadata with security validation
-      const event: RealtimeEvent = {
+      const eventCandidate = {
         ...data,
         meta: {
           ...data.meta,
@@ -1058,17 +1063,19 @@ export class RealtimeBus {
       };
 
       // Validate the complete event using shared contract
-      if (!validateRealtimeEvent(event)) {
+      if (!validateRealtimeEvent(eventCandidate)) {
         console.error(`❌ Invalid event structure from ${socket.user!.username}:`, {
-          type: event.type,
-          entity: event.entity,
-          action: event.action,
-          schoolId: event.meta?.schoolId,
+          type: data?.type,
+          entity: data?.entity,
+          action: data?.action,
+          schoolId: socket.user!.schoolId,
           error: 'Failed validateRealtimeEvent check'
         });
         socket.emit('error', { message: 'Invalid event format' });
         return;
       }
+
+      const event: RealtimeEvent = eventCandidate;
 
       // Check if event type is valid
       const validEventTypes = Object.values(EVENT_TYPES);
@@ -1173,9 +1180,9 @@ export class RealtimeBus {
    */
   private broadcastTeacherStatus(teacherId: number, schoolId: number, isOnline: boolean) {
     const statusEvent: RealtimeEvent = {
-      type: 'teacher.status',
-      entity: 'teacher_status',
-      action: isOnline ? 'online' : 'offline',
+      type: isOnline ? EVENT_TYPES.TEACHER_STATUS_ONLINE : EVENT_TYPES.TEACHER_STATUS_OFFLINE,
+      entity: EVENT_ENTITIES.TEACHER_STATUS,
+      action: isOnline ? EVENT_ACTIONS.ONLINE : EVENT_ACTIONS.OFFLINE,
       data: {
         teacherId,
         isOnline,
@@ -1754,10 +1761,12 @@ export class RealtimeBus {
    * Emit event to a specific school
    */
   public emitToSchool(schoolId: number, event: Partial<RealtimeEvent>): number {
+    const entity = event.entity ?? EVENT_ENTITIES.USER;
+    const action = event.action ?? EVENT_ACTIONS.UPDATE;
     const fullEvent: RealtimeEvent = {
-      type: event.type || 'school.update',
-      entity: event.entity,
-      action: event.action,
+      type: event.type ?? (`${entity}.${action}` as RealtimeEvent["type"]),
+      entity,
+      action,
       data: event.data,
       meta: {
         schoolId,
@@ -1773,10 +1782,12 @@ export class RealtimeBus {
    * Emit event to all teachers in a school
    */
   public emitToTeachers(schoolId: number, event: Partial<RealtimeEvent>): number {
+    const entity = event.entity ?? EVENT_ENTITIES.USER;
+    const action = event.action ?? EVENT_ACTIONS.UPDATE;
     const fullEvent: RealtimeEvent = {
-      type: event.type || 'teacher.update',
-      entity: event.entity,
-      action: event.action,
+      type: event.type ?? (`${entity}.${action}` as RealtimeEvent["type"]),
+      entity,
+      action,
       data: event.data,
       meta: {
         schoolId,
@@ -1792,10 +1803,12 @@ export class RealtimeBus {
    * Emit event to all students in a school
    */
   public emitToStudents(schoolId: number, event: Partial<RealtimeEvent>): number {
+    const entity = event.entity ?? EVENT_ENTITIES.USER;
+    const action = event.action ?? EVENT_ACTIONS.UPDATE;
     const fullEvent: RealtimeEvent = {
-      type: event.type || 'student.update',
-      entity: event.entity,
-      action: event.action,
+      type: event.type ?? (`${entity}.${action}` as RealtimeEvent["type"]),
+      entity,
+      action,
       data: event.data,
       meta: {
         schoolId,
@@ -1811,12 +1824,15 @@ export class RealtimeBus {
    * Emit event to a specific user
    */
   public emitToUser(userId: number, event: Partial<RealtimeEvent>): number {
+    const entity = event.entity ?? EVENT_ENTITIES.USER;
+    const action = event.action ?? EVENT_ACTIONS.UPDATE;
     const fullEvent: RealtimeEvent = {
-      type: event.type || 'user.update',
-      entity: event.entity,
-      action: event.action,
+      type: event.type ?? (`${entity}.${action}` as RealtimeEvent["type"]),
+      entity,
+      action,
       data: event.data,
       meta: {
+        schoolId: event.meta?.schoolId ?? 0,
         timestamp: new Date().toISOString(),
         ...event.meta
       }
@@ -1890,7 +1906,9 @@ export class RealtimeBus {
    */
   public sendNotification(userId: number, notification: any): number {
     return this.emitToUser(userId, {
-      type: 'notification',
+      type: EVENT_TYPES.MESSAGE_RECEIVE,
+      entity: EVENT_ENTITIES.MESSAGE,
+      action: EVENT_ACTIONS.RECEIVE,
       data: notification
     });
   }
@@ -1900,9 +1918,9 @@ export class RealtimeBus {
    */
   public sendRescheduleRequest(studentId: number, sessionData: any): number {
     return this.emitToUser(studentId, {
-      type: 'reschedule_request',
-      entity: 'session',
-      action: 'reschedule',
+      type: EVENT_TYPES.SESSION_RESCHEDULE,
+      entity: EVENT_ENTITIES.SESSION,
+      action: EVENT_ACTIONS.RESCHEDULE,
       data: sessionData
     });
   }
@@ -1978,10 +1996,21 @@ export class RealtimeBus {
   }
 
   /**
-   * Emit event to all connected clients (compatibility method)
+   * Emit event to school-scoped clients only (compatibility method)
    */
   public emit(eventName: string, data: any): void {
-    this.io.emit(eventName, data);
+    const schoolId = data?.meta?.schoolId ?? data?.schoolId;
+    if (!schoolId || typeof schoolId !== 'number') {
+      console.error(`❌ SECURITY: Blocked ${eventName} emit without valid schoolId`, data);
+      return;
+    }
+
+    if (eventName === 'realtime_event') {
+      this.emitToSchool(schoolId, data);
+      return;
+    }
+
+    this.io.to(`school:${schoolId}`).emit(eventName, data);
   }
 
   /**

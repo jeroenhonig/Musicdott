@@ -2,6 +2,7 @@ import { DatabaseStorage } from './database-storage';
 import { ContentBlock } from '../client/src/components/lessons/content-block-manager';
 import { SongContentBlock } from '../client/src/components/songs/song-content-manager';
 import { normalizeRichContent } from './utils/grooveEmbed';
+import { sanitizeContentBlocksForStorage } from '@shared/content-blocks';
 
 export interface ImportedSong {
   title: string;
@@ -165,7 +166,7 @@ export class ImportUtility {
           block = this.parseSpotifyEmbed(trimmedPart);
         } else if (trimmedPart.includes('music.apple.com')) {
           block = this.parseAppleMusicEmbed(trimmedPart);
-        } else if (trimmedPart.includes('teacher.musicdott.com/groovescribe')) {
+        } else if (trimmedPart.includes('musicdott.app/groovescribe')) {
           // Handle normalized Groovescribe embeds
           const grooveBlock = this.parseGroovescribeEmbed(trimmedPart);
           if (grooveBlock) {
@@ -243,8 +244,9 @@ export class ImportUtility {
     try {
       // Normalize and process the content into content blocks
       const normalizedContent = songData.content ? normalizeRichContent(songData.content) : '';
-      const contentBlocks = normalizedContent ? 
-        this.processOldContent(normalizedContent) : [];
+      const contentBlocks = sanitizeContentBlocksForStorage(
+        normalizedContent ? this.processOldContent(normalizedContent) : []
+      );
       
       // Create the song
       await this.storage.createSong({
@@ -278,8 +280,9 @@ export class ImportUtility {
     try {
       // Normalize and process the content into content blocks
       const normalizedContent = lessonData.content ? normalizeRichContent(lessonData.content) : '';
-      const contentBlocks = normalizedContent ? 
-        this.processOldContent(normalizedContent) : [];
+      const contentBlocks = sanitizeContentBlocksForStorage(
+        normalizedContent ? this.processOldContent(normalizedContent) : []
+      );
       
       // Create the lesson
       await this.storage.createLesson({
@@ -349,7 +352,7 @@ export class ImportUtility {
       preview: string;
     }>;
   } {
-    const contentBlocks = this.processOldContent(contentString);
+    const contentBlocks = sanitizeContentBlocksForStorage(this.processOldContent(contentString));
     
     return {
       originalContent: contentString,
@@ -360,12 +363,14 @@ export class ImportUtility {
     };
   }
 
-  private getBlockPreview(block: ContentBlock): string {
+  private getBlockPreview(block: any): string {
     switch (block.type) {
+      case 'groovescribe':
       case 'groove':
-        return `Groovescribe pattern: ${block.data.groove?.substring(0, 50)}...`;
+        return `Groovescribe pattern: ${(block.pattern || block.data?.groovescribe || block.data?.groove || '').substring(0, 50)}...`;
+      case 'youtube':
       case 'video':
-        return `Video: ${block.data.video}`;
+        return `Video: ${block.videoId || block.data?.youtube || block.data?.video}`;
       case 'spotify':
         return `Spotify: ${block.data.spotify}`;
       case 'text':
