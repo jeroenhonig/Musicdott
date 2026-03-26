@@ -99,6 +99,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
+    // AVG Art. 17: anonymize the linked student record first (students table
+    // stores PII independently from users and has no CASCADE DELETE).
+    await db
+      .update(students)
+      .set({
+        name: `Deleted Student`,
+        email: `deleted-${id}@anonymized.local`,
+        phone: null,
+        birthdate: null,
+        notes: null,
+      })
+      .where(eq(students.userId, id));
+
     await db.delete(users).where(eq(users.id, id));
     return true;
   }
