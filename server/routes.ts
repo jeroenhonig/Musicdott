@@ -58,7 +58,7 @@ import { importStudents } from "./importStudents";
 import { importSchedule } from "./importSchedule";
 import { resetStudentPassword } from "./services/student-accounts";
 import { fixExistingCorruptedSongs } from "./utils/optimized-import";
-import { logger, sanitizeForLog } from "./utils/logger";
+import { logger } from "./utils/logger";
 
 interface RegisterRoutesOptions {
   minimal?: boolean;

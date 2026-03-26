@@ -9,8 +9,9 @@
  */
 
 import { db } from '../db';
-import { users } from '@shared/schema';
+import { users, students } from '@shared/schema';
 import { lt, and, ne, eq } from 'drizzle-orm';
+import { logger } from '../utils/logger';
 
 const RETENTION_YEARS = parseInt(process.env.DATA_RETENTION_YEARS ?? '3', 10);
 
@@ -45,6 +46,7 @@ export async function runDataRetentionCleanup(): Promise<{ anonymized: number }>
     await db
       .update(users)
       .set({
+        username: `deleted_${id}`,
         name: `Deleted User ${id}`,
         email: `deleted-${id}@anonymized.local`,
         bio: null,
@@ -52,9 +54,21 @@ export async function runDataRetentionCleanup(): Promise<{ anonymized: number }>
       })
       .where(eq(users.id, id));
 
+    // Also anonymize the linked student record (students table stores PII independently)
+    await db
+      .update(students)
+      .set({
+        name: `Deleted Student`,
+        email: `deleted-${id}@anonymized.local`,
+        phone: null,
+        birthdate: null,
+        notes: null,
+      })
+      .where(eq(students.userId, id));
+
     anonymized++;
   }
 
-  console.log(`[data-retention] Anonymized ${anonymized} inactive account(s) (cutoff: ${cutoff.toISOString()})`);
+  logger.info(`Data retention: anonymized ${anonymized} inactive account(s) (cutoff: ${cutoff.toISOString()})`);
   return { anonymized };
 }

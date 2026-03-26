@@ -104,7 +104,7 @@ export const sanitizeForLog = (obj: any): any => {
   if (typeof obj !== 'object' || obj === null) return obj;
   
   const sanitized = { ...obj };
-  const sensitiveFields = ['password', 'token', 'secret', 'key', 'auth'];
+  const sensitiveFields = ['password', 'token', 'secret', 'key', 'auth', 'email'];
   
   for (const key in sanitized) {
     if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
