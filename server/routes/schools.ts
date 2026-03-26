@@ -88,7 +88,6 @@ export function registerSchoolRoutes(app: Express) {
       }
 
       const userId = req.user.id;
-      console.log(`🏫 Getting memberships for user ${userId}`);
 
       // COMPLETE BYPASS: Create school memberships directly from user data
       // This bypasses all problematic database membership queries
@@ -96,13 +95,11 @@ export function registerSchoolRoutes(app: Express) {
       
       // For Stefan and other school owners, create virtual membership from user's schoolId
       if (req.user.schoolId) {
-        console.log(`✅ Creating virtual school membership for user ${userId}, schoolId: ${req.user.schoolId}`);
         
         try {
           // Try to get the school details
           const primarySchool = await storage.getSchool(req.user.schoolId);
           if (primarySchool) {
-            console.log(`✅ Found school: ${primarySchool.name} (ID: ${primarySchool.id})`);
             schoolsWithMemberships.push({
               ...primarySchool,
               membership: {
@@ -157,13 +154,11 @@ export function registerSchoolRoutes(app: Express) {
         }
       }
 
-      console.log(`✅ Successfully returning ${schoolsWithMemberships.length} schools with memberships`);
       res.json(schoolsWithMemberships);
     } catch (error) {
       console.error("Error getting user memberships:", error);
       // Last resort: create minimal response from user data alone
       if (req.user && req.user.schoolId) {
-        console.log("🚨 Creating emergency fallback school membership");
         const emergencyResponse = [{
           id: req.user.schoolId,
           name: "Stefan's Drum School",

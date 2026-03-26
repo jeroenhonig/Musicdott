@@ -119,7 +119,7 @@ export function registerStudentRoutes(app: Express) {
         }
         
         // CRITICAL SECURITY: Enforce school context for multi-tenant isolation
-        console.log(`🔍 Student creation check - user: ${req.user.id}, role: ${req.user.role}, schoolId: ${req.user.schoolId}, req.school:`, req.school ? { id: req.school.id, role: req.school.role } : 'undefined');
+        logger.debug("Student creation check", { role: req.user.role });
 
         if (!req.school || req.school.id === undefined || req.school.id === null) {
           return res.status(400).json({
@@ -143,7 +143,7 @@ export function registerStudentRoutes(app: Express) {
         // Ensure unique email: use provided email or generate unique placeholder
         const studentEmail = validatedData.email || `${validatedData.username}-${Date.now()}@student.musicdott.app`;
         
-        console.log(`🔒 Creating student account for school ${req.school.id} by user ${req.user.id} (${req.school.role})`);
+        
         
         let newUser;
         let student;
@@ -189,7 +189,7 @@ export function registerStudentRoutes(app: Express) {
             notes: notes,
           });
           
-          console.log(`✅ Student account created: ${validatedData.username} (user ID: ${newUser.id}, student ID: ${student.id})`);
+          
           
           res.status(201).json(student);
         } catch (error) {
@@ -197,7 +197,7 @@ export function registerStudentRoutes(app: Express) {
           if (newUser && !student) {
             try {
               await storage.deleteUser(newUser.id);
-              console.log(`🔄 Rolled back user account ${newUser.id} after student creation failure`);
+              
             } catch (rollbackError) {
               console.error("Failed to rollback user account:", rollbackError);
             }

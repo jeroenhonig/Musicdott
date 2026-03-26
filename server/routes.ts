@@ -58,6 +58,7 @@ import { importStudents } from "./importStudents";
 import { importSchedule } from "./importSchedule";
 import { resetStudentPassword } from "./services/student-accounts";
 import { fixExistingCorruptedSongs } from "./utils/optimized-import";
+import { logger, sanitizeForLog } from "./utils/logger";
 
 interface RegisterRoutesOptions {
   minimal?: boolean;
@@ -260,7 +261,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         // Fallback to user-scoped
         reportsData = await storage.generateReportsData(req.user!.id, dateRange, reportType);
       }
-      console.log("Reports data generated successfully:", Object.keys(reportsData), reportsData.summary);
+      logger.debug("Reports data generated successfully", { keys: Object.keys(reportsData) });
       
       res.json(reportsData);
     } catch (error) {
@@ -545,22 +546,19 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
     try {
-      console.log("Creating lesson with request body:", req.body);
-      
       // Validate request data using the corrected schema
       const validatedData = insertLessonSchema.parse(req.body);
-      
+
       // Create lesson data with user context (schoolId and userId set automatically)
       const lessonData = {
         ...validatedData,
-        schoolId: req.user!.schoolId!, // From loadSchoolContext middleware 
+        schoolId: req.user!.schoolId!, // From loadSchoolContext middleware
         userId: req.user!.id,
         contentType: validatedData.contentType || 'markdown', // Default to markdown if not specified
       };
-      
-      console.log("Validated lesson data:", lessonData);
+
       const lesson = await storage.createLesson(lessonData);
-      console.log("Lesson created successfully:", lesson);
+      logger.debug("Lesson created", { lessonId: lesson.id });
       res.status(201).json(lesson);
     } catch (error) {
       console.error("Error creating lesson:", error);
@@ -669,7 +667,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       } else {
         categories = await storage.getLessonCategories(req.user!.id);
       }
-      console.log("Lesson categories retrieved:", categories);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching lesson categories:", error);
@@ -689,9 +686,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         schoolId: req.school.id // CRITICAL: Set schoolId from authenticated school context
       });
       
-      console.log("Creating lesson category with data:", validatedData);
       const category = await storage.createLessonCategory(validatedData);
-      console.log("Lesson category created successfully:", category);
       res.status(201).json(category);
     } catch (error) {
       console.error("Error creating lesson category:", error);
@@ -823,16 +818,12 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     
     try {
       const letter = req.params.letter.toUpperCase();
-      console.log(`getSongsByLetter route called with letter: ${letter}`);
-      console.log(`User ID: ${req.user!.id}`);
-      
+
       if (!/^[A-Z#]$/.test(letter)) {
-        console.log(`Invalid letter format: ${letter}`);
         return res.status(400).json({ message: "Invalid letter format" });
       }
-      
+
       const songs = await storage.getSongsByLetter(req.user!.id, letter);
-      console.log(`Route: Found ${songs.length} songs for letter ${letter}`);
       res.json(songs);
     } catch (error) {
       console.error("Error in getSongsByLetter route:", error);
@@ -2156,29 +2147,26 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
       // Process the webhook event
       const event = req.body;
-      console.log(`📨 Stripe webhook received: ${event.type}`);
+      logger.info(`Stripe webhook received: ${event.type}`);
 
       switch (event.type) {
         case 'payment_intent.succeeded':
-          // Handle successful payment
           const paymentIntent = event.data.object;
-          console.log(`✅ Payment succeeded: ${paymentIntent.id}`);
+          logger.info(`Payment succeeded: ${paymentIntent.id}`);
           break;
-          
+
         case 'payment_intent.payment_failed':
-          // Handle failed payment
           const failedPayment = event.data.object;
-          console.log(`❌ Payment failed: ${failedPayment.id}`);
+          logger.warn(`Payment failed: ${failedPayment.id}`);
           break;
-          
+
         case 'customer.subscription.updated':
-          // Handle subscription changes
           const subscription = event.data.object;
-          console.log(`🔄 Subscription updated: ${subscription.id}`);
+          logger.info(`Subscription updated: ${subscription.id}`);
           break;
-          
+
         default:
-          console.log(`🔔 Unhandled webhook type: ${event.type}`);
+          logger.debug(`Unhandled webhook type: ${event.type}`);
       }
 
       res.json({ received: true });
@@ -2474,7 +2462,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       // Call the utility function to fix corrupted songs
       const fixedCount = await fixExistingCorruptedSongs(schoolId);
       
-      console.log(`Song cleanup completed: ${fixedCount} songs fixed for school ${schoolId}`);
+      logger.info(`Song cleanup completed: ${fixedCount} songs fixed for school ${schoolId}`);
       
       res.json({
         success: true,
@@ -2503,7 +2491,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // User Profile Endpoints
   app.get("/api/user/profile", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Getting user profile for user:", req.user!.id);
       
       const profile = await storage.getCurrentUserProfile(req.user!.id);
       
@@ -2522,7 +2509,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   app.put("/api/user/profile", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Updating user profile for user:", req.user!.id);
       
       // Validate request body
       const validatedData = profileUpdateSchema.parse(req.body);
@@ -2549,7 +2535,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // PATCH alias for profile updates (supports avatar customization)
   app.patch("/api/user/profile", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Patching user profile for user:", req.user!.id, "with:", Object.keys(req.body));
+      logger.debug("Patching user profile", { fields: Object.keys(req.body) });
       
       // For PATCH, use partial validation - allow only valid profile fields
       const partialProfileSchema = profileUpdateSchema.partial();
@@ -2582,7 +2568,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // School Settings Endpoints
   app.get("/api/school/settings", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
     try {
-      console.log("Getting school settings for school:", req.user!.schoolId);
       
       if (!req.user!.schoolId) {
         return res.status(400).json({ message: "No school context available" });
@@ -2604,7 +2589,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // Only school owners can modify school settings
   app.put("/api/school/settings", requireAuth, loadSchoolContext, async (req: Request, res: Response) => {
     try {
-      console.log("Updating school settings for school:", req.user!.schoolId, "by user:", req.user!.id);
+      logger.debug("Updating school settings");
       
       if (!req.user!.schoolId) {
         return res.status(400).json({ message: "No school context available" });
@@ -2640,7 +2625,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // User Notification Settings
   app.get("/api/user/notifications", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Getting notification settings for user:", req.user!.id);
       
       const notifications = await storage.getUserNotifications(req.user!.id);
       
@@ -2665,7 +2649,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   app.put("/api/user/notifications", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Updating notification settings for user:", req.user!.id);
       
       // Validate request body
       const validatedData = notificationSettingsSchema.parse(req.body);
@@ -2778,7 +2761,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   // User Preference Settings
   app.get("/api/user/preferences", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Getting preference settings for user:", req.user!.id);
       
       const preferences = await storage.getUserPreferences(req.user!.id);
       
@@ -2803,7 +2785,6 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   app.put("/api/user/preferences", requireAuth, async (req: Request, res: Response) => {
     try {
-      console.log("Updating preference settings for user:", req.user!.id);
       
       // Validate request body
       const validatedData = preferenceSettingsSchema.parse(req.body);

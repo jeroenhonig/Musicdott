@@ -113,7 +113,14 @@ async function seedAdminAndSchool() {
   let admin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1).then(r => r[0]);
 
   if (!admin) {
-    const adminPassword = await hashPassword(process.env.ADMIN_PASSWORD || 'admin');
+    // Use ADMIN_PASSWORD env var; fall back to a cryptographically random password
+    // so the system is never bootstrapped with a predictable credential.
+    const rawPassword = process.env.ADMIN_PASSWORD || randomBytes(16).toString('hex');
+    if (!process.env.ADMIN_PASSWORD) {
+      console.warn(`\n⚠️  ADMIN_PASSWORD not set — generated one-time password: ${rawPassword}`);
+      console.warn('    Save this now. It will NOT be shown again.\n');
+    }
+    const adminPassword = await hashPassword(rawPassword);
     [admin] = await db.insert(users).values({
       username: process.env.ADMIN_USERNAME || 'admin',
       password: adminPassword,

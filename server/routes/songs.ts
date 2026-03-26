@@ -85,7 +85,6 @@ export function registerSongRoutes(app: Express) {
           });
         }
 
-        console.log(`Songs retrieved for user ${req.user!.id} (${req.user!.role}):`, songs.length);
         res.json(songs);
       } catch (error) {
         console.error("Error getting songs:", error);

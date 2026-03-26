@@ -114,9 +114,9 @@ router.post("/upload", requireAuth, loadSchoolContext, requireTeacherOrOwner(), 
 
   } catch (error) {
     console.error("Video upload error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: error instanceof Error ? error.message : "Failed to upload video" 
+      message: "Failed to upload video"
     });
   }
 });

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { storage } from '../storage-wrapper';
 import { User, SchoolMembership, USER_ROLES } from '@shared/schema';
+import { logger } from '../utils/logger';
 
 // Async handler wrapper to convert async middleware to proper RequestHandler types
 const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>): RequestHandler => 
@@ -106,8 +107,7 @@ export const loadSchoolContext: RequestHandler = asyncHandler(async (req: Reques
       }
     }
 
-    // Log school context setup for debugging
-    console.log(`🏫 loadSchoolContext - user: ${user.id}, role: ${user.role}, userSchoolId: ${user.schoolId}, primarySchoolId: ${primarySchoolId}, memberships: ${memberships.length}`);
+    logger.debug(`loadSchoolContext: role=${user.role} memberships=${memberships.length}`);
 
     // Create school context
     // Platform owners can have id=0 (they access all schools), others need a real schoolId
