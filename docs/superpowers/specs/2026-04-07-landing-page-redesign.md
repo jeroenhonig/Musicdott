@@ -56,7 +56,7 @@ All components live in `client/src/components/landing/`. Rewrite each in-place �
 
 ### 1. `landing-nav.tsx` — rewrite
 - Logo (`musicdott-logo.png`) left
-- Right: `CompactLanguageSelector` + ghost "Inloggen" button + navy "Start gratis →" primary button
+- Right: `CompactLanguageSelector` (import from `@/components/language/language-selector`) + ghost "Inloggen" button + navy "Start gratis →" primary button
 - `bg-white/95 backdrop-blur-xl border-b border-gray-200`
 - Height: `h-16`
 - No changes to props interface (`onLoginClick`)
@@ -65,7 +65,7 @@ All components live in `client/src/components/landing/`. Rewrite each in-place �
 - Badge pill: navy bg, white text — "🎵 Voor muziekscholen en privédocenten"
 - H1 (massive, `text-[clamp(60px,8.5vw,104px)]`, tracking-tight, navy): "Geef les." line break "Niet administratie." (second line in yellow)
 - Sub: "Het enige platform dat gebouwd is rondom de les — niet de boekhouding. Voor eigenaren, docenten én leerlingen."
-- CTAs: primary navy "Start gratis — 30 dagen" + ghost outline "Al een account? Log in →"
+- CTAs: primary navy "Start gratis — 30 dagen" (→ `navigate("/signup")`) + ghost outline "Al een account? Log in →" (→ calls `onLoginClick` prop, same as the nav button — do NOT use `navigate`)
 - Social proof row: 3 green-dot items
 - **Teach Mode preview panel** (new, inlined in hero section):
   - Outer: navy rounded-t-2xl frame with traffic-light dots
@@ -100,10 +100,11 @@ All components live in `client/src/components/landing/`. Rewrite each in-place �
 - Gray bg
 - Label + H2: "19 bloktypen voor élke les"
 - 4-column chip grid (desktop), 2-column (mobile):
-  - YouTube, GrooveScribe, Bladmuziek, Tablature, PDF, Flat.io, ABC-notatie, Spotify, Apple Music, Tekst, Audio, Afbeeldingen, Akkoorddiagram, Songtekst, Audio→Noten, Externe link (16 shown, label says 19 total)
-- Each chip: icon + title + subtitle
+  - YouTube, GrooveScribe, Bladmuziek, Tablature, PDF, Flat.io, ABC-notatie, Spotify, Apple Music, Tekst, Audio, Afbeeldingen, Akkoorddiagram, Songtekst, Audio→Noten, Externe link, Sync-embed, Afbeeldingsgalerij, Rich link (all 19)
+- Each chip: emoji icon + title + subtitle
+- **Do NOT port any content from the old `landing-features.tsx`** — that file contains disallowed billing copy ("Automatische facturering") and will be deleted
 
-### 7. `landing-audience.tsx` — rewrite of existing
+### 7. `landing-audience.tsx` — **new file** (does not exist yet)
 - Label + H2: "Drie mensen. Één platform."
 - 3-column grid (desktop), stacked (mobile)
 - Cards: Eigenaar / Docent (featured, navy border + navy-light bg) / Leerling
@@ -126,6 +127,9 @@ All components live in `client/src/components/landing/`. Rewrite each in-place �
 - Uses `getPricingText(29.95, 49.95)` for amounts
 - Note: `pricing.extraStudents` per 5 leerlingen · 30 dagen niet-goed-geld-terug · geen opstartkosten · opzeggen wanneer je wilt
 - **No mention of student billing** — billing is school's MusicDott subscription only
+- **Explicit Dutch copy fixes required** (current file has wrong copy):
+  - Replace `"Prioriteit support"` → `"Prioriteitsondersteuning"`
+  - Replace `"Custom branding opties"` → `"Eigen branding"`
 
 ### 10. `landing-footer-cta.tsx` — rewrite
 - Navy bg
@@ -133,8 +137,49 @@ All components live in `client/src/components/landing/`. Rewrite each in-place �
 - Sub + yellow button "Start gratis — geen creditcard nodig"
 - Note line + "Proudly built in The Netherlands 🇳🇱"
 
-## `auth-page.tsx` — no changes needed
-The composition file already imports all landing components. New/renamed components need to be added to imports there.
+## `auth-page.tsx` — update imports and JSX
+
+Remove `LandingFeatures` import and add the four new section imports. Update the JSX body to the following composition order (keep all existing state, `useEffect`, `handlePasswordChangeClose`, and `PasswordChangeDialog` unchanged):
+
+```tsx
+import { LandingNav } from "@/components/landing/landing-nav";
+import { LandingLoginModal } from "@/components/landing/landing-login-modal";
+import { LandingHero } from "@/components/landing/landing-hero";
+import { LandingProblem } from "@/components/landing/landing-problem";
+import { LandingStatement } from "@/components/landing/landing-statement";
+import { LandingTeachMode } from "@/components/landing/landing-teach-mode";
+import { LandingBlocks } from "@/components/landing/landing-blocks";
+import { LandingAudience } from "@/components/landing/landing-audience";
+import { LandingTestimonial } from "@/components/landing/landing-testimonial";
+import { LandingPricing } from "@/components/landing/landing-pricing";
+import { LandingFooterCta } from "@/components/landing/landing-footer-cta";
+
+// JSX return:
+return (
+  <>
+    <LandingNav onLoginClick={() => setLoginModalOpen(true)} />
+    <LandingLoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
+    <main>
+      <LandingHero onLoginClick={() => setLoginModalOpen(true)} />
+      <LandingProblem />
+      <LandingStatement />
+      <LandingTeachMode />
+      <LandingBlocks />
+      <LandingAudience />
+      <LandingTestimonial />
+      <LandingPricing />
+      <LandingFooterCta />
+    </main>
+    <PasswordChangeDialog
+      isOpen={showPasswordChange}
+      onClose={handlePasswordChangeClose}
+      isForced={!!user?.mustChangePassword}
+    />
+  </>
+);
+```
+
+**Note:** `LandingLoginModal` is unchanged — keep as-is, no edits needed.
 
 ## Dutch Copy Notes
 
@@ -155,18 +200,19 @@ The composition file already imports all landing components. New/renamed compone
 | `client/src/components/landing/landing-statement.tsx` | **New** |
 | `client/src/components/landing/landing-teach-mode.tsx` | **New** |
 | `client/src/components/landing/landing-blocks.tsx` | **New** (replaces features) |
-| `client/src/components/landing/landing-audience.tsx` | Rewrite |
+| `client/src/components/landing/landing-audience.tsx` | **New** |
 | `client/src/components/landing/landing-testimonial.tsx` | Minor rewrite |
 | `client/src/components/landing/landing-pricing.tsx` | Minor rewrite |
 | `client/src/components/landing/landing-footer-cta.tsx` | Rewrite |
-| `client/src/pages/auth-page.tsx` | Update imports only |
+| `client/src/pages/auth-page.tsx` | Update imports + JSX composition (see section above) |
+| `client/src/components/landing/landing-login-modal.tsx` | No change — keep as-is |
 | `client/src/components/landing/landing-features.tsx` | **Delete** (replaced by landing-blocks) |
 
 ## Responsive Behavior
 
 - **Desktop (≥1024px):** Full layout as described
 - **Tablet (768–1023px):** Features 2-col, audience stacked, pricing stacked
-- **Mobile (<768px):** Everything 1-col, hero H1 smaller, Teach Mode panel hidden or simplified, blocks 2-col
+- **Mobile (<768px):** Everything 1-col, hero H1 smaller, Teach Mode preview panel hidden (`hidden md:block`) on mobile, blocks 2-col
 
 ## Out of Scope
 
