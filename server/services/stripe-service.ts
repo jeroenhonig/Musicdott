@@ -1,7 +1,7 @@
 import { subscriptionService } from "./subscription-service";
 import { db } from "../db";
-import { 
-  schoolSubscriptions, 
+import {
+  schoolSubscriptions,
   teacherSubscriptions,
   paymentHistory,
   users,
@@ -10,20 +10,17 @@ import {
 import { eq, desc } from "drizzle-orm";
 import { format, addMonths } from "date-fns";
 
-// Note: Stripe SDK will be installed when secrets are provided
-let Stripe: any = null;
 let stripe: any = null;
 
-// Initialize Stripe when secrets are available
 export async function initializeStripe() {
   if (process.env.STRIPE_SECRET_KEY) {
     try {
       const StripeConstructor = await import('stripe');
-      Stripe = StripeConstructor.default;
+      const Stripe = StripeConstructor.default;
       stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: '2023-10-16',
+        apiVersion: '2025-02-24.acacia', // latest stable version
       });
-      console.log('Stripe initialized successfully');
+      console.log('✅ Stripe initialized successfully');
       return true;
     } catch (error) {
       console.error('Failed to initialize Stripe:', error);
@@ -44,90 +41,95 @@ export class StripeService {
     }
   }
 
-  // Create Stripe customer for school
+  // Create Stripe customer for a school
   async createSchoolCustomer(schoolId: number) {
     this.ensureStripeReady();
 
-    const school = await db
+    const [school] = await db
       .select()
       .from(schools)
       .where(eq(schools.id, schoolId))
       .limit(1);
 
-    if (!school.length) {
-      throw new Error("School not found");
+    if (!school) throw new Error("School not found");
+
+    // Look up the school owner's email for billing
+    let billingEmail = `billing-school-${schoolId}@musicdott.app`;
+    if (school.ownerId) {
+      const [owner] = await db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, school.ownerId))
+        .limit(1);
+      if (owner?.email) billingEmail = owner.email;
     }
 
-    const schoolData = school[0];
-
     const customer = await stripe.customers.create({
-      name: schoolData.name,
-      email: `billing@${schoolData.name.toLowerCase().replace(/\s+/g, '')}.com`,
+      name: school.name,
+      email: billingEmail,
       metadata: {
         schoolId: schoolId.toString(),
-        type: 'school'
+        type: 'school',
       },
       address: {
-        line1: schoolData.address || '',
-        city: schoolData.city || '',
-        country: 'NL', // Netherlands
-      }
+        line1: school.address || '',
+        city: school.city || '',
+        country: 'NL',
+      },
     });
 
-    // Update school subscription with Stripe customer ID
     await db
       .update(schoolSubscriptions)
-      .set({
-        stripeCustomerId: customer.id,
-        updatedAt: new Date(),
-      })
+      .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
       .where(eq(schoolSubscriptions.schoolId, schoolId));
 
     return customer;
   }
 
-  // Create Stripe customer for individual teacher
+  // Create Stripe customer for an individual teacher
   async createTeacherCustomer(userId: number) {
     this.ensureStripeReady();
 
-    const user = await db
+    const [user] = await db
       .select()
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
 
-    if (!user.length) {
-      throw new Error("User not found");
-    }
-
-    const userData = user[0];
+    if (!user) throw new Error("User not found");
 
     const customer = await stripe.customers.create({
-      name: userData.name,
-      email: userData.email,
+      name: user.name,
+      email: user.email,
       metadata: {
         userId: userId.toString(),
-        type: 'teacher'
-      }
+        type: 'teacher',
+      },
     });
 
-    // Update teacher subscription with Stripe customer ID
     await db
       .update(teacherSubscriptions)
-      .set({
-        stripeCustomerId: customer.id,
-        updatedAt: new Date(),
-      })
+      .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
       .where(eq(teacherSubscriptions.userId, userId));
 
     return customer;
   }
 
-  // Create subscription after trial ends
+  // Create a Stripe subscription using a saved payment method.
+  // Uses an existing Stripe Price object (recommended) or a price_data fallback.
   async createStripeSubscription(customerId: string, type: 'school' | 'teacher', entityId: number) {
     this.ensureStripeReady();
 
-    // Create a usage-based subscription that will be updated monthly
+    // Determine current pricing for this entity
+    let amountInCents: number;
+    if (type === 'school') {
+      const pricing = await subscriptionService.calculateSchoolMonthlyPrice(entityId);
+      amountInCents = pricing.totalPrice;
+    } else {
+      const pricing = await subscriptionService.calculateTeacherMonthlyPrice(entityId);
+      amountInCents = pricing.totalPrice;
+    }
+
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [
@@ -135,35 +137,36 @@ export class StripeService {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: 'MusicDott Subscription',
-              description: 'Monthly subscription based on usage'
+              name: 'MusicDott Abonnement',
+              description: `Maandelijks abonnement gebaseerd op gebruik`,
             },
-            unit_amount: 2995, // Base price (€29.95)
-            recurring: {
-              interval: 'month'
-            }
+            unit_amount: amountInCents,
+            recurring: { interval: 'month' },
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
+      // default_incomplete: klant moet betaalmethode koppelen voordat subscription actief wordt
       payment_behavior: 'default_incomplete',
+      payment_settings: {
+        payment_method_types: ['card', 'sepa_debit'],
+        save_default_payment_method: 'on_subscription',
+      },
       expand: ['latest_invoice.payment_intent'],
-      metadata: {
-        type,
-        entityId: entityId.toString()
-      }
+      metadata: { type, entityId: entityId.toString() },
     });
 
-    // Update subscription record with Stripe subscription ID
+    // Update local subscription record
+    const now = new Date();
     if (type === 'school') {
       await db
         .update(schoolSubscriptions)
         .set({
           stripeSubscriptionId: subscription.id,
           status: 'active',
-          billingPeriodStart: new Date(),
-          billingPeriodEnd: addMonths(new Date(), 1),
-          updatedAt: new Date(),
+          billingPeriodStart: now,
+          billingPeriodEnd: addMonths(now, 1),
+          updatedAt: now,
         })
         .where(eq(schoolSubscriptions.schoolId, entityId));
     } else {
@@ -172,9 +175,9 @@ export class StripeService {
         .set({
           stripeSubscriptionId: subscription.id,
           status: 'active',
-          billingPeriodStart: new Date(),
-          billingPeriodEnd: addMonths(new Date(), 1),
-          updatedAt: new Date(),
+          billingPeriodStart: now,
+          billingPeriodEnd: addMonths(now, 1),
+          updatedAt: now,
         })
         .where(eq(teacherSubscriptions.userId, entityId));
     }
@@ -182,38 +185,30 @@ export class StripeService {
     return subscription;
   }
 
-  // Update subscription pricing based on current usage
-  async updateSubscriptionPricing(stripeSubscriptionId: string, newAmount: number, description: string) {
+  // Update Stripe subscription item price for the next billing cycle
+  async updateSubscriptionPricing(stripeSubscriptionId: string, newAmountCents: number, description: string) {
     this.ensureStripeReady();
 
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-    
-    // Update the subscription item with new pricing
-    await stripe.subscriptionItems.update(
-      subscription.items.data[0].id,
-      {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'MusicDott Subscription',
-            description
-          },
-          unit_amount: newAmount,
-          recurring: {
-            interval: 'month'
-          }
-        }
-      }
-    );
+    const itemId = subscription.items.data[0]?.id;
+    if (!itemId) throw new Error("No subscription item found");
+
+    await stripe.subscriptionItems.update(itemId, {
+      price_data: {
+        currency: 'eur',
+        product_data: { name: 'MusicDott Abonnement', description },
+        unit_amount: newAmountCents,
+        recurring: { interval: 'month' },
+      },
+    });
 
     return subscription;
   }
 
   // Process monthly billing for all active subscriptions
   async processMonthlyBilling() {
-    console.log('Starting monthly billing process...');
+    console.log('🔄 Starting monthly billing process...');
 
-    // Process school subscriptions
     const activeSchoolSubs = await db
       .select()
       .from(schoolSubscriptions)
@@ -221,14 +216,13 @@ export class StripeService {
 
     for (const schoolSub of activeSchoolSubs) {
       try {
-        await this.processSchoolBilling(schoolSub.schoolId);
-        console.log(`Processed billing for school ${schoolSub.schoolId}`);
-      } catch (error) {
-        console.error(`Failed to process billing for school ${schoolSub.schoolId}:`, error);
+        await this.processSchoolBilling(schoolSub.schoolId!);
+        console.log(`✅ Billing processed for school ${schoolSub.schoolId}`);
+      } catch (error: any) {
+        console.error(`❌ Billing failed for school ${schoolSub.schoolId}:`, error.message);
       }
     }
 
-    // Process teacher subscriptions
     const activeTeacherSubs = await db
       .select()
       .from(teacherSubscriptions)
@@ -236,58 +230,48 @@ export class StripeService {
 
     for (const teacherSub of activeTeacherSubs) {
       try {
-        await this.processTeacherBilling(teacherSub.userId);
-        console.log(`Processed billing for teacher ${teacherSub.userId}`);
-      } catch (error) {
-        console.error(`Failed to process billing for teacher ${teacherSub.userId}:`, error);
+        await this.processTeacherBilling(teacherSub.userId!);
+        console.log(`✅ Billing processed for teacher ${teacherSub.userId}`);
+      } catch (error: any) {
+        console.error(`❌ Billing failed for teacher ${teacherSub.userId}:`, error.message);
       }
     }
 
-    console.log('Monthly billing process completed');
+    console.log('✅ Monthly billing process completed');
   }
 
   // Process billing for a specific school
   async processSchoolBilling(schoolId: number) {
     this.ensureStripeReady();
 
-    const subscription = await db
+    const [sub] = await db
       .select()
       .from(schoolSubscriptions)
       .where(eq(schoolSubscriptions.schoolId, schoolId))
       .orderBy(desc(schoolSubscriptions.createdAt))
       .limit(1);
 
-    if (!subscription.length || subscription[0].status !== 'active') {
-      return;
-    }
+    if (!sub || sub.status !== 'active') return;
 
-    const sub = subscription[0];
     const pricing = await subscriptionService.calculateSchoolMonthlyPrice(schoolId);
-    
-    // Update Stripe subscription with current pricing
+
+    // Update Stripe subscription pricing for next cycle
     if (sub.stripeSubscriptionId) {
-      const description = `MusicDott subscription - ${pricing.basePlan.name} plan`;
-      await this.updateSubscriptionPricing(
-        sub.stripeSubscriptionId, 
-        pricing.total, 
-        description
-      );
+      const description = `MusicDott ${pricing.plan} plan`;
+      await this.updateSubscriptionPricing(sub.stripeSubscriptionId, pricing.totalPrice, description);
     }
 
-    // Create invoice record
+    // Record as 'pending' — Stripe webhook will update to 'succeeded' or 'failed'
     const billingMonth = format(new Date(), 'yyyy-MM');
-    await db
-      .insert(paymentHistory)
-      .values({
-        schoolId,
-        amount: pricing.total,
-        currency: 'eur',
-        status: 'succeeded',
-        description: `Monthly subscription for ${billingMonth}`,
-        billingMonth,
-        stripeInvoiceId: null, // Will be updated by webhook
-        paymentDate: new Date(),
-      });
+    await db.insert(paymentHistory).values({
+      schoolId,
+      amount: pricing.totalPrice,
+      currency: 'eur',
+      status: 'pending',
+      description: `Maandelijks abonnement ${billingMonth}`,
+      billingMonth,
+      paymentDate: new Date(),
+    });
 
     // Update billing period
     await db
@@ -304,46 +288,33 @@ export class StripeService {
   async processTeacherBilling(userId: number) {
     this.ensureStripeReady();
 
-    const subscription = await db
+    const [sub] = await db
       .select()
       .from(teacherSubscriptions)
       .where(eq(teacherSubscriptions.userId, userId))
       .orderBy(desc(teacherSubscriptions.createdAt))
       .limit(1);
 
-    if (!subscription.length || subscription[0].status !== 'active') {
-      return;
-    }
+    if (!sub || sub.status !== 'active') return;
 
-    const sub = subscription[0];
     const pricing = await subscriptionService.calculateTeacherMonthlyPrice(userId);
-    
-    // Update Stripe subscription with current pricing
+
     if (sub.stripeSubscriptionId) {
-      const description = `MusicDott teacher subscription - ${pricing.basePlan.name} plan`;
-      await this.updateSubscriptionPricing(
-        sub.stripeSubscriptionId, 
-        pricing.total, 
-        description
-      );
+      const description = `MusicDott leraar ${pricing.plan} plan`;
+      await this.updateSubscriptionPricing(sub.stripeSubscriptionId, pricing.totalPrice, description);
     }
 
-    // Create invoice record
     const billingMonth = format(new Date(), 'yyyy-MM');
-    await db
-      .insert(paymentHistory)
-      .values({
-        userId,
-        amount: pricing.total,
-        currency: 'eur',
-        status: 'succeeded',
-        description: `Monthly teacher subscription for ${billingMonth}`,
-        billingMonth,
-        stripeInvoiceId: null,
-        paymentDate: new Date(),
-      });
+    await db.insert(paymentHistory).values({
+      userId,
+      amount: pricing.totalPrice,
+      currency: 'eur',
+      status: 'pending',
+      description: `Maandelijks leraar abonnement ${billingMonth}`,
+      billingMonth,
+      paymentDate: new Date(),
+    });
 
-    // Update billing period
     await db
       .update(teacherSubscriptions)
       .set({
@@ -354,10 +325,8 @@ export class StripeService {
       .where(eq(teacherSubscriptions.id, sub.id));
   }
 
-  // Handle Stripe webhooks
+  // Handle verified Stripe webhooks
   async handleWebhook(event: any) {
-    this.ensureStripeReady();
-
     switch (event.type) {
       case 'invoice.payment_succeeded':
         await this.handlePaymentSucceeded(event.data.object);
@@ -368,106 +337,151 @@ export class StripeService {
       case 'customer.subscription.deleted':
         await this.handleSubscriptionCanceled(event.data.object);
         break;
+      case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdated(event.data.object);
+        break;
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`[Stripe webhook] Unhandled event type: ${event.type}`);
     }
   }
 
-  // Handle successful payment
   private async handlePaymentSucceeded(invoice: any) {
-    const subscriptionId = invoice.subscription;
-    const customerId = invoice.customer;
-    
-    // Update payment status
+    const stripeInvoiceId = invoice.id;
+
+    // Update the specific pending payment that matches this invoice
     await db
       .update(paymentHistory)
-      .set({
-        status: 'succeeded',
-        stripeInvoiceId: invoice.id,
-      })
-      .where(eq(paymentHistory.stripeInvoiceId, invoice.id));
+      .set({ status: 'succeeded', stripeInvoiceId })
+      .where(eq(paymentHistory.stripeInvoiceId, stripeInvoiceId));
 
-    console.log(`Payment succeeded for invoice ${invoice.id}`);
+    console.log(`✅ [Webhook] Payment succeeded: invoice ${stripeInvoiceId}`);
   }
 
-  // Handle failed payment
   private async handlePaymentFailed(invoice: any) {
-    const subscriptionId = invoice.subscription;
-    
-    // Update payment status and subscription status
+    const stripeInvoiceId = invoice.id;
+    const stripeSubscriptionId = invoice.subscription;
+
     await db
       .update(paymentHistory)
-      .set({
-        status: 'failed',
-        stripeInvoiceId: invoice.id,
-      })
-      .where(eq(paymentHistory.stripeInvoiceId, invoice.id));
+      .set({ status: 'failed', stripeInvoiceId })
+      .where(eq(paymentHistory.stripeInvoiceId, stripeInvoiceId));
 
-    // Mark subscription as past due
-    await db
-      .update(schoolSubscriptions)
-      .set({
-        status: 'past_due',
-        updatedAt: new Date(),
-      })
-      .where(eq(schoolSubscriptions.stripeSubscriptionId, subscriptionId));
+    if (stripeSubscriptionId) {
+      await db
+        .update(schoolSubscriptions)
+        .set({ status: 'past_due', updatedAt: new Date() })
+        .where(eq(schoolSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
 
-    await db
-      .update(teacherSubscriptions)
-      .set({
-        status: 'past_due',
-        updatedAt: new Date(),
-      })
-      .where(eq(teacherSubscriptions.stripeSubscriptionId, subscriptionId));
+      await db
+        .update(teacherSubscriptions)
+        .set({ status: 'past_due', updatedAt: new Date() })
+        .where(eq(teacherSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+    }
 
-    console.log(`Payment failed for invoice ${invoice.id}`);
+    console.log(`❌ [Webhook] Payment failed: invoice ${stripeInvoiceId}`);
   }
 
-  // Handle subscription cancellation
   private async handleSubscriptionCanceled(subscription: any) {
-    // Mark subscription as canceled
+    const stripeSubscriptionId = subscription.id;
+
     await db
       .update(schoolSubscriptions)
-      .set({
-        status: 'canceled',
-        updatedAt: new Date(),
-      })
-      .where(eq(schoolSubscriptions.stripeSubscriptionId, subscription.id));
+      .set({ status: 'canceled', updatedAt: new Date() })
+      .where(eq(schoolSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
 
     await db
       .update(teacherSubscriptions)
-      .set({
-        status: 'canceled',
-        updatedAt: new Date(),
-      })
-      .where(eq(teacherSubscriptions.stripeSubscriptionId, subscription.id));
+      .set({ status: 'canceled', updatedAt: new Date() })
+      .where(eq(teacherSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
 
-    console.log(`Subscription canceled: ${subscription.id}`);
+    console.log(`[Webhook] Subscription canceled: ${stripeSubscriptionId}`);
   }
 
-  // Create payment intent for subscription setup
+  private async handleSubscriptionUpdated(subscription: any) {
+    const stripeSubscriptionId = subscription.id;
+    const status = subscription.status === 'active' ? 'active' : subscription.status;
+
+    await db
+      .update(schoolSubscriptions)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(schoolSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+
+    await db
+      .update(teacherSubscriptions)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(teacherSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+  }
+
+  // Create SetupIntent so the customer can save a payment method before first charge
   async createSetupIntent(customerId: string) {
     this.ensureStripeReady();
 
-    const setupIntent = await stripe.setupIntents.create({
+    return await stripe.setupIntents.create({
       customer: customerId,
-      payment_method_types: ['card', 'sepa_debit'],
-      usage: 'off_session'
+      // Use dynamic payment methods via dashboard instead of hardcoding
+      automatic_payment_methods: { enabled: true },
+      usage: 'off_session',
     });
-
-    return setupIntent;
   }
 
-  // Get customer's payment methods
+  // Get all payment methods for a customer (card + SEPA debit)
   async getPaymentMethods(customerId: string) {
     this.ensureStripeReady();
 
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: customerId,
-      type: 'card'
-    });
+    const [cards, sepaDebits] = await Promise.all([
+      stripe.paymentMethods.list({ customer: customerId, type: 'card' }),
+      stripe.paymentMethods.list({ customer: customerId, type: 'sepa_debit' }),
+    ]);
 
-    return paymentMethods;
+    return {
+      data: [...cards.data, ...sepaDebits.data],
+    };
+  }
+
+  // Issue a refund via Stripe
+  async issueRefund(paymentIntentId: string, amountCents: number | null, reason: string) {
+    this.ensureStripeReady();
+
+    const refundParams: any = {
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+      metadata: { reason },
+    };
+
+    if (amountCents) {
+      refundParams.amount = amountCents;
+    }
+
+    return await stripe.refunds.create(refundParams);
+  }
+
+  // List recent Stripe invoices
+  async listInvoices(limit = 50) {
+    this.ensureStripeReady();
+    return await stripe.invoices.list({ limit });
+  }
+
+  // List recent Stripe payment intents
+  async listPaymentIntents(limit = 50) {
+    this.ensureStripeReady();
+    return await stripe.paymentIntents.list({ limit });
+  }
+
+  // List recent Stripe refunds
+  async listRefunds(limit = 50) {
+    this.ensureStripeReady();
+    return await stripe.refunds.list({ limit });
+  }
+
+  // Update Stripe customer credit balance (negative balance = credit)
+  async applyCustomerCredit(customerId: string, amountCents: number, description: string) {
+    this.ensureStripeReady();
+
+    return await stripe.customers.createBalanceTransaction(customerId, {
+      amount: -Math.abs(amountCents), // negative = credit
+      currency: 'eur',
+      description,
+    });
   }
 }
 

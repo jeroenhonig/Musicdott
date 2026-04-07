@@ -317,40 +317,41 @@ class EnhancedStripeService {
   }> {
     try {
       if (!isDatabaseAvailable) {
-        // Mock data for development
+        // Mock data for development — (97-50)/5 = 9.4 → 10 blokken → €49.95 + 10×€4.50 = €94.95
         return {
           schoolId,
           schoolName: "Stefan van de Brug Drum School",
           activeTeachers: 1,
           activeStudents: 97,
           currentPlan: "pro",
-          extraBlocks: 10, // (97-50)/5 = 9.4 rounded up
-          monthlyAmount: 94.45, // €49.95 + (10 * €4.50)
-          lastBillingDate: "2025-07-01T02:00:00Z",
-          nextBillingDate: "2025-08-01T02:00:00Z",
+          extraBlocks: 10,
+          monthlyAmount: 9495, // in cents: €94.95
+          lastBillingDate: null,
+          nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           paymentStatus: "active"
         };
       }
 
-      // Get real usage data
+      // Get real usage data — pricing.plan, .teacherCount, .studentCount, .totalPrice now always present
       const pricing = await subscriptionService.calculateSchoolMonthlyPrice(schoolId);
-      if (!pricing) {
-        throw new Error(`Unable to calculate pricing for school ${schoolId}`);
-      }
 
       // Get school name
-      const school = await db
+      const [school] = await db
         .select({ name: schools.name })
         .from(schools)
         .where(eq(schools.id, schoolId))
         .limit(1);
 
-      const schoolName = school[0]?.name || `School ${schoolId}`;
+      const schoolName = school?.name || `School ${schoolId}`;
+      const extraBlocks = Math.ceil(pricing.extraStudents / 5);
 
-      // Calculate extra blocks
-      const includedStudents = pricing.plan === 'pro' ? 50 : 25;
-      const extraStudents = Math.max(0, pricing.studentCount - includedStudents);
-      const extraBlocks = Math.ceil(extraStudents / 5);
+      // Get last billing date from payment history
+      const [lastPayment] = await db
+        .select({ paymentDate: paymentHistory.paymentDate })
+        .from(paymentHistory)
+        .where(eq(paymentHistory.schoolId, schoolId))
+        .orderBy(desc(paymentHistory.createdAt))
+        .limit(1);
 
       return {
         schoolId,
@@ -359,9 +360,9 @@ class EnhancedStripeService {
         activeStudents: pricing.studentCount,
         currentPlan: pricing.plan,
         extraBlocks,
-        monthlyAmount: pricing.totalPrice,
-        lastBillingDate: "2025-07-01T02:00:00Z",
-        nextBillingDate: "2025-08-01T02:00:00Z",
+        monthlyAmount: pricing.totalPrice, // in cents
+        lastBillingDate: lastPayment?.paymentDate?.toISOString() ?? null,
+        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         paymentStatus: "active"
       };
     } catch (error) {
@@ -461,105 +462,72 @@ class EnhancedStripeService {
         });
       }
 
-      // Process payment with enhanced error handling and Stripe API wrapper
+      // Stripe not configured — log intent but don't charge
       if (!stripe) {
-        console.log(`💰 [MOCK] Would charge school ${schoolId}: €${currentAmount.toFixed(2)}`);
-        
-        // Simulate payment success/failure for testing
-        const shouldSimulateFailure = Math.random() < 0.1; // 10% failure rate for testing
-        
-        if (shouldSimulateFailure) {
-          // Log failed billing run
-          await this.logSchoolBillingRun(schoolId, {
-            planApplied: pricing.plan,
-            teacherCount: pricing.teacherCount,
-            studentCount: pricing.studentCount,
-            amountCharged: amountInCents,
-            success: false,
-            errorMessage: "Simulated payment failure for testing",
-            fallbackFlags: ["mock_failure"]
-          });
+        console.log(`💰 [STRIPE NOT CONFIGURED] Would charge school ${schoolId}: €${(currentAmount / 100).toFixed(2)}`);
 
-          await BillingAuditService.handleFailedPayment(
-            schoolId, 
-            amountInCents, 
-            "Simulated payment failure for testing"
-          );
-          return { success: false, error: "Simulated payment failure", amount: 0 };
-        } else {
-          // Log successful billing run
-          await this.logSchoolBillingRun(schoolId, {
-            planApplied: pricing.plan,
-            teacherCount: pricing.teacherCount,
-            studentCount: pricing.studentCount,
-            amountCharged: amountInCents,
-            success: true,
-            fallbackFlags: ["mock_success"]
-          });
-
-          await BillingAuditService.handleSuccessfulPayment(
-            schoolId, 
-            amountInCents
-          );
-          
-          // Update billing summary
-          await BillingAuditService.updateSchoolBillingSummary(schoolId, {
-            currentPlan: pricing.plan,
-            teacherCount: pricing.teacherCount,
-            studentCount: pricing.studentCount,
-            lastBillingAmount: currentAmount,
-            nextBillingAmount: currentAmount,
-            lastBillingDate: new Date(),
-            nextBillingDate: addMonths(new Date(), 1),
-            paymentStatus: 'active'
-          });
-          
-          return { success: true, amount: amountInCents };
-        }
-      }
-
-      // Real Stripe payment processing with retry mechanism
-      try {
-        const stripeResult = await this.makeStripeApiCall(
-          async () => {
-            // This would be the actual Stripe payment processing
-            // For now, return mock success
-            return { id: 'mock_payment_id', status: 'succeeded' };
-          },
-          'process_payment',
-          schoolId
-        );
-
-        // Log successful billing run
-        await this.logSchoolBillingRun(schoolId, {
-          planApplied: pricing.plan,
-          teacherCount: pricing.teacherCount,
-          studentCount: pricing.studentCount,
-          amountCharged: amountInCents,
-          success: true
-        });
-
-        await BillingAuditService.handleSuccessfulPayment(
-          schoolId, 
-          amountInCents,
-          stripeResult.id
-        );
-
-        return { success: true, amount: amountInCents };
-      } catch (stripeError) {
-        // Log failed billing run
         await this.logSchoolBillingRun(schoolId, {
           planApplied: pricing.plan,
           teacherCount: pricing.teacherCount,
           studentCount: pricing.studentCount,
           amountCharged: amountInCents,
           success: false,
-          errorMessage: stripeError.message,
-          fallbackFlags: ["stripe_failure"]
+          errorMessage: "Stripe not configured — STRIPE_SECRET_KEY missing",
+          fallbackFlags: ["stripe_not_configured"]
         });
 
-        throw stripeError;
+        await BillingAuditService.createBillingAlert({
+          schoolId,
+          alertType: 'stripe_not_configured',
+          severity: 'critical',
+          title: 'Stripe niet geconfigureerd',
+          message: 'STRIPE_SECRET_KEY ontbreekt. Betalingen worden niet verwerkt.',
+          actionRequired: true,
+        });
+
+        return { success: false, error: "Stripe not configured", amount: 0 };
       }
+
+      // Real Stripe payment processing via subscription update + invoice finalization
+      const stripeResult = await this.makeStripeApiCall(
+        async () => {
+          // The subscription was already updated with the correct price by processSchoolBilling.
+          // Stripe will auto-create and charge the invoice at period end.
+          // For manual/immediate billing, we finalize the latest draft invoice.
+          const [sub] = await db
+            .select({ stripeSubscriptionId: schoolSubscriptions.stripeSubscriptionId })
+            .from(schoolSubscriptions)
+            .where(eq(schoolSubscriptions.schoolId, schoolId))
+            .orderBy(desc(schoolSubscriptions.createdAt))
+            .limit(1);
+
+          if (sub?.stripeSubscriptionId) {
+            const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId, {
+              expand: ['latest_invoice'],
+            });
+            const latestInvoice = stripeSubscription.latest_invoice as any;
+            if (latestInvoice?.status === 'draft') {
+              await stripe.invoices.finalizeInvoice(latestInvoice.id);
+              await stripe.invoices.pay(latestInvoice.id);
+              return { id: latestInvoice.id, status: 'paid' };
+            }
+            return { id: latestInvoice?.id ?? 'no_invoice', status: latestInvoice?.status ?? 'unknown' };
+          }
+          return { id: 'no_subscription', status: 'no_stripe_subscription' };
+        },
+        'process_school_payment',
+        schoolId
+      );
+
+      await this.logSchoolBillingRun(schoolId, {
+        planApplied: pricing.plan,
+        teacherCount: pricing.teacherCount,
+        studentCount: pricing.studentCount,
+        amountCharged: amountInCents,
+        success: true
+      });
+
+      await BillingAuditService.handleSuccessfulPayment(schoolId, amountInCents, stripeResult.id);
       
     } catch (error) {
       console.error(`Failed to process school billing for ${schoolId}:`, error);
@@ -677,9 +645,9 @@ class EnhancedStripeService {
       }
 
       const warnings = [];
-      const schools = await db.select().from(db.schools);
+      const schoolList = await db.select().from(schools);
 
-      for (const school of schools) {
+      for (const school of schoolList) {
         try {
           const currentUsage = await this.getSchoolUsageSummary(school.id);
           

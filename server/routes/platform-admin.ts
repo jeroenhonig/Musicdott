@@ -1387,6 +1387,104 @@ export function registerPlatformAdminRoutes(app: Express) {
     }
   });
 
+  // Complete subscriptions overview for the owner dashboard
+  app.get("/api/admin/billing/subscriptions", ...platformAdminHandlers, async (_req: Request, res: Response) => {
+    try {
+      const result = await executeQuery(`
+        SELECT
+          s.id AS school_id,
+          s.name AS school_name,
+          s.city,
+          sub.id AS subscription_id,
+          sub.status,
+          sub.plan_type,
+          sp.display_name AS plan_display_name,
+          sp.price_monthly AS plan_price_monthly,
+          sub.trial_start_date,
+          sub.trial_end_date,
+          sub.current_teacher_count,
+          sub.current_student_count,
+          sub.total_student_licenses,
+          sub.extra_student_licenses,
+          sub.stripe_customer_id,
+          sub.stripe_subscription_id,
+          sub.billing_period_start,
+          sub.billing_period_end,
+          sub.created_at AS subscription_since,
+          sbs.payment_status,
+          sbs.last_billing_amount,
+          sbs.last_billing_date,
+          sbs.next_billing_amount,
+          sbs.next_billing_date,
+          (
+            SELECT COUNT(*) FROM payment_history ph
+            WHERE ph.school_id = s.id AND ph.status = 'failed'
+          ) AS failed_payments_total,
+          (
+            SELECT COALESCE(SUM(amount), 0) FROM payment_history ph
+            WHERE ph.school_id = s.id AND ph.status = 'succeeded'
+          ) AS total_revenue_cents
+        FROM schools s
+        LEFT JOIN subscriptions sub ON sub.school_id = s.id
+        LEFT JOIN subscription_plans sp ON sub.plan_id = sp.id
+        LEFT JOIN school_billing_summary sbs ON sbs.school_id = s.id
+        ORDER BY s.name ASC
+      `);
+
+      res.json(result.rows.map(row => ({
+        schoolId: row.school_id,
+        schoolName: row.school_name,
+        city: row.city,
+        subscriptionId: row.subscription_id,
+        status: row.status || 'none',
+        planType: row.plan_type || 'none',
+        planDisplayName: row.plan_display_name || '-',
+        planPriceMonthly: row.plan_price_monthly || 0,
+        trialStartDate: row.trial_start_date,
+        trialEndDate: row.trial_end_date,
+        currentTeacherCount: row.current_teacher_count || 0,
+        currentStudentCount: row.current_student_count || 0,
+        totalStudentLicenses: row.total_student_licenses || 25,
+        extraStudentLicenses: row.extra_student_licenses || 0,
+        stripeCustomerId: row.stripe_customer_id,
+        stripeSubscriptionId: row.stripe_subscription_id,
+        billingPeriodStart: row.billing_period_start,
+        billingPeriodEnd: row.billing_period_end,
+        subscriptionSince: row.subscription_since,
+        paymentStatus: row.payment_status || 'unknown',
+        lastBillingAmount: row.last_billing_amount || 0,
+        lastBillingDate: row.last_billing_date,
+        nextBillingAmount: row.next_billing_amount || 0,
+        nextBillingDate: row.next_billing_date,
+        failedPaymentsTotal: parseInt(row.failed_payments_total) || 0,
+        totalRevenueCents: parseInt(row.total_revenue_cents) || 0,
+      })));
+    } catch (error) {
+      console.error("Error fetching subscriptions overview:", error);
+      res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
+  // Payment history per school (for owner dashboard drill-down)
+  app.get("/api/admin/billing/payment-history/:schoolId", ...platformAdminHandlers, async (req: Request, res: Response) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId, 10);
+      const result = await executeQuery(
+        `SELECT id, amount, currency, status, description, billing_month, stripe_invoice_id,
+                payment_date, stripe_payment_intent_id, created_at
+         FROM payment_history
+         WHERE school_id = $1
+         ORDER BY created_at DESC
+         LIMIT 50`,
+        [schoolId]
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching payment history:", error);
+      res.status(500).json({ message: "Failed to fetch payment history" });
+    }
+  });
+
   app.get("/api/admin/platform-stats", ...platformAdminHandlers, async (_req: Request, res: Response) => {
     try {
       const messageStats = await storage.getMessageStats();
