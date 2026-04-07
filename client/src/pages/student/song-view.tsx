@@ -1,11 +1,13 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, X, Music, Clock, User } from "lucide-react";
+import { ArrowLeft, Music, Clock, Gauge, Tag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SongContentViewer from "@/components/songs/song-content-viewer";
 import AppLayout from "@/components/layouts/app-layout";
+import StudentContentHeader from "@/components/student/student-content-header";
+import StudentViewSkeleton from "@/components/student/student-view-skeleton";
+import type { MetadataBadge } from "@/components/student/student-content-header";
 
 export default function StudentSongView() {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +19,7 @@ export default function StudentSongView() {
   });
 
   if (isLoading) {
-    return (
-      <AppLayout title="Loading Song...">
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
+    return <StudentViewSkeleton showMetadataBadges />;
   }
 
   if (!song) {
@@ -42,62 +38,29 @@ export default function StudentSongView() {
     );
   }
 
-  const renderContentBlocks = () => {
-    if (!song.contentBlocks) return null;
-    
-    return (
-      <SongContentViewer 
-        contentBlocks={song.contentBlocks}
-      />
-    );
-  };
+  const badges: MetadataBadge[] = [
+    ...(song.difficulty ? [{ label: song.difficulty, variant: 'secondary' as const }] : []),
+    ...(song.instrument ? [{ icon: Music, label: song.instrument, variant: 'outline' as const }] : []),
+    ...(song.duration ? [{ icon: Clock, label: song.duration, variant: 'outline' as const }] : []),
+    ...(song.bpm ? [{ icon: Gauge, label: `${song.bpm} BPM`, variant: 'outline' as const }] : []),
+    ...(song.key ? [{ label: `Key: ${song.key}`, variant: 'outline' as const }] : []),
+    ...(song.genre ? [{ icon: Tag, label: song.genre, variant: 'outline' as const }] : []),
+  ];
+
+  const hasContent = song.contentBlocks && (
+    Array.isArray(song.contentBlocks)
+      ? song.contentBlocks.length > 0
+      : song.contentBlocks !== "[]" && song.contentBlocks !== ""
+  );
 
   return (
     <AppLayout title={song.title}>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">{song.title}</h1>
-              {song.artist && (
-                <p className="text-gray-600 mt-1">by {song.artist}</p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => window.history.back()}
-              className="hover:bg-gray-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {song.difficulty && (
-              <Badge variant="secondary">
-                {song.difficulty}
-              </Badge>
-            )}
-            {song.instrument && (
-              <Badge variant="outline">
-                <Music className="h-3 w-3 mr-1" />
-                {song.instrument}
-              </Badge>
-            )}
-            {song.duration && (
-              <Badge variant="outline">
-                <Clock className="h-3 w-3 mr-1" />
-                {song.duration}
-              </Badge>
-            )}
-            {song.genre && (
-              <Badge variant="outline">
-                {song.genre}
-              </Badge>
-            )}
-          </div>
-        </div>
+        <StudentContentHeader
+          title={song.title}
+          subtitle={song.artist ? `by ${song.artist}` : undefined}
+          badges={badges}
+        />
 
         {song.description && (
           <Card>
@@ -111,9 +74,9 @@ export default function StudentSongView() {
         )}
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          {renderContentBlocks()}
-
-          {(!song.contentBlocks || song.contentBlocks === "[]") && (
+          {hasContent ? (
+            <SongContentViewer contentBlocks={song.contentBlocks} />
+          ) : (
             <div className="text-center py-8">
               <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No practice materials yet</h3>

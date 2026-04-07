@@ -9,6 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SmartPasteInput from "@/components/shared/smart-paste-input";
 import { 
   Plus, 
   Trash2, 
@@ -102,21 +104,27 @@ export default function ContentBlockManager({
   };
 
   const handleAddBlock = (type: ContentBlockType) => {
-    console.log('Adding block of type:', type);
     const newBlock = createBlock(type);
-    console.log('Created new block:', newBlock);
     const updatedBlocks = [...blocks, newBlock];
-    console.log('Updated blocks array:', updatedBlocks);
     onChange(updatedBlocks);
     setIsAddDialogOpen(false);
   };
 
+  const handleSmartPasteBlock = (type: string, data: Record<string, unknown>) => {
+    const blockType = type as ContentBlockType;
+    const newBlock: ContentBlock = {
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: blockType,
+      data: data as ContentBlock['data'],
+    };
+    onChange([...blocks, newBlock]);
+    setIsAddDialogOpen(false);
+  };
+
   const handleUpdateBlock = (blockId: string, data: Partial<ContentBlock['data']>) => {
-    console.log('Updating block:', blockId, 'with data:', data);
     const updatedBlocks = blocks.map(block =>
       block.id === blockId ? { ...block, data: { ...block.data, ...data } } : block
     );
-    console.log('Updated blocks:', updatedBlocks);
     onChange(updatedBlocks);
   };
 
@@ -332,17 +340,11 @@ export default function ContentBlockManager({
 
       {/* Add Content Block */}
       {editable && (
-        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-          console.log('Dialog onOpenChange called with:', open);
-          setIsAddDialogOpen(open);
-        }}>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Card 
+            <Card
               className="border-dashed border-2 hover:border-gray-400 transition-colors cursor-pointer"
-              onClick={() => {
-                console.log('Add content card clicked');
-                setIsAddDialogOpen(true);
-              }}
+              onClick={() => setIsAddDialogOpen(true)}
             >
               <CardContent className="flex items-center justify-center p-8">
                 <div className="text-center">
@@ -354,75 +356,89 @@ export default function ContentBlockManager({
             </Card>
           </DialogTrigger>
           
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add Content Block</DialogTitle>
             </DialogHeader>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('text')}
-              >
-                <Type className="h-6 w-6" />
-                <span className="text-sm">Text Content</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('groove')}
-              >
-                <Music className="h-6 w-6" />
-                <span className="text-sm">Groove Exercise</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('video')}
-              >
-                <Video className="h-6 w-6" />
-                <span className="text-sm">Video</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('spotify')}
-              >
-                <Headphones className="h-6 w-6" />
-                <span className="text-sm">Spotify</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('external_link')}
-              >
-                <ExternalLink className="h-6 w-6" />
-                <span className="text-sm">External Link</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('pdf')}
-              >
-                <FileText className="h-6 w-6" />
-                <span className="text-sm">PDF Document</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('sync-embed')}
-              >
-                <PlayCircle className="h-6 w-6" />
-                <span className="text-sm">Musicdott Sync</span>
-              </Button>
-            </div>
+
+            <Tabs defaultValue="smart" className="mt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="smart">Smart Paste</TabsTrigger>
+                <TabsTrigger value="manual">Choose Type</TabsTrigger>
+              </TabsList>
+              <TabsContent value="smart" className="mt-4">
+                <SmartPasteInput
+                  onBlockDetected={handleSmartPasteBlock}
+                  onCancel={() => setIsAddDialogOpen(false)}
+                />
+              </TabsContent>
+              <TabsContent value="manual" className="mt-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('text')}
+                  >
+                    <Type className="h-6 w-6" />
+                    <span className="text-sm">Text Content</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('groove')}
+                  >
+                    <Music className="h-6 w-6" />
+                    <span className="text-sm">Groove Exercise</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('video')}
+                  >
+                    <Video className="h-6 w-6" />
+                    <span className="text-sm">Video</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('spotify')}
+                  >
+                    <Headphones className="h-6 w-6" />
+                    <span className="text-sm">Spotify</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('external_link')}
+                  >
+                    <ExternalLink className="h-6 w-6" />
+                    <span className="text-sm">External Link</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('pdf')}
+                  >
+                    <FileText className="h-6 w-6" />
+                    <span className="text-sm">PDF Document</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('sync-embed')}
+                  >
+                    <PlayCircle className="h-6 w-6" />
+                    <span className="text-sm">Musicdott Sync</span>
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       )}
