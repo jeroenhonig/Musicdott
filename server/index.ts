@@ -217,8 +217,15 @@ async function initializeRealtime(server: Server) {
   (app as any).realtimeBus = realtimeBus;
   new NotationCollaborationService(realtimeBus);
 
+  // Wire in the lesson display service (second-screen feature)
+  const { LessonDisplayService } = await import("./services/lesson-display-service");
+  const lessonDisplayService = new LessonDisplayService(realtimeBus.getIO());
+  realtimeBus.setLessonDisplayService(lessonDisplayService);
+  (app as any).lessonDisplayService = lessonDisplayService;
+
   console.log("✅ RealtimeBus initialized successfully");
   console.log("✅ Collaborative notation service initialized");
+  console.log("✅ Lesson display service initialized");
 }
 
 async function setupFrontend(mode: BootstrapMode, server: Server) {
@@ -417,8 +424,8 @@ export async function startServer(): Promise<Server> {
   await new Promise<void>((resolve, reject) => {
     const port = parseInt(process.env.PORT || "5000", 10);
     server.listen({
-      port,
-      host: "0.0.0.0",
+      port: parseInt(process.env.PORT || "5000"),
+      host: "127.0.0.1",
     }, (error?: Error) => {
       if (error) {
         reject(error);
@@ -426,7 +433,7 @@ export async function startServer(): Promise<Server> {
       }
 
       const storageRuntime = app.locals.storageRuntime;
-      logger.info(`serving on port ${port}`);
+      logger.info(`serving on port ${process.env.PORT || "5000"}`);
       logger.info("🚀 MusicDott 2.0 production server started on port 5000");
       logger.info(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
       logger.info(

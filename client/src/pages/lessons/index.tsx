@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Trash2, Plus, Search, Play, Music, Clock, User, BookOpen, X, Settings } from "lucide-react";
+import { Eye, Edit, Trash2, Plus, Search, Play, Music, Clock, User, BookOpen, X, Settings, Monitor } from "lucide-react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
 
@@ -24,6 +25,7 @@ import { Lesson, Student, type InsertLesson } from "@shared/schema";
 
 export default function LessonsPage() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'categories' | 'lessons' | 'preview'>('lessons');
@@ -719,6 +721,16 @@ export default function LessonsPage() {
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
+                      {(user?.role === "teacher" || user?.role === "school_owner") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Open lesscherm"
+                          onClick={() => navigate(`/teach/${lesson.id}`)}
+                        >
+                          <Monitor className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

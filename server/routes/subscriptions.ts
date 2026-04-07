@@ -232,23 +232,53 @@ router.post("/extra-licenses", requireAuth, loadSchoolContext, async (req: any, 
   }
 });
 
-// Stripe webhook endpoint
+// Stripe webhook endpoint — requires raw body for signature verification
+// This route must be registered BEFORE express.json() middleware applies to it.
+// In the main server, ensure this route receives the raw buffer (express.raw or similar).
 router.post("/webhook", async (req, res) => {
-  try {
-    const signature = req.headers['stripe-signature'];
-    
-    // Verify webhook signature (when Stripe is configured)
-    if (process.env.STRIPE_WEBHOOK_SECRET && signature) {
-      // Stripe webhook verification would go here
+  const signature = req.headers['stripe-signature'] as string | undefined;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event: any;
+
+  if (webhookSecret && signature) {
+    // Verify using the enhanced service's crypto-based verifier
+    const { enhancedStripeService } = require("../services/enhanced-stripe-service");
+    const rawBody = typeof req.body === 'string'
+      ? req.body
+      : Buffer.isBuffer(req.body)
+        ? req.body.toString('utf8')
+        : JSON.stringify(req.body);
+
+    const isValid = enhancedStripeService.verifyWebhookSignature(rawBody, signature);
+    if (!isValid) {
+      console.error("❌ [Webhook] Invalid signature — request rejected");
+      return res.status(400).json({ message: "Invalid webhook signature" });
     }
 
-    const event = req.body;
+    try {
+      event = typeof req.body === 'string' || Buffer.isBuffer(req.body)
+        ? JSON.parse(rawBody)
+        : req.body;
+    } catch {
+      return res.status(400).json({ message: "Invalid JSON payload" });
+    }
+  } else {
+    // No webhook secret configured — accept without verification (dev only)
+    if (process.env.NODE_ENV === 'production') {
+      console.error("❌ [Webhook] STRIPE_WEBHOOK_SECRET not set in production — rejecting");
+      return res.status(400).json({ message: "Webhook secret not configured" });
+    }
+    console.warn("⚠️ [Webhook] No STRIPE_WEBHOOK_SECRET — skipping verification (dev mode)");
+    event = req.body;
+  }
+
+  try {
     await stripeService.handleWebhook(event);
-    
     res.json({ received: true });
-  } catch (error) {
-    console.error("Webhook error:", error);
-    res.status(400).json({ message: "Webhook processing failed" });
+  } catch (error: any) {
+    console.error("❌ [Webhook] Processing failed:", error.message);
+    res.status(500).json({ message: "Webhook processing failed" });
   }
 });
 

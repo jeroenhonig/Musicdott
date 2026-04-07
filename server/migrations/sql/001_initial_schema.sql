@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS schools (
   font_family TEXT DEFAULT 'Inter',
   custom_css TEXT,
   branding_enabled BOOLEAN DEFAULT FALSE,
+  external_integrations jsonb,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -63,6 +64,8 @@ CREATE TABLE IF NOT EXISTS students (
   level TEXT,
   assigned_teacher_id INTEGER REFERENCES users(id),
   notes TEXT,
+  external_id TEXT,
+  external_source TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   is_active BOOLEAN DEFAULT TRUE

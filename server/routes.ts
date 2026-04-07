@@ -162,6 +162,13 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   registerRecurringScheduleRoutes(app);
   registerNotificationRoutes(app);
 
+  // Lesson display screen (second-screen feature)
+  const { registerLessonDisplayRoutes } = await import("./routes/lesson-display");
+  const lessonDisplayService = (app as any).lessonDisplayService;
+  if (lessonDisplayService) {
+    registerLessonDisplayRoutes(app, lessonDisplayService);
+  }
+
   if (!minimal) {
     // Register gamification routes
     app.use("/api/gamification", (await import("./routes/gamification")).default);
@@ -195,6 +202,12 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   // Register DrumSchool Manager integration routes
   app.use("/api/drumschool-integration", (await import("./routes/drumschool-integration")).default);
+
+  // Studios management (school-scoped rooms/locations)
+  app.use("/api/studios", (await import("./routes/studios")).default);
+
+  // School vacation periods (auto-block lessons in agenda)
+  app.use("/api/school/vacations", (await import("./routes/school-vacations")).default);
   
   // Add categories alias for lesson-categories compatibility - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
@@ -547,7 +560,10 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     async (req: Request, res: Response) => {
     try {
       // Validate request data using the corrected schema
-      const validatedData = insertLessonSchema.parse(req.body);
+      const validatedData = insertLessonSchema.parse({
+        ...req.body,
+        durationMin: req.body.duration ?? req.body.durationMin ?? null,
+      });
 
       // Create lesson data with user context (schoolId and userId set automatically)
       const lessonData = {
@@ -872,6 +888,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       const validatedData = insertAssignmentSchema.parse({
         ...req.body,
         userId: req.user!.id,
+        schoolId: (req.school as any)?.id ?? (req.user as any)!.schoolId,
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
       });
 
@@ -1117,9 +1134,14 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSessionSchema.parse({
+      const sessionParseSchema = insertSessionSchema.extend({
+        startTime: z.coerce.date(),
+        endTime: z.coerce.date(),
+      });
+      const validatedData = sessionParseSchema.parse({
         ...req.body,
-        userId: req.user!.id
+        userId: req.user!.id,
+        schoolId: req.body.schoolId ?? (req.school as any)?.id ?? (req.user as any)!.schoolId,
       });
 
       // Verify the student exists and belongs to user's school
@@ -1185,7 +1207,11 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         return res.status(403).json({ message: "You don't have permission to edit this session" });
       }
 
-      const validatedData = insertSessionSchema.partial().parse(req.body);
+      const sessionUpdateSchema = insertSessionSchema.partial().extend({
+        startTime: z.coerce.date().optional(),
+        endTime: z.coerce.date().optional(),
+      });
+      const validatedData = sessionUpdateSchema.parse(req.body);
 
       // If updating the student, verify school isolation
       if (validatedData.studentId) {

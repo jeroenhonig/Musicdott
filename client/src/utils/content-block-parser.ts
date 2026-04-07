@@ -239,6 +239,83 @@ export function parseContentBlocks(contentBlocks: any[]): NormalizedContentBlock
       };
     }
 
+    if (block.type === "image") {
+      return {
+        ...normalizedBase,
+        type: "image",
+        title: block.title || "Image",
+        data: {
+          ...blockData,
+          url: blockData.url || block.url,
+          alt: blockData.alt || block.title,
+        },
+      };
+    }
+
+    if (block.type === "audio") {
+      return {
+        ...normalizedBase,
+        type: "audio",
+        title: block.title || "Audio",
+        data: {
+          ...blockData,
+          url: blockData.url || block.url,
+        },
+      };
+    }
+
+    if (block.type === "chord_chart") {
+      const chartContent = firstString(blockData.content, block.content);
+      return {
+        ...normalizedBase,
+        type: "chord_chart",
+        title: block.title || "Chord Chart",
+        content: chartContent,
+        data: {
+          ...blockData,
+          ...(chartContent ? { content: chartContent } : {}),
+        },
+      };
+    }
+
+    if (block.type === "lyrics") {
+      const lyricsContent = firstString(blockData.content, block.content);
+      return {
+        ...normalizedBase,
+        type: "lyrics",
+        title: block.title || "Lyrics",
+        content: lyricsContent,
+        data: {
+          ...blockData,
+          ...(lyricsContent ? { content: lyricsContent } : {}),
+        },
+      };
+    }
+
+    if (block.type === "rich_link") {
+      return {
+        ...normalizedBase,
+        type: "rich_link",
+        title: block.title || blockData.title || "Link",
+        data: {
+          ...blockData,
+          url: blockData.url || block.url,
+        },
+      };
+    }
+
+    if (block.type === "image_gallery") {
+      return {
+        ...normalizedBase,
+        type: "image_gallery",
+        title: block.title || "Image Gallery",
+        data: {
+          ...blockData,
+          images: Array.isArray(blockData.images) ? blockData.images : [],
+        },
+      };
+    }
+
     return normalizedBase;
   });
 }

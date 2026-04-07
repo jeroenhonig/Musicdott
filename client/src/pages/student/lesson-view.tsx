@@ -1,9 +1,12 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Music, BookOpen } from "lucide-react";
 import LessonContentViewer from "@/components/lessons/lesson-content-viewer";
 import AppLayout from "@/components/layouts/app-layout";
+import StudentContentHeader from "@/components/student/student-content-header";
+import StudentViewSkeleton from "@/components/student/student-view-skeleton";
+import type { MetadataBadge } from "@/components/student/student-content-header";
 
 export default function StudentLessonView() {
   const { id } = useParams<{ id: string }>();
@@ -15,13 +18,7 @@ export default function StudentLessonView() {
   });
 
   if (isLoading) {
-    return (
-      <AppLayout title="Loading Lesson...">
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
+    return <StudentViewSkeleton />;
   }
 
   if (!lesson) {
@@ -40,28 +37,20 @@ export default function StudentLessonView() {
     );
   }
 
+  const badges: MetadataBadge[] = [
+    ...(lesson.instrument ? [{ icon: Music, label: lesson.instrument, variant: 'outline' as const }] : []),
+    ...(lesson.level ? [{ icon: BookOpen, label: lesson.level, variant: 'secondary' as const }] : []),
+    ...(lesson.category ? [{ label: lesson.category, variant: 'outline' as const }] : []),
+  ];
+
   return (
     <AppLayout title={lesson.title}>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{lesson.title}</h1>
-              {lesson.description && (
-                <p className="text-gray-600 mt-1">{lesson.description}</p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => window.history.back()}
-              className="hover:bg-gray-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-        
+        <StudentContentHeader
+          title={lesson.title}
+          subtitle={lesson.description}
+          badges={badges}
+        />
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <LessonContentViewer contentBlocksJson={lesson.contentBlocks} />
         </div>

@@ -148,7 +148,7 @@ export function setupAuth(app: Express) {
       maxAge: getSessionMaxAgeMs(),
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       domain: undefined,
       path: '/'
     }

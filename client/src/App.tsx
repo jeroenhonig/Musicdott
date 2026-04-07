@@ -50,6 +50,8 @@ import PerformancePage from "@/pages/performance";
 import AIDashboardPage from "@/pages/ai-dashboard";
 import GrooveConverterPage from "@/pages/groove-converter";
 import CollaborativeNotationPage from "@/pages/collaborative-notation";
+import TeachPage from "@/pages/teach";
+import LessonDisplayPage from "@/pages/lesson-display";
 import SchoolBrandingPage from "@/pages/SchoolBranding";
 import SchoolMembers from "@/pages/school/members";
 import TeachersPage from "@/pages/teachers";
@@ -184,6 +186,10 @@ function Router() {
       {/* Content viewing routes */}
       <ProtectedRoute path="/lessons/:id/view" component={StudentLessonView} />
       <ProtectedRoute path="/songs/:id/view" component={StudentSongView} />
+
+      {/* Lesson display screen — teacher control + student display */}
+      <ProtectedRoute path="/teach/:id" component={TeachPage} />
+      <ProtectedRoute path="/lesson-display/:sessionId" component={LessonDisplayPage} />
       
       <ProtectedRoute path="/resources" component={ResourcesPage} />
       <ProtectedRoute path="/admin/categories" component={CategoriesPage} />

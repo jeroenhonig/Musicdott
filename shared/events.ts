@@ -127,7 +127,25 @@ export const EVENT_TYPES = {
   USER_UPDATE: 'user.update',
   USER_DELETE: 'user.delete',
   USER_ONLINE: 'user.online',
-  USER_OFFLINE: 'user.offline'
+  USER_OFFLINE: 'user.offline',
+
+  // Lesson display screen events (session-scoped, not school-wide broadcasts)
+  DISPLAY_SESSION_OPEN:    'display.session_open',
+  DISPLAY_SESSION_CLOSE:   'display.session_close',
+  DISPLAY_PUSH_BLOCK:      'display.push_block',
+  DISPLAY_CLEAR_SCREEN:    'display.clear_screen',
+  DISPLAY_PUSH_TIMER:      'display.push_timer',
+  DISPLAY_PUSH_PAUSE:      'display.push_pause',
+  DISPLAY_PUSH_METRONOME:  'display.push_metronome',
+  DISPLAY_STUDENT_REACTION:'display.student_reaction',
+  DISPLAY_YT_PLAY:         'display.yt_play',
+  DISPLAY_YT_PAUSE:        'display.yt_pause',
+  DISPLAY_YT_SEEK:         'display.yt_seek',
+  DISPLAY_YT_RATE:         'display.yt_rate',
+  DISPLAY_SCREEN_UPDATED:  'display.screen_updated',
+  DISPLAY_SESSION_JOINED:  'display.session_joined',
+  DISPLAY_SESSION_LEFT:    'display.session_left',
+  DISPLAY_SESSION_CLOSED:  'display.session_closed'
 } as const;
 
 export type EventType = typeof EVENT_TYPES[keyof typeof EVENT_TYPES];

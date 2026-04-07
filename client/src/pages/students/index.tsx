@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Search, Edit, Trash2, MessageSquare, Calendar, BookOpen, Music, Shield } from "lucide-react";
+import { Plus, Search, Edit, Trash2, MessageSquare, Calendar, BookOpen, Music, Shield, Users } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import RequireRole, { RequireTeacher, RequireSchoolOwner } from "@/components/rbac/require-role";
 import RoleIndicator from "@/components/rbac/role-indicator";
@@ -596,7 +596,7 @@ export default function StudentsPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input placeholder="Enter student's name" {...field} />
                           </FormControl>
@@ -667,7 +667,7 @@ export default function StudentsPage() {
                       name="instrument"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Instrument</FormLabel>
+                          <FormLabel>Instrument <span className="text-red-500">*</span></FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -757,7 +757,7 @@ export default function StudentsPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>Username <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input placeholder="Enter username for student portal" {...field} />
                           </FormControl>
@@ -770,7 +770,7 @@ export default function StudentsPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>Password <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Enter password" {...field} />
                           </FormControl>
@@ -823,6 +823,24 @@ export default function StudentsPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Users className="h-12 w-12 text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-500 mb-2">No students yet</h3>
+            <p className="text-sm text-gray-400 mb-6">
+              {searchTerm
+                ? "No students match your search."
+                : "Add your first student to get started."}
+            </p>
+            {!searchTerm && (
+              <RequireTeacher>
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Student
+                </Button>
+              </RequireTeacher>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -978,7 +996,7 @@ export default function StudentsPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="Enter student's name" {...field} />
                         </FormControl>
@@ -1049,7 +1067,7 @@ export default function StudentsPage() {
                     name="instrument"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instrument</FormLabel>
+                        <FormLabel>Instrument <span className="text-red-500">*</span></FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -1164,7 +1182,7 @@ export default function StudentsPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Username <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="Enter username for student portal" {...field} />
                         </FormControl>
