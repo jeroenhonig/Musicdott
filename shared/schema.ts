@@ -82,6 +82,7 @@ export const lessons = pgTable("lessons", {
   contentBlocks: text("content_blocks"),
   orderNumber: integer("order_number"),
   isActive: boolean("is_active").default(true),
+  durationMin: integer("duration_min"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

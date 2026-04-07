@@ -547,7 +547,10 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     async (req: Request, res: Response) => {
     try {
       // Validate request data using the corrected schema
-      const validatedData = insertLessonSchema.parse(req.body);
+      const validatedData = insertLessonSchema.parse({
+        ...req.body,
+        durationMin: req.body.duration ?? req.body.durationMin ?? null,
+      });
 
       // Create lesson data with user context (schoolId and userId set automatically)
       const lessonData = {
