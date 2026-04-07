@@ -163,18 +163,17 @@ export function registerStudentRoutes(app: Express) {
             mustChangePassword: false,
           });
           
-          // Step 2: Build notes with parent info and age if provided
+          // Step 2: Build notes with parent info if provided
           let notes = validatedData.notes || "";
-          if (validatedData.age || validatedData.parentName || validatedData.parentEmail || validatedData.parentPhone) {
+          if (validatedData.parentName || validatedData.parentEmail || validatedData.parentPhone) {
             const additionalInfo = [];
-            if (validatedData.age) additionalInfo.push(`Age: ${validatedData.age}`);
             if (validatedData.parentName) additionalInfo.push(`Parent: ${validatedData.parentName}`);
             if (validatedData.parentEmail) additionalInfo.push(`Parent Email: ${validatedData.parentEmail}`);
             if (validatedData.parentPhone) additionalInfo.push(`Parent Phone: ${validatedData.parentPhone}`);
-            
+
             notes = notes ? `${notes}\n\n${additionalInfo.join('\n')}` : additionalInfo.join('\n');
           }
-          
+
           // Step 3: Create student record linked to user account
           student = await storage.createStudent({
             schoolId: req.school.id,
@@ -183,6 +182,7 @@ export function registerStudentRoutes(app: Express) {
             name: validatedData.name,
             email: studentEmail,
             phone: validatedData.phone || null,
+            age: validatedData.age ?? null,
             birthdate: validatedData.birthdate || null,
             instrument: validatedData.instrument,
             level: validatedData.level,

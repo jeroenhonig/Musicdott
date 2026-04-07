@@ -51,6 +51,7 @@ export const students = pgTable("students", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
+  age: integer("age"),
   birthdate: date("birthdate"), // Birthday for notification system
   instrument: text("instrument"),
   level: text("level"),
@@ -526,7 +527,11 @@ export const createStudentWithAccountSchema = z.object({
   }),
   
   // Additional fields
-  age: z.string().optional(),
+  age: z.union([z.string(), z.number()]).optional().transform(val => {
+    if (val === undefined || val === null || val === "") return null;
+    const parsed = typeof val === "string" ? parseInt(val, 10) : val;
+    return isNaN(parsed) ? null : parsed;
+  }),
   parentName: z.string().optional(),
   parentEmail: z.string().email("Valid parent email is required").optional().or(z.literal("")),
   parentPhone: z.string().optional(),
