@@ -376,6 +376,36 @@ export type SchoolBranding = z.infer<typeof schoolBrandingSchema>;
 export type SchoolMembership = typeof schoolMemberships.$inferSelect;
 export type InsertSchoolMembership = typeof schoolMemberships.$inferInsert;
 
+// Studios table — physical practice/teaching rooms, scoped per school
+export const studios = pgTable("studios", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  location: text("location"),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Studio = typeof studios.$inferSelect;
+export type InsertStudio = typeof studios.$inferInsert;
+
+// School vacations — date ranges during which no lessons are scheduled
+export const schoolVacations = pgTable("school_vacations", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  isBlackout: boolean("is_blackout").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type SchoolVacation = typeof schoolVacations.$inferSelect;
+export type InsertSchoolVacation = typeof schoolVacations.$inferInsert;
+
 export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id, { onDelete: "cascade" }),
@@ -402,6 +432,12 @@ export const sessions = pgTable("sessions", {
   endTime: timestamp("end_time").notNull(),
   durationMin: integer("duration_min").default(30),
   notes: text("notes"),
+  // Agenda improvements
+  parentSeriesId: integer("parent_series_id"),
+  status: text("status").default("scheduled"), // scheduled | completed | noshow | cancelled | rescheduled | vacation_blocked
+  lessonType: text("lesson_type").default("individual"), // individual | group | trial
+  studioId: integer("studio_id"),
+  externalId: text("external_id"), // UUID from source system for idempotent imports
 });
 
 export type Session = typeof sessions.$inferSelect;
@@ -443,6 +479,13 @@ export const recurringSchedules = pgTable("recurring_schedules", {
   iCalTzid: text("ical_tzid"), // Format: "Europe/Amsterdam"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Agenda improvements
+  schoolId: integer("school_id"),
+  studioId: integer("studio_id"),
+  durationMin: integer("duration_min").default(30),
+  referenceDate: date("reference_date"), // Anchor date for biweekly A/B week calculation
+  status: text("status").default("active"), // active | cancelled | provisional
+  externalId: text("external_id"), // UUID from source system for idempotent imports
 });
 
 export type RecurringSchedule = typeof recurringSchedules.$inferSelect;

@@ -432,26 +432,9 @@ export class DatabaseStorage implements IStorage {
   // Session operations
   async getSessions(userId: number): Promise<Session[]> {
     try {
-      // Check if the column exists in the table to avoid runtime errors
-      if (sessions.userId) {
-        return db.select({
-          id: sessions.id,
-          schoolId: sessions.schoolId,
-          userId: sessions.userId,
-          studentId: sessions.studentId,
-          title: sessions.title,
-          startTime: sessions.startTime,
-          endTime: sessions.endTime,
-          durationMin: sessions.durationMin,
-          notes: sessions.notes
-        })
-          .from(sessions)
-          .where(eq(sessions.userId, userId));
-      } else {
-        // Fallback if userId column doesn't exist
-        console.warn("userId column not found in sessions table, returning empty array");
-        return [];
-      }
+      return db.select()
+        .from(sessions)
+        .where(eq(sessions.userId, userId));
     } catch (error) {
       console.error("Error in getSessions:", error);
       return [];
@@ -459,33 +442,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudentSessions(studentId: number): Promise<Session[]> {
-    return db.select({
-      id: sessions.id,
-      schoolId: sessions.schoolId,
-      userId: sessions.userId,
-      studentId: sessions.studentId,
-      title: sessions.title,
-      startTime: sessions.startTime,
-      endTime: sessions.endTime,
-      durationMin: sessions.durationMin,
-      notes: sessions.notes
-    })
+    return db.select()
       .from(sessions)
       .where(eq(sessions.studentId, studentId));
   }
 
   async getSession(id: number): Promise<Session | undefined> {
-    const [session] = await db.select({
-      id: sessions.id,
-      schoolId: sessions.schoolId,
-      userId: sessions.userId,
-      studentId: sessions.studentId,
-      title: sessions.title,
-      startTime: sessions.startTime,
-      endTime: sessions.endTime,
-      durationMin: sessions.durationMin,
-      notes: sessions.notes
-    })
+    const [session] = await db.select()
       .from(sessions)
       .where(eq(sessions.id, id));
     return session;
@@ -596,70 +559,19 @@ export class DatabaseStorage implements IStorage {
 
   // Recurring Schedule operations
   async getRecurringSchedules(userId: number): Promise<RecurringSchedule[]> {
-    return db.select({
-      id: recurringSchedules.id,
-      userId: recurringSchedules.userId,
-      studentId: recurringSchedules.studentId,
-      dayOfWeek: recurringSchedules.dayOfWeek,
-      startTime: recurringSchedules.startTime,
-      endTime: recurringSchedules.endTime,
-      location: recurringSchedules.location,
-      notes: recurringSchedules.notes,
-      timezone: recurringSchedules.timezone,
-      frequency: recurringSchedules.frequency,
-      isActive: recurringSchedules.isActive,
-      iCalDtStart: recurringSchedules.iCalDtStart,
-      iCalRrule: recurringSchedules.iCalRrule,
-      iCalTzid: recurringSchedules.iCalTzid,
-      createdAt: recurringSchedules.createdAt,
-      updatedAt: recurringSchedules.updatedAt
-    })
+    return db.select()
       .from(recurringSchedules)
       .where(eq(recurringSchedules.userId, userId));
   }
 
   async getStudentRecurringSchedules(studentId: number): Promise<RecurringSchedule[]> {
-    return db.select({
-      id: recurringSchedules.id,
-      userId: recurringSchedules.userId,
-      studentId: recurringSchedules.studentId,
-      dayOfWeek: recurringSchedules.dayOfWeek,
-      startTime: recurringSchedules.startTime,
-      endTime: recurringSchedules.endTime,
-      location: recurringSchedules.location,
-      notes: recurringSchedules.notes,
-      timezone: recurringSchedules.timezone,
-      frequency: recurringSchedules.frequency,
-      isActive: recurringSchedules.isActive,
-      iCalDtStart: recurringSchedules.iCalDtStart,
-      iCalRrule: recurringSchedules.iCalRrule,
-      iCalTzid: recurringSchedules.iCalTzid,
-      createdAt: recurringSchedules.createdAt,
-      updatedAt: recurringSchedules.updatedAt
-    })
+    return db.select()
       .from(recurringSchedules)
       .where(eq(recurringSchedules.studentId, studentId));
   }
 
   async getRecurringSchedule(id: number): Promise<RecurringSchedule | undefined> {
-    const [schedule] = await db.select({
-      id: recurringSchedules.id,
-      userId: recurringSchedules.userId,
-      studentId: recurringSchedules.studentId,
-      dayOfWeek: recurringSchedules.dayOfWeek,
-      startTime: recurringSchedules.startTime,
-      endTime: recurringSchedules.endTime,
-      location: recurringSchedules.location,
-      notes: recurringSchedules.notes,
-      timezone: recurringSchedules.timezone,
-      frequency: recurringSchedules.frequency,
-      isActive: recurringSchedules.isActive,
-      iCalDtStart: recurringSchedules.iCalDtStart,
-      iCalRrule: recurringSchedules.iCalRrule,
-      iCalTzid: recurringSchedules.iCalTzid,
-      createdAt: recurringSchedules.createdAt,
-      updatedAt: recurringSchedules.updatedAt
-    })
+    const [schedule] = await db.select()
       .from(recurringSchedules)
       .where(eq(recurringSchedules.id, id));
     return schedule;
@@ -1056,29 +968,11 @@ export class DatabaseStorage implements IStorage {
 
   // Recurring schedule methods
   async getRecurringSchedulesBySchool(schoolId: number): Promise<RecurringSchedule[]> {
-    const schedulesData = await db.select({
-      id: recurringSchedules.id,
-      userId: recurringSchedules.userId,
-      studentId: recurringSchedules.studentId,
-      dayOfWeek: recurringSchedules.dayOfWeek,
-      startTime: recurringSchedules.startTime,
-      endTime: recurringSchedules.endTime,
-      location: recurringSchedules.location,
-      notes: recurringSchedules.notes,
-      timezone: recurringSchedules.timezone,
-      frequency: recurringSchedules.frequency,
-      isActive: recurringSchedules.isActive,
-      iCalDtStart: recurringSchedules.iCalDtStart,
-      iCalRrule: recurringSchedules.iCalRrule,
-      iCalTzid: recurringSchedules.iCalTzid,
-      createdAt: recurringSchedules.createdAt,
-      updatedAt: recurringSchedules.updatedAt,
-    })
+    const schedulesData = await db.select({ rs: recurringSchedules })
       .from(recurringSchedules)
       .innerJoin(users, eq(recurringSchedules.userId, users.id))
       .where(eq(users.schoolId, schoolId));
-    
-    return schedulesData;
+    return schedulesData.map(row => row.rs);
   }
 
   // Search functionality

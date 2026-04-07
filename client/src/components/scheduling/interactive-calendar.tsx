@@ -40,7 +40,7 @@ import {
   Plus,
   Filter
 } from "lucide-react";
-import { RecurringSchedule, Student, User } from "@shared/schema";
+import { RecurringSchedule, Student, User, SchoolVacation, Session } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfDay, endOfDay } from "date-fns";
@@ -66,6 +66,8 @@ interface CalendarEvent {
     instrument?: string;
     level?: string;
     conflicted?: boolean;
+    status?: string; // scheduled | completed | noshow | cancelled | vacation_blocked
+    sessionId?: number;
   };
 }
 
@@ -117,32 +119,62 @@ export default function InteractiveCalendar({
     queryKey: ["/api/teachers"],
   });
 
+  const { data: vacations = [] } = useQuery<SchoolVacation[]>({
+    queryKey: ["/api/school/vacations"],
+  });
+
+  const { data: sessionsList = [] } = useQuery<Session[]>({
+    queryKey: ["/api/sessions"],
+  });
+
   // Transform schedules to calendar events
   const calendarEvents = useMemo(() => {
-    if (!schedules.length) return [];
-    
     const events: CalendarEvent[] = [];
     const now = new Date();
     const endRange = new Date();
     endRange.setMonth(endRange.getMonth() + 6); // 6 months ahead
-    
+
+    // Build a lookup of sessions by (seriesId, dateString) to overlay status
+    const sessionBySeriesAndDate = new Map<string, Session>();
+    for (const s of sessionsList) {
+      if ((s.status === "cancelled") || (s.status === "vacation_blocked")) continue;
+      if (s.parentSeriesId && s.startTime) {
+        const dateKey = `${s.parentSeriesId}:${new Date(s.startTime).toISOString().slice(0, 10)}`;
+        sessionBySeriesAndDate.set(dateKey, s);
+      }
+    }
+
+    // Build vacation date ranges for quick lookup
+    const vacationRanges = vacations.map(v => ({
+      start: v.startDate,
+      end: v.endDate,
+    }));
+
     for (const schedule of schedules) {
+      if ((schedule as any).status === "cancelled") continue;
+
       const student = students.find(s => s.id === schedule.studentId);
-      const teacher = teachers.find(t => t.id === schedule.userId); // userId is the teacher who created it
-      
+      const teacher = teachers.find(t => t.id === schedule.userId);
+
       if (!student) continue;
-      
-      // Filter by selected teacher/student
+
       if (selectedTeacher !== "all" && teacher?.id.toString() !== selectedTeacher) continue;
       if (selectedStudent !== "all" && student.id.toString() !== selectedStudent) continue;
-      
-      // Generate occurrences based on recurrence type
-      const occurrences = generateOccurrences(schedule, now, endRange);
-      
+
+      const occurrences = generateOccurrences(schedule, now, endRange, vacationRanges);
+
       for (const occurrence of occurrences) {
+        const dateStr = occurrence.start.toISOString().slice(0, 10);
+        const sessionKey = `${schedule.id}:${dateStr}`;
+        const session = sessionBySeriesAndDate.get(sessionKey);
+        const status = session?.status ?? "scheduled";
+
+        // Don't show cancelled sessions
+        if (status === "cancelled") continue;
+
         events.push({
           id: parseInt(`${schedule.id}${occurrence.start.getTime()}`),
-          title: `${student.instrument || 'Lesson'} - ${student.name}`,
+          title: `${student.instrument || 'Drumles'} - ${student.name}`,
           start: occurrence.start,
           end: occurrence.end,
           resource: {
@@ -152,21 +184,22 @@ export default function InteractiveCalendar({
             teacherId: schedule.userId,
             teacherName: teacher?.name,
             location: schedule.location || undefined,
-            notes: schedule.notes || undefined,
+            notes: schedule.notes || session?.notes || undefined,
             isRecurring: schedule.frequency !== 'ONCE',
             frequencyLabel: String(schedule.frequency || "WEEKLY")
               .toLowerCase()
               .replace(/_/g, " "),
             instrument: student.instrument,
             level: student.level || undefined,
+            status,
+            sessionId: session?.id,
           },
         });
       }
     }
-    
-    // Detect conflicts
+
     return detectEventConflicts(events);
-  }, [schedules, students, teachers, selectedTeacher, selectedStudent]);
+  }, [schedules, students, teachers, vacations, sessionsList, selectedTeacher, selectedStudent]);
 
   // Event handlers
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
@@ -232,8 +265,24 @@ export default function InteractiveCalendar({
 
   // Event styling
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
+    const status = event.resource.status ?? "scheduled";
+
+    // Status-based overrides take priority
+    if (event.resource.conflicted) {
+      return { style: { backgroundColor: '#dc2626', borderRadius: '6px', color: 'white', border: '0px', display: 'block', opacity: 0.9 } };
+    }
+    if (status === "noshow") {
+      return { style: { backgroundColor: '#f59e0b', borderRadius: '6px', color: 'white', border: '2px dashed #d97706', display: 'block', opacity: 0.85 } };
+    }
+    if (status === "completed") {
+      return { style: { backgroundColor: '#6b7280', borderRadius: '6px', color: 'white', border: '0px', display: 'block', opacity: 0.65 } };
+    }
+    if (status === "rescheduled") {
+      return { style: { backgroundColor: '#8b5cf6', borderRadius: '6px', color: 'white', border: '0px', display: 'block', opacity: 0.8 } };
+    }
+
     const baseStyle = {
-      backgroundColor: event.resource.conflicted ? '#dc2626' : '#3b82f6',
+      backgroundColor: '#3b82f6',
       borderRadius: '6px',
       opacity: 0.8,
       color: 'white',
@@ -241,7 +290,7 @@ export default function InteractiveCalendar({
       display: 'block',
     };
 
-    // Color by instrument
+    // Color by instrument (only for scheduled/upcoming)
     const instrumentColors: { [key: string]: string } = {
       piano: '#8b5cf6',
       guitar: '#f59e0b',
@@ -553,49 +602,69 @@ export default function InteractiveCalendar({
 // Helper functions
 
 function generateOccurrences(
-  schedule: RecurringSchedule, 
-  startDate: Date, 
-  endDate: Date
+  schedule: RecurringSchedule,
+  startDate: Date,
+  endDate: Date,
+  vacationRanges: Array<{ start: string; end: string }> = []
 ): Array<{ start: Date; end: Date }> {
   const occurrences: Array<{ start: Date; end: Date }> = [];
-  // Convert dayOfWeek string to number (0=Sunday, 1=Monday, etc.)
   const dayOfWeekNumber = parseInt(schedule.dayOfWeek);
   const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
   const [endHour, endMinute] = schedule.endTime.split(':').map(Number);
-  
+
+  // For BIWEEKLY: use referenceDate to determine A/B week parity.
+  // A lesson occurs when the number of weeks since referenceDate is even.
+  const referenceDate = (schedule as any).referenceDate
+    ? new Date((schedule as any).referenceDate)
+    : null;
+
   let currentDate = new Date(startDate);
-  
-  // Find first occurrence
+
+  // Find first occurrence on the correct weekday
   while (currentDate.getDay() !== dayOfWeekNumber && currentDate < endDate) {
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
+  const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+
   while (currentDate <= endDate) {
-    const start = new Date(currentDate);
-    start.setHours(startHour, startMinute, 0, 0);
-    
-    const end = new Date(currentDate);
-    end.setHours(endHour, endMinute, 0, 0);
-    
-    occurrences.push({ start, end });
-    
-    // Move to next occurrence based on frequency
-    switch (schedule.frequency?.toUpperCase()) {
-      case 'WEEKLY':
+    // BIWEEKLY: skip if this week has wrong parity relative to referenceDate
+    if (schedule.frequency?.toUpperCase() === 'BIWEEKLY' && referenceDate) {
+      const weeksSinceRef = Math.round((currentDate.getTime() - referenceDate.getTime()) / MS_PER_WEEK);
+      if (weeksSinceRef % 2 !== 0) {
         currentDate.setDate(currentDate.getDate() + 7);
-        break;
+        continue;
+      }
+    }
+
+    // Skip dates that fall within a vacation period
+    const dateStr = currentDate.toISOString().slice(0, 10);
+    const onVacation = vacationRanges.some(v => dateStr >= v.start && dateStr <= v.end);
+
+    if (!onVacation) {
+      const start = new Date(currentDate);
+      start.setHours(startHour, startMinute, 0, 0);
+      const end = new Date(currentDate);
+      end.setHours(endHour, endMinute, 0, 0);
+      occurrences.push({ start, end });
+    }
+
+    switch (schedule.frequency?.toUpperCase()) {
       case 'BIWEEKLY':
         currentDate.setDate(currentDate.getDate() + 14);
         break;
       case 'MONTHLY':
         currentDate.setMonth(currentDate.getMonth() + 1);
         break;
-      default: // 'ONCE'
-        currentDate = new Date(endDate.getTime() + 1); // Exit loop
+      case 'ONCE':
+        currentDate = new Date(endDate.getTime() + 1);
+        break;
+      default: // WEEKLY
+        currentDate.setDate(currentDate.getDate() + 7);
         break;
     }
   }
-  
+
   return occurrences;
 }
 

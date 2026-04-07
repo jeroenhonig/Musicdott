@@ -932,6 +932,11 @@ export class MemStorage implements IStorage {
       endTime: session.endTime,
       durationMin: session.durationMin ?? null,
       notes: session.notes ?? null,
+      status: session.status ?? null,
+      parentSeriesId: session.parentSeriesId ?? null,
+      lessonType: session.lessonType ?? null,
+      studioId: session.studioId ?? null,
+      externalId: session.externalId ?? null,
     };
   }
   async updateSession(id: number, session: Partial<InsertSession>): Promise<Session> {
@@ -1030,6 +1035,11 @@ export class MemStorage implements IStorage {
           endTime: endTime,
           durationMin: Math.max(0, Math.round((endTime.getTime() - sessionDate.getTime()) / 60000)),
           notes: schedule.notes ?? null,
+          status: "scheduled",
+          parentSeriesId: null,
+          lessonType: "individual",
+          studioId: null,
+          externalId: null,
         });
       }
       
@@ -1083,6 +1093,11 @@ export class MemStorage implements IStorage {
         endTime: endTime,
         durationMin: Math.max(0, Math.round((endTime.getTime() - sessionDate.getTime()) / 60000)),
         notes: schedule.notes ?? null,
+        status: "scheduled",
+        parentSeriesId: null,
+        lessonType: "individual",
+        studioId: null,
+        externalId: null,
       };
     });
   }
