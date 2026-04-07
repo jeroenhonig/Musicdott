@@ -422,6 +422,7 @@ export async function startServer(): Promise<Server> {
   registerShutdownHandlers(server);
 
   await new Promise<void>((resolve, reject) => {
+    const port = parseInt(process.env.PORT || "5000", 10);
     server.listen({
       port: parseInt(process.env.PORT || "5000"),
       host: "127.0.0.1",
