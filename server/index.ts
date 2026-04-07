@@ -217,8 +217,15 @@ async function initializeRealtime(server: Server) {
   (app as any).realtimeBus = realtimeBus;
   new NotationCollaborationService(realtimeBus);
 
+  // Wire in the lesson display service (second-screen feature)
+  const { LessonDisplayService } = await import("./services/lesson-display-service");
+  const lessonDisplayService = new LessonDisplayService(realtimeBus.getIO());
+  realtimeBus.setLessonDisplayService(lessonDisplayService);
+  (app as any).lessonDisplayService = lessonDisplayService;
+
   console.log("✅ RealtimeBus initialized successfully");
   console.log("✅ Collaborative notation service initialized");
+  console.log("✅ Lesson display service initialized");
 }
 
 async function setupFrontend(mode: BootstrapMode, server: Server) {

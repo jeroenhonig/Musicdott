@@ -90,6 +90,36 @@ export const lessons = pgTable("lessons", {
 export type Lesson = typeof lessons.$inferSelect;
 export type InsertLesson = typeof lessons.$inferInsert;
 
+// Lesson display sessions — real-time "second screen" feature
+export const lessonDisplaySessions = pgTable("lesson_display_sessions", {
+  id:               text("id").primaryKey(),
+  lessonId:         integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  teacherId:        integer("teacher_id").notNull().references(() => users.id),
+  schoolId:         integer("school_id").notNull(),
+  activeBlockIndex: integer("active_block_index"),
+  status:           text("status").notNull().default("active"),
+  // Special display mode state (timer / pause / metronome)
+  displayMode:      text("display_mode").notNull().default("idle"),
+  displayState:     jsonb("display_state").$type<Record<string, unknown>>(),
+  createdAt:        timestamp("created_at", { withTimezone: true }).defaultNow(),
+  closedAt:         timestamp("closed_at", { withTimezone: true }),
+  expiresAt:        timestamp("expires_at", { withTimezone: true }),
+});
+
+export type LessonDisplaySession = typeof lessonDisplaySessions.$inferSelect;
+export type InsertLessonDisplaySession = typeof lessonDisplaySessions.$inferInsert;
+
+// Push history log — one row per teacher action (analytics / audit)
+export const lessonDisplayEvents = pgTable("lesson_display_events", {
+  id:        serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().references(() => lessonDisplaySessions.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // push_block | push_timer | push_pause | push_metronome | clear_screen | student_reaction
+  payload:   jsonb("payload").$type<Record<string, unknown>>(),
+  pushedAt:  timestamp("pushed_at", { withTimezone: true }).defaultNow(),
+});
+
+export type LessonDisplayEvent = typeof lessonDisplayEvents.$inferSelect;
+
 // Songs table - aligned with actual database columns
 export const songs = pgTable("songs", {
   id: serial("id").primaryKey(),
