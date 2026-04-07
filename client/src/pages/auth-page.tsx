@@ -123,7 +123,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>{t('auth.username')}</FormLabel>
                         <FormControl>
-                          <Input placeholder={t('auth.username').toLowerCase()} {...field} />
+                          <Input placeholder={t('auth.username').toLowerCase()} autoComplete="username" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -136,7 +136,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>{t('auth.password')}</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
+                          <Input type="password" placeholder="••••••" autoComplete="current-password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
