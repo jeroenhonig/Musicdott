@@ -415,10 +415,10 @@ export async function startServer(): Promise<Server> {
   registerShutdownHandlers(server);
 
   await new Promise<void>((resolve, reject) => {
+    const port = parseInt(process.env.PORT || "5000", 10);
     server.listen({
-      port: 5000,
+      port,
       host: "0.0.0.0",
-      reusePort: true,
     }, (error?: Error) => {
       if (error) {
         reject(error);
@@ -426,7 +426,7 @@ export async function startServer(): Promise<Server> {
       }
 
       const storageRuntime = app.locals.storageRuntime;
-      logger.info("serving on port 5000");
+      logger.info(`serving on port ${port}`);
       logger.info("🚀 MusicDott 2.0 production server started on port 5000");
       logger.info(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
       logger.info(
