@@ -47,7 +47,12 @@ export function LandingLoginModal({ isOpen, onClose }: LandingLoginModalProps) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <FocusTrap isActive={isOpen} onEscape={onClose}>
-        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 max-h-[90vh] overflow-y-auto">
+        <div
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 max-h-[90vh] overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-modal-title"
+        >
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -58,7 +63,7 @@ export function LandingLoginModal({ isOpen, onClose }: LandingLoginModalProps) {
           </button>
 
           <div className="text-center mb-6">
-            <p className="text-xl font-bold tracking-tight">
+            <p id="login-modal-title" className="text-xl font-bold tracking-tight">
               Music<span className="text-primary">dott.</span>
             </p>
             <p className="text-sm text-gray-500 mt-1">Welkom terug</p>
