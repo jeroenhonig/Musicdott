@@ -872,6 +872,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       const validatedData = insertAssignmentSchema.parse({
         ...req.body,
         userId: req.user!.id,
+        schoolId: (req.school as any)?.id ?? (req.user as any)!.schoolId,
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
       });
 
