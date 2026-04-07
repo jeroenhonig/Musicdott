@@ -195,6 +195,12 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
   // Register DrumSchool Manager integration routes
   app.use("/api/drumschool-integration", (await import("./routes/drumschool-integration")).default);
+
+  // Studios management (school-scoped rooms/locations)
+  app.use("/api/studios", (await import("./routes/studios")).default);
+
+  // School vacation periods (auto-block lessons in agenda)
+  app.use("/api/school/vacations", (await import("./routes/school-vacations")).default);
   
   // Add categories alias for lesson-categories compatibility - SECURE: Teacher/Owner only with proper multi-tenant context
   app.get("/api/categories", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {

@@ -45,6 +45,10 @@ import {
   Eye,
   EyeOff,
   Plug,
+  Building2,
+  CalendarX,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import DrumSchoolIntegration from "@/components/integrations/drumschool-integration";
 import { useForm } from "react-hook-form";
@@ -53,6 +57,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { Studio, SchoolVacation } from "@shared/schema";
 
 // Schema for profile settings
 const profileSchema = z.object({
@@ -319,6 +324,18 @@ export default function SettingsPage() {
             <Shield className="h-4 w-4" />
             Security
           </TabsTrigger>
+          {canEditSchool && (
+            <TabsTrigger value="studios" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Studio's
+            </TabsTrigger>
+          )}
+          {canEditSchool && (
+            <TabsTrigger value="vacations" className="flex items-center gap-2">
+              <CalendarX className="h-4 w-4" />
+              Vakanties
+            </TabsTrigger>
+          )}
           {canEditSchool && (
             <TabsTrigger value="integrations" className="flex items-center gap-2">
               <Plug className="h-4 w-4" />
@@ -903,6 +920,20 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* Studios */}
+        {canEditSchool && (
+          <TabsContent value="studios">
+            <StudiosTab />
+          </TabsContent>
+        )}
+
+        {/* Vakanties */}
+        {canEditSchool && (
+          <TabsContent value="vacations">
+            <VacationsTab />
+          </TabsContent>
+        )}
+
         {/* Integrations – DrumSchool Manager */}
         {canEditSchool && (
           <TabsContent value="integrations">
@@ -912,5 +943,211 @@ export default function SettingsPage() {
       </Tabs>
       </div>
     </AppLayout>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StudiosTab — manage physical rooms per school
+// ---------------------------------------------------------------------------
+function StudiosTab() {
+  const { toast } = useToast();
+  const [newName, setNewName] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+
+  const { data: studiosList = [], isLoading } = useQuery<Studio[]>({
+    queryKey: ["/api/studios"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/studios", { name: newName.trim(), location: newLocation.trim() || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/studios"] });
+      setNewName("");
+      setNewLocation("");
+      toast({ title: "Studio aangemaakt" });
+    },
+    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/studios/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/studios"] });
+      toast({ title: "Studio verwijderd" });
+    },
+    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Building2 className="h-5 w-5" />
+          Studio's &amp; Lokalen
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Laden…</p>
+        ) : studiosList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nog geen studio's toegevoegd.</p>
+        ) : (
+          <div className="space-y-2">
+            {studiosList.map(studio => (
+              <div key={studio.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium text-sm">{studio.name}</p>
+                  {studio.location && <p className="text-xs text-muted-foreground">{studio.location}</p>}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteMutation.mutate(studio.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="border-t pt-4 space-y-2">
+          <p className="text-sm font-medium">Nieuwe studio toevoegen</p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Naam (bijv. Studio 11)"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              className="flex-1"
+            />
+            <Input
+              placeholder="Locatie (optioneel)"
+              value={newLocation}
+              onChange={e => setNewLocation(e.target.value)}
+              className="flex-1"
+            />
+            <Button
+              onClick={() => createMutation.mutate()}
+              disabled={!newName.trim() || createMutation.isPending}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Toevoegen
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// VacationsTab — manage vacation periods that block lessons in the agenda
+// ---------------------------------------------------------------------------
+function VacationsTab() {
+  const { toast } = useToast();
+  const [newTitle, setNewTitle] = useState("");
+  const [newStart, setNewStart] = useState("");
+  const [newEnd, setNewEnd] = useState("");
+
+  const { data: vacationsList = [], isLoading } = useQuery<SchoolVacation[]>({
+    queryKey: ["/api/school/vacations"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("POST", "/api/school/vacations", {
+        title: newTitle.trim(),
+        startDate: newStart,
+        endDate: newEnd,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/school/vacations"] });
+      setNewTitle("");
+      setNewStart("");
+      setNewEnd("");
+      toast({ title: "Vakantie opgeslagen" });
+    },
+    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/school/vacations/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/school/vacations"] });
+      toast({ title: "Vakantie verwijderd" });
+    },
+    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarX className="h-5 w-5" />
+          Vakanties &amp; Vrije dagen
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Vakantieperiodes worden automatisch uitgesloten in de agenda — er worden geen lessen gepland op die dagen.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Laden…</p>
+        ) : vacationsList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nog geen vakanties ingesteld.</p>
+        ) : (
+          <div className="space-y-2">
+            {vacationsList.map(v => (
+              <div key={v.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium text-sm">{v.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {v.startDate} → {v.endDate}
+                    {v.isBlackout && <span className="ml-2 text-red-500">(vrije dag)</span>}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteMutation.mutate(v.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="border-t pt-4 space-y-2">
+          <p className="text-sm font-medium">Nieuwe vakantieperiode toevoegen</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <Input
+              placeholder="Naam (bijv. Meivakantie)"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+            />
+            <Input
+              type="date"
+              value={newStart}
+              onChange={e => setNewStart(e.target.value)}
+            />
+            <Input
+              type="date"
+              value={newEnd}
+              onChange={e => setNewEnd(e.target.value)}
+            />
+          </div>
+          <Button
+            onClick={() => createMutation.mutate()}
+            disabled={!newTitle.trim() || !newStart || !newEnd || createMutation.isPending}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Vakantie toevoegen
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
