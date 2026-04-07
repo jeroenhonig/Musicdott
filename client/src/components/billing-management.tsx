@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Clock, 
-  CreditCard, 
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  CreditCard,
   DollarSign,
   Activity,
   TrendingUp,
@@ -26,7 +28,10 @@ import {
   Edit,
   Plus,
   RotateCcw,
-  Euro
+  Euro,
+  Users,
+  ChevronRight,
+  History
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -100,10 +105,51 @@ interface Refund {
   createdAt: string;
 }
 
+interface SchoolSubscription {
+  schoolId: number;
+  schoolName: string;
+  city: string | null;
+  status: string;
+  planType: string;
+  planDisplayName: string;
+  planPriceMonthly: number;
+  trialStartDate: string | null;
+  trialEndDate: string | null;
+  currentTeacherCount: number;
+  currentStudentCount: number;
+  totalStudentLicenses: number;
+  extraStudentLicenses: number;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  billingPeriodStart: string | null;
+  billingPeriodEnd: string | null;
+  subscriptionSince: string | null;
+  paymentStatus: string;
+  lastBillingAmount: number;
+  lastBillingDate: string | null;
+  nextBillingAmount: number;
+  nextBillingDate: string | null;
+  failedPaymentsTotal: number;
+  totalRevenueCents: number;
+}
+
+interface PaymentHistoryEntry {
+  id: number;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string | null;
+  billingMonth: string | null;
+  stripeInvoiceId: string | null;
+  paymentDate: string | null;
+  createdAt: string;
+}
+
 export default function BillingManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedSchoolId, setSelectedSchoolId] = useState<number>(12);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
+  const [expandedSchoolId, setExpandedSchoolId] = useState<number | null>(null);
   const [priceDialog, setPriceDialog] = useState(false);
   const [creditDialog, setCreditDialog] = useState(false);
   const [refundDialog, setRefundDialog] = useState(false);
@@ -119,6 +165,16 @@ export default function BillingManagement() {
   const { data: billingHealth, isLoading: healthLoading } = useQuery<BillingHealth>({
     queryKey: ["/api/admin/billing/health"],
     refetchInterval: 30000,
+  });
+
+  const { data: subscriptionsData } = useQuery<SchoolSubscription[]>({
+    queryKey: ["/api/admin/billing/subscriptions"],
+    refetchInterval: 60000,
+  });
+
+  const { data: schoolPaymentHistory } = useQuery<PaymentHistoryEntry[]>({
+    queryKey: [`/api/admin/billing/payment-history/${expandedSchoolId}`],
+    enabled: expandedSchoolId !== null,
   });
 
   const { data: billingAlerts } = useQuery<BillingAlert[]>({
@@ -284,20 +340,237 @@ export default function BillingManagement() {
         </Card>
       </div>
 
-      <Tabs defaultValue="invoices" className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full">
-          <TabsTrigger value="invoices" data-testid="tab-invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="pricing" data-testid="tab-pricing">Pricing</TabsTrigger>
-          <TabsTrigger value="payments" data-testid="tab-payments">Payments</TabsTrigger>
-          <TabsTrigger value="refunds" data-testid="tab-refunds">Refunds</TabsTrigger>
-          <TabsTrigger value="alerts" data-testid="tab-alerts">Alerts</TabsTrigger>
+      <Tabs defaultValue="subscriptions" className="space-y-4">
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">Abonnementen</TabsTrigger>
+          <TabsTrigger value="invoices" data-testid="tab-invoices">Facturen</TabsTrigger>
+          <TabsTrigger value="pricing" data-testid="tab-pricing">Prijzen</TabsTrigger>
+          <TabsTrigger value="payments" data-testid="tab-payments">Betalingen</TabsTrigger>
+          <TabsTrigger value="refunds" data-testid="tab-refunds">Terugbetalingen</TabsTrigger>
+          <TabsTrigger value="alerts" data-testid="tab-alerts">Meldingen</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="subscriptions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Alle Abonnementen
+              </CardTitle>
+              <CardDescription>
+                Overzicht van alle scholen met hun abonnementsstatus, gebruik en omzet
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!subscriptionsData?.length ? (
+                <p className="text-center text-muted-foreground py-8">Geen abonnementen gevonden</p>
+              ) : (
+                <div className="space-y-2">
+                  {subscriptionsData.map((sub) => {
+                    const isExpanded = expandedSchoolId === sub.schoolId;
+                    const trialEnd = sub.trialEndDate ? new Date(sub.trialEndDate) : null;
+                    const trialDaysLeft = trialEnd
+                      ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+                      : 0;
+
+                    return (
+                      <div key={sub.schoolId} className="border rounded-lg overflow-hidden">
+                        <div
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50"
+                          onClick={() => {
+                            setExpandedSchoolId(isExpanded ? null : sub.schoolId);
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                            <div>
+                              <p className="font-medium">{sub.schoolName}</p>
+                              <p className="text-xs text-muted-foreground">{sub.city || '—'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline">{sub.planDisplayName || sub.planType}</Badge>
+                            <Badge className={getStatusColor(sub.status)}>{sub.status}</Badge>
+                            {sub.failedPaymentsTotal > 0 && (
+                              <Badge className="bg-red-100 text-red-800">
+                                {sub.failedPaymentsTotal}× mislukt
+                              </Badge>
+                            )}
+                            <div className="text-right">
+                              <p className="font-medium">{formatCurrency(sub.planPriceMonthly / 100)}/mo</p>
+                              <p className="text-xs text-muted-foreground">
+                                {sub.currentTeacherCount}L / {sub.currentStudentCount}LL
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="border-t bg-muted/20 p-4 space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground text-xs">Leraren</p>
+                                <p className="font-medium">{sub.currentTeacherCount}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Leerlingen</p>
+                                <p className="font-medium">{sub.currentStudentCount} / {sub.totalStudentLicenses}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Extra licenties</p>
+                                <p className="font-medium">{sub.extraStudentLicenses}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Totale omzet</p>
+                                <p className="font-medium">{formatCurrency(sub.totalRevenueCents / 100)}</p>
+                              </div>
+                              {sub.status === 'trial' && trialEnd && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">Trial eindigt</p>
+                                  <p className="font-medium text-orange-600">
+                                    {trialEnd.toLocaleDateString('nl-NL')} ({trialDaysLeft}d)
+                                  </p>
+                                </div>
+                              )}
+                              {sub.lastBillingDate && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">Laatste facturering</p>
+                                  <p className="font-medium">
+                                    {new Date(sub.lastBillingDate).toLocaleDateString('nl-NL')} —{' '}
+                                    {formatCurrency(sub.lastBillingAmount / 100)}
+                                  </p>
+                                </div>
+                              )}
+                              {sub.nextBillingDate && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">Volgende facturering</p>
+                                  <p className="font-medium">
+                                    {new Date(sub.nextBillingDate).toLocaleDateString('nl-NL')} —{' '}
+                                    {formatCurrency(sub.nextBillingAmount / 100)}
+                                  </p>
+                                </div>
+                              )}
+                              {sub.stripeCustomerId && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">Stripe klant</p>
+                                  <p className="font-mono text-xs">{sub.stripeCustomerId}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex gap-2 flex-wrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => manualBillingMutation.mutate(sub.schoolId)}
+                                disabled={manualBillingMutation.isPending}
+                              >
+                                <Play className="h-4 w-4 mr-1" /> Factureer nu
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const pricing: SchoolPricing = {
+                                    schoolId: sub.schoolId,
+                                    schoolName: sub.schoolName,
+                                    currentPlan: sub.planType,
+                                    monthlyPrice: sub.planPriceMonthly / 100,
+                                    status: sub.status,
+                                    stripeCustomerId: sub.stripeCustomerId || '',
+                                    creditBalance: 0,
+                                    nextBillingDate: sub.nextBillingDate || '',
+                                  };
+                                  setSelectedPricing(pricing);
+                                  setNewPrice(String(sub.planPriceMonthly / 100));
+                                  setPriceDialog(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-1" /> Prijs aanpassen
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const pricing: SchoolPricing = {
+                                    schoolId: sub.schoolId,
+                                    schoolName: sub.schoolName,
+                                    currentPlan: sub.planType,
+                                    monthlyPrice: sub.planPriceMonthly / 100,
+                                    status: sub.status,
+                                    stripeCustomerId: sub.stripeCustomerId || '',
+                                    creditBalance: 0,
+                                    nextBillingDate: sub.nextBillingDate || '',
+                                  };
+                                  setSelectedPricing(pricing);
+                                  setCreditDialog(true);
+                                }}
+                              >
+                                <Plus className="h-4 w-4 mr-1" /> Tegoed toevoegen
+                              </Button>
+                            </div>
+
+                            {/* Payment history for this school */}
+                            {schoolPaymentHistory && expandedSchoolId === sub.schoolId && (
+                              <div>
+                                <p className="text-sm font-medium mb-2 flex items-center gap-1">
+                                  <History className="h-4 w-4" /> Betalingsgeschiedenis
+                                </p>
+                                <ScrollArea className="h-48">
+                                  {schoolPaymentHistory.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">Geen betalingen gevonden</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {schoolPaymentHistory.map((p) => (
+                                        <div key={p.id} className="flex justify-between text-xs border-b pb-1">
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              {p.billingMonth || (p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('nl-NL') : new Date(p.createdAt).toLocaleDateString('nl-NL'))}
+                                            </span>
+                                            {p.description && <span className="ml-2">{p.description}</span>}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <Badge className={`text-xs ${getStatusColor(p.status)}`}>{p.status}</Badge>
+                                            <span className="font-medium">{formatCurrency(p.amount / 100)}</span>
+                                            {p.status === 'succeeded' && (
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-5 p-1"
+                                                onClick={() => {
+                                                  // Use paymentIntentId (pi_xxx) for refunds, not invoice id
+                                                  setRefundPaymentId((p as any).stripePaymentIntentId || '');
+                                                  setRefundAmount(String(p.amount / 100));
+                                                  setRefundDialog(true);
+                                                }}
+                                              >
+                                                <RotateCcw className="h-3 w-3" />
+                                              </Button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </ScrollArea>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="invoices" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Stripe Invoices</span>
+                <span>Stripe Facturen</span>
               </CardTitle>
               <CardDescription>View and manage all invoices from Stripe</CardDescription>
             </CardHeader>

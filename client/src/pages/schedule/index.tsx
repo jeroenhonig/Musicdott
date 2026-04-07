@@ -106,18 +106,6 @@ export default function SchedulePage() {
   const [conflicts, setConflicts] = useState<ConflictInfo[]>([]);
   const [activeView, setActiveView] = useState<'table' | 'calendar'>('calendar');
 
-  // Early return if user is not loaded
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p>Loading user...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Fetch data - Always call hooks, use enabled for conditional fetching
   const { data: schedules = [], isLoading: schedulesLoading, error: schedulesError } = useQuery<RecurringSchedule[]>({
     queryKey: ["/api/recurring-schedules"],
@@ -401,7 +389,7 @@ export default function SchedulePage() {
 
 
   // Handle loading states
-  const isLoading = schedulesLoading || studentsLoading || teachersLoading || sessionsLoading;
+  const isLoading = !user || schedulesLoading || studentsLoading || teachersLoading || sessionsLoading;
   
   if (isLoading) {
     return (

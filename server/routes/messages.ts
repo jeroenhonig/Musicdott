@@ -27,7 +27,7 @@ export function registerMessageRoutes(app: Express) {
 
   app.post("/api/messages", requireAuth, loadSchoolContext, async (req: any, res: Response) => {
     try {
-      const { recipientId, subject, message } = req.body;
+      const { recipientId, subject, message, content } = req.body;
 
       const recipientUser = await storage.getUser(recipientId);
       if (!recipientUser) {
@@ -44,7 +44,7 @@ export function registerMessageRoutes(app: Express) {
         senderType: req.user.role,
         recipientType: recipientUser.role,
         subject,
-        content: message,
+        content: content ?? message ?? "",
         isRead: false,
       });
 

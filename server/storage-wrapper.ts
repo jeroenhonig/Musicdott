@@ -1,6 +1,6 @@
 import { type IStorage, MemStorage } from "./storage";
 import { DatabaseStorage } from "./database-storage";
-import { isDatabaseAvailable } from "./db";
+import { dbReady, isDatabaseAvailable } from "./db";
 import type { RealtimeBus } from "./services/realtime-bus";
 import { 
   EVENT_ENTITIES, 
@@ -106,6 +106,10 @@ class StorageWrapper implements IStorage {
     }
 
     console.log("🔄 Initializing storage after database verification...");
+
+    // Wait for the initial DB health check to complete so that
+    // isDatabaseAvailable reflects real connectivity, not the default false.
+    await dbReady;
 
     this.requestedMode = mode;
     this.resolvedMode = resolveStorageMode({

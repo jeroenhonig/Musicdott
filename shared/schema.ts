@@ -51,6 +51,7 @@ export const students = pgTable("students", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
+  age: integer("age"),
   birthdate: date("birthdate"), // Birthday for notification system
   instrument: text("instrument"),
   level: text("level"),
@@ -81,6 +82,7 @@ export const lessons = pgTable("lessons", {
   contentBlocks: text("content_blocks"),
   orderNumber: integer("order_number"),
   isActive: boolean("is_active").default(true),
+  durationMin: integer("duration_min"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -376,6 +378,36 @@ export type SchoolBranding = z.infer<typeof schoolBrandingSchema>;
 export type SchoolMembership = typeof schoolMemberships.$inferSelect;
 export type InsertSchoolMembership = typeof schoolMemberships.$inferInsert;
 
+// Studios table — physical practice/teaching rooms, scoped per school
+export const studios = pgTable("studios", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  location: text("location"),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Studio = typeof studios.$inferSelect;
+export type InsertStudio = typeof studios.$inferInsert;
+
+// School vacations — date ranges during which no lessons are scheduled
+export const schoolVacations = pgTable("school_vacations", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  isBlackout: boolean("is_blackout").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type SchoolVacation = typeof schoolVacations.$inferSelect;
+export type InsertSchoolVacation = typeof schoolVacations.$inferInsert;
+
 export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").references(() => schools.id, { onDelete: "cascade" }),
@@ -402,6 +434,12 @@ export const sessions = pgTable("sessions", {
   endTime: timestamp("end_time").notNull(),
   durationMin: integer("duration_min").default(30),
   notes: text("notes"),
+  // Agenda improvements
+  parentSeriesId: integer("parent_series_id"),
+  status: text("status").default("scheduled"), // scheduled | completed | noshow | cancelled | rescheduled | vacation_blocked
+  lessonType: text("lesson_type").default("individual"), // individual | group | trial
+  studioId: integer("studio_id"),
+  externalId: text("external_id"), // UUID from source system for idempotent imports
 });
 
 export type Session = typeof sessions.$inferSelect;
@@ -443,6 +481,13 @@ export const recurringSchedules = pgTable("recurring_schedules", {
   iCalTzid: text("ical_tzid"), // Format: "Europe/Amsterdam"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Agenda improvements
+  schoolId: integer("school_id"),
+  studioId: integer("studio_id"),
+  durationMin: integer("duration_min").default(30),
+  referenceDate: date("reference_date"), // Anchor date for biweekly A/B week calculation
+  status: text("status").default("active"), // active | cancelled | provisional
+  externalId: text("external_id"), // UUID from source system for idempotent imports
 });
 
 export type RecurringSchedule = typeof recurringSchedules.$inferSelect;
@@ -526,7 +571,11 @@ export const createStudentWithAccountSchema = z.object({
   }),
   
   // Additional fields
-  age: z.string().optional(),
+  age: z.union([z.string(), z.number()]).optional().transform(val => {
+    if (val === undefined || val === null || val === "") return null;
+    const parsed = typeof val === "string" ? parseInt(val, 10) : val;
+    return isNaN(parsed) ? null : parsed;
+  }),
   parentName: z.string().optional(),
   parentEmail: z.string().email("Valid parent email is required").optional().or(z.literal("")),
   parentPhone: z.string().optional(),
@@ -539,14 +588,36 @@ export const insertLessonProgressSchema = createInsertSchema(lessonProgress);
 export const insertTeacherAssignmentSchema = createInsertSchema(teacherAssignments);
 
 // Payment and billing schemas
+
+// subscription_plans is now a real DB table (was incorrectly a JS const)
+export const subscriptionPlansTable = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  priceMonthly: integer("price_monthly").notNull(), // in cents
+  teacherLicenses: integer("teacher_licenses").notNull().default(1), // -1 = unlimited
+  studentLicenses: integer("student_licenses").notNull().default(25),
+  features: jsonb("features").default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type SubscriptionPlan = typeof subscriptionPlansTable.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlansTable.$inferInsert;
+
 export const paymentHistory = pgTable("payment_history", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull(),
+  schoolId: integer("school_id"), // nullable: teacher subscriptions have no schoolId
+  userId: integer("user_id"),     // for teacher-only subscriptions
   amount: integer("amount").notNull(), // in cents
   currency: text("currency").default("EUR"),
   status: text("status").notNull(),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeInvoiceId: text("stripe_invoice_id"),
   description: text("description"),
+  billingMonth: text("billing_month"), // format: 'yyyy-MM'
+  paymentDate: timestamp("payment_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -555,11 +626,21 @@ export type InsertPaymentHistory = typeof paymentHistory.$inferInsert;
 
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull(),
-  planType: text("plan_type").notNull().default("standard"),
-  status: text("status").notNull().default("active"),
+  schoolId: integer("school_id"), // nullable for teacher-only subscriptions
+  userId: integer("user_id"),     // for individual teacher subscriptions
+  planId: integer("plan_id"),     // FK to subscription_plans
+  planType: text("plan_type").notNull().default("standaard"),
+  status: text("status").notNull().default("trial"), // trial | active | past_due | canceled
+  trialStartDate: timestamp("trial_start_date"),
+  trialEndDate: timestamp("trial_end_date"),
+  totalStudentLicenses: integer("total_student_licenses").default(25),
+  extraStudentLicenses: integer("extra_student_licenses").default(0),
+  currentTeacherCount: integer("current_teacher_count").default(0),
+  currentStudentCount: integer("current_student_count").default(0),
   currentPeriodStart: timestamp("current_period_start"),
   currentPeriodEnd: timestamp("current_period_end"),
+  billingPeriodStart: timestamp("billing_period_start"),
+  billingPeriodEnd: timestamp("billing_period_end"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   stripeCustomerId: text("stripe_customer_id"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
@@ -573,7 +654,7 @@ export type InsertSubscription = typeof subscriptions.$inferInsert;
 export const schoolBillingSummary = pgTable("school_billing_summary", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull(),
-  currentPlan: text("current_plan").default("standard"),
+  currentPlan: text("current_plan").default("standaard"),
   teacherCount: integer("teacher_count").default(1),
   studentCount: integer("student_count").default(0),
   lastBillingAmount: integer("last_billing_amount").default(0),
@@ -592,15 +673,21 @@ export type InsertSchoolBillingSummary = typeof schoolBillingSummary.$inferInser
 
 export const billingAuditLog = pgTable("billing_audit_log", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull(),
+  schoolId: integer("school_id"),   // nullable: system-wide events have no schoolId
+  userId: integer("user_id"),
   eventType: text("event_type").notNull(),
   description: text("description"),
-  amount: integer("amount"),
+  eventData: jsonb("event_data"),
+  amount: integer("amount"),        // kept for backwards compat
+  previousAmount: text("previous_amount"),
+  currentAmount: text("current_amount"),
+  stripeEventId: text("stripe_event_id"),
   oldValues: text("old_values"),
   newValues: text("new_values"),
   processingTime: integer("processing_time"),
   errorMessage: text("error_message"),
   performedBy: integer("performed_by"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -868,25 +955,11 @@ export const insertPracticeSessionV2Schema = createInsertSchema(practiceSessions
 export const insertClassSchema = createInsertSchema(classes);
 export const insertClassEnrollmentSchema = createInsertSchema(classEnrollments);
 
-// Legacy aliases for compatibility
+// Aliases: both school and teacher subscriptions live in the same table
 export const schoolSubscriptions = subscriptions;
 export const teacherSubscriptions = subscriptions;
-
-// Subscription plans constant
-export const subscriptionPlans = {
-  standard: {
-    id: 'standard',
-    name: 'Standard',
-    price: 2995, // €29.95 in cents
-    features: ['Up to 25 students', 'Basic lesson management', 'Student progress tracking']
-  },
-  pro: {
-    id: 'pro', 
-    name: 'Pro',
-    price: 4995, // €49.95 in cents
-    features: ['Unlimited students', 'Advanced analytics', 'Custom branding', 'Priority support']
-  }
-} as const;
+// ORM table alias for subscription plans (the real DB table)
+export const subscriptionPlans = subscriptionPlansTable;
 
 // Messages and communication
 export const messages = pgTable("messages", {
@@ -921,14 +994,19 @@ export const insertPaymentHistorySchema = createInsertSchema(paymentHistory);
 export const insertSubscriptionSchema = createInsertSchema(subscriptions);
 export const insertSchoolBillingSummarySchema = createInsertSchema(schoolBillingSummary);
 export const insertBillingAuditLogSchema = createInsertSchema(billingAuditLog);
+
 // Billing alerts for admin notifications
 export const billingAlerts = pgTable("billing_alerts", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull(),
+  schoolId: integer("school_id"),   // nullable: system-wide alerts have no schoolId
   alertType: text("alert_type").notNull(),
+  title: text("title").notNull().default(""),
   message: text("message").notNull(),
   severity: text("severity").default("info"),
+  actionRequired: boolean("action_required").default(false),
   isRead: boolean("is_read").default(false),
+  isResolved: boolean("is_resolved").default(false),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
