@@ -1135,9 +1135,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message system methods
-  async getMessages(userId: number): Promise<any[]> {
-    // Return empty array for now - messages system not fully implemented
-    return [];
+  async getMessages(userId: number, userType?: string): Promise<any[]> {
+    return db
+      .select()
+      .from(messages)
+      .where(
+        or(
+          eq(messages.senderId, userId),
+          eq(messages.recipientId, userId)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
   }
 
   async getMessage(id: number): Promise<any | undefined> {
@@ -1146,8 +1154,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(message: any): Promise<any> {
-    // Return the message as-is for now - messages system not fully implemented
-    return message;
+    const [newMessage] = await db
+      .insert(messages)
+      .values({
+        senderId: message.senderId,
+        recipientId: message.recipientId,
+        senderType: message.senderType,
+        recipientType: message.recipientType,
+        subject: message.subject ?? "",
+        content: message.content ?? "",
+        isRead: message.isRead ?? false,
+      })
+      .returning();
+    return newMessage;
   }
 
   async updateMessage(id: number, message: any): Promise<any> {
