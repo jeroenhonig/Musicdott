@@ -33,6 +33,14 @@ export let isDatabaseAvailable = false;
 export let pool: Pool;
 export let db: ReturnType<typeof drizzle<typeof schema>>;
 
+// Promise that resolves once the initial DB health check has completed.
+// Awaiting this guarantees isDatabaseAvailable reflects the real connectivity
+// state rather than the default false assigned before the async check fires.
+let _resolveDbReady!: (value: boolean) => void;
+export const dbReady: Promise<boolean> = new Promise<boolean>((resolve) => {
+  _resolveDbReady = resolve;
+});
+
 // Connection retry configuration
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
@@ -108,11 +116,16 @@ async function initializeDatabase() {
   }
 }
 
-// Initialize database connection
-initializeDatabase().catch(err => {
-  console.error("Database initialization error:", err);
-  isDatabaseAvailable = false;
-});
+// Initialize database connection, then resolve dbReady regardless of outcome
+// so callers that await dbReady are never left hanging.
+initializeDatabase()
+  .catch(err => {
+    console.error("Database initialization error:", err);
+    isDatabaseAvailable = false;
+  })
+  .finally(() => {
+    _resolveDbReady(isDatabaseAvailable);
+  });
 
 // Enhanced query function with proper error propagation - PRODUCTION SAFETY FIX
 export async function executeQuery(query: string, params?: any[]): Promise<{ rows: any[] }> {
