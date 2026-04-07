@@ -57,6 +57,18 @@ export class RealtimeBus {
   private storage: IStorage;
   private eventHandlers = new Map<string, Function[]>();
   private sessionMiddlewareConfigured = false;
+  // Lesson display service — set after construction to avoid circular deps
+  private lessonDisplayService?: import('./lesson-display-service').LessonDisplayService;
+
+  public getIO(): SocketIOServer {
+    return this.io;
+  }
+
+  public setLessonDisplayService(
+    svc: import('./lesson-display-service').LessonDisplayService
+  ): void {
+    this.lessonDisplayService = svc;
+  }
 
   constructor(server: HTTPServer, storage: IStorage) {
     this.storage = storage;
@@ -130,7 +142,12 @@ export class RealtimeBus {
         
         // Setup message handlers
         this.setupMessageHandlers(socket);
-        
+
+        // Delegate lesson display events to LessonDisplayService
+        if (this.lessonDisplayService) {
+          this.lessonDisplayService.attachToSocket(socket);
+        }
+
         // Setup disconnect handler
         this.setupDisconnectHandler(socket);
         

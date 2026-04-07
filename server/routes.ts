@@ -162,6 +162,13 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
   registerRecurringScheduleRoutes(app);
   registerNotificationRoutes(app);
 
+  // Lesson display screen (second-screen feature)
+  const { registerLessonDisplayRoutes } = await import("./routes/lesson-display");
+  const lessonDisplayService = (app as any).lessonDisplayService;
+  if (lessonDisplayService) {
+    registerLessonDisplayRoutes(app, lessonDisplayService);
+  }
+
   if (!minimal) {
     // Register gamification routes
     app.use("/api/gamification", (await import("./routes/gamification")).default);
