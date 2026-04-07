@@ -14,6 +14,12 @@ export const CANONICAL_STORAGE_CONTENT_BLOCK_TYPES = [
   "abc_notation",
   "flat_embed",
   "speech_to_note",
+  "image",
+  "audio",
+  "chord_chart",
+  "lyrics",
+  "rich_link",
+  "image_gallery",
 ] as const;
 
 export const LEGACY_CONTENT_BLOCK_TYPE_MAP = {
@@ -419,6 +425,77 @@ function normalizeNotationBlock(baseBlock: ContentBlockRecord): ContentBlockReco
   };
 }
 
+function normalizeImageBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const url = firstString(data.url, baseBlock.url, baseBlock.content);
+  const alt = firstString(data.alt, baseBlock.title);
+  return {
+    ...baseBlock,
+    url,
+    data: { ...data, ...(url ? { url, alt } : {}) },
+  };
+}
+
+function normalizeAudioBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const url = firstString(data.url, baseBlock.url, baseBlock.content);
+  const title = firstString(data.title, baseBlock.title);
+  return {
+    ...baseBlock,
+    url,
+    data: { ...data, ...(url ? { url } : {}), ...(title ? { title } : {}) },
+  };
+}
+
+function normalizeChordChartBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const content = firstString(data.content, baseBlock.content);
+  const key = firstString(data.key);
+  return {
+    ...baseBlock,
+    content,
+    data: { ...data, ...(content ? { content } : {}), ...(key ? { key } : {}) },
+  };
+}
+
+function normalizeLyricsBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const content = firstString(data.content, baseBlock.content);
+  return {
+    ...baseBlock,
+    content,
+    data: { ...data, ...(content ? { content } : {}) },
+  };
+}
+
+function normalizeRichLinkBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const url = firstString(data.url, baseBlock.url, baseBlock.content);
+  const title = firstString(data.title, baseBlock.title);
+  const description = firstString(data.description, baseBlock.description);
+  const image = firstString(data.image);
+  return {
+    ...baseBlock,
+    url,
+    data: {
+      ...data,
+      ...(url ? { url } : {}),
+      ...(title ? { title } : {}),
+      ...(description ? { description } : {}),
+      ...(image ? { image } : {}),
+    },
+  };
+}
+
+function normalizeImageGalleryBlock(baseBlock: ContentBlockRecord): ContentBlockRecord {
+  const data = asContentBlockData(baseBlock.data);
+  const images = Array.isArray(data.images) ? data.images : [];
+  return {
+    ...baseBlock,
+    data: { ...data, images },
+  };
+}
+
 export function normalizeContentBlockForStorage(input: unknown): ContentBlockContract | null {
   if (!isObjectRecord(input)) return null;
 
@@ -451,6 +528,18 @@ export function normalizeContentBlockForStorage(input: unknown): ContentBlockCon
       case "flat_embed":
       case "speech_to_note":
         return normalizeNotationBlock(baseBlock);
+      case "image":
+        return normalizeImageBlock(baseBlock);
+      case "audio":
+        return normalizeAudioBlock(baseBlock);
+      case "chord_chart":
+        return normalizeChordChartBlock(baseBlock);
+      case "lyrics":
+        return normalizeLyricsBlock(baseBlock);
+      case "rich_link":
+        return normalizeRichLinkBlock(baseBlock);
+      case "image_gallery":
+        return normalizeImageGalleryBlock(baseBlock);
       default:
         return baseBlock;
     }

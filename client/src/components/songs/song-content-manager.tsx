@@ -18,6 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SmartPasteInput from "@/components/shared/smart-paste-input";
 import { 
   Plus, 
   Trash2, 
@@ -148,6 +150,17 @@ export default function SongContentManager({
 
   const handleAddBlock = (type: SongContentBlockType) => {
     const newBlock = createBlock(type);
+    onChange([...blocks, newBlock]);
+    setIsAddDialogOpen(false);
+  };
+
+  const handleSmartPasteBlock = (type: string, data: Record<string, unknown>) => {
+    const blockType = type as SongContentBlockType;
+    const newBlock: SongContentBlock = {
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: blockType,
+      data: data as SongContentBlock['data'],
+    };
     onChange([...blocks, newBlock]);
     setIsAddDialogOpen(false);
   };
@@ -531,112 +544,125 @@ export default function SongContentManager({
             </Card>
           </DialogTrigger>
           
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add Content Block</DialogTitle>
             </DialogHeader>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('spotify')}
-              >
-                <Headphones className="h-6 w-6" />
-                <span className="text-sm">Spotify</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('apple_music')}
-              >
-                <Music className="h-6 w-6" />
-                <span className="text-sm">Apple Music</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('video')}
-              >
-                <Video className="h-6 w-6" />
-                <span className="text-sm">Video</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('text')}
-              >
-                <Type className="h-6 w-6" />
-                <span className="text-sm">Text</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('groove')}
-              >
-                <Music className="h-6 w-6" />
-                <span className="text-sm">Rhythm</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('pdf')}
-              >
-                <FileText className="h-6 w-6" />
-                <span className="text-sm">Sheet Music</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('external_link')}
-              >
-                <Link className="h-6 w-6" />
-                <span className="text-sm">External Link</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('sync-embed')}
-              >
-                <PlayCircle className="h-6 w-6" />
-                <span className="text-sm">Musicdott Sync</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('abc_notation')}
-              >
-                <Music className="h-6 w-6" />
-                <span className="text-sm">ABC Notation</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('tablature')}
-              >
-                <Guitar className="h-6 w-6" />
-                <span className="text-sm">Tablature</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex-col gap-2"
-                onClick={() => handleAddBlock('flat_embed')}
-              >
-                <FileMusic className="h-6 w-6" />
-                <span className="text-sm">Flat.io Score</span>
-              </Button>
 
-            </div>
+            <Tabs defaultValue="smart" className="mt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="smart">Smart Paste</TabsTrigger>
+                <TabsTrigger value="manual">Choose Type</TabsTrigger>
+              </TabsList>
+              <TabsContent value="smart" className="mt-4">
+                <SmartPasteInput
+                  onBlockDetected={handleSmartPasteBlock}
+                  onCancel={() => setIsAddDialogOpen(false)}
+                />
+              </TabsContent>
+              <TabsContent value="manual" className="mt-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('spotify')}
+                  >
+                    <Headphones className="h-6 w-6" />
+                    <span className="text-sm">Spotify</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('apple_music')}
+                  >
+                    <Music className="h-6 w-6" />
+                    <span className="text-sm">Apple Music</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('video')}
+                  >
+                    <Video className="h-6 w-6" />
+                    <span className="text-sm">Video</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('text')}
+                  >
+                    <Type className="h-6 w-6" />
+                    <span className="text-sm">Text</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('groove')}
+                  >
+                    <Music className="h-6 w-6" />
+                    <span className="text-sm">Rhythm</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('pdf')}
+                  >
+                    <FileText className="h-6 w-6" />
+                    <span className="text-sm">Sheet Music</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('external_link')}
+                  >
+                    <Link className="h-6 w-6" />
+                    <span className="text-sm">External Link</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('sync-embed')}
+                  >
+                    <PlayCircle className="h-6 w-6" />
+                    <span className="text-sm">Musicdott Sync</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('abc_notation')}
+                  >
+                    <Music className="h-6 w-6" />
+                    <span className="text-sm">ABC Notation</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('tablature')}
+                  >
+                    <Guitar className="h-6 w-6" />
+                    <span className="text-sm">Tablature</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => handleAddBlock('flat_embed')}
+                  >
+                    <FileMusic className="h-6 w-6" />
+                    <span className="text-sm">Flat.io Score</span>
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       )}
