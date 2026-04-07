@@ -21,8 +21,9 @@ Het Musicdott platform heeft al een gedeeltelijke i18n-infrastructuur (`i18n.ts`
 ## 1. Vlagschakelaar plaatsing
 
 ### Sidebar (desktop)
-- Voeg `LanguageSelector` toe aan het bovenste gedeelte van `sidebar.tsx`, naast het Musicdott-logo
-- Variant: `toggle` (compact, toont 🇳🇱 / 🇬🇧)
+- Voeg `CompactLanguageSelector` (uit `language-selector.tsx`) toe aan het bovenste gedeelte van `sidebar.tsx`, naast het Musicdott-logo
+- `CompactLanguageSelector` toont vlaggen (🇳🇱 / 🇬🇧) — de `toggle` variant toont géén vlaggen en is dus niet geschikt
+- De `toggle` variant van `LanguageSelector` moet worden bijgewerkt om ook vlaggen te tonen, zodat die bruikbaar is op andere plekken
 
 ### Mobile header
 - Voeg `CompactLanguageSelector` toe aan `mobile-header.tsx` in de rechter icon-groep, naast de avatar
@@ -38,19 +39,21 @@ Het Musicdott platform heeft al een gedeeltelijke i18n-infrastructuur (`i18n.ts`
 
 ### Aanpak
 Systematische audit van alle `.tsx`-bestanden op hardgecodeerde strings. Per bestand:
-1. Identificeer hardgecodeerde UI-tekst
+1. Identificeer hardgecodeerde UI-tekst (grep op JSX string literals en aria-labels)
 2. Voeg ontbrekende sleutels toe aan `i18n.ts` (EN + NL)
 3. Vervang hardgecodeerde tekst door `t('key')` via `useTranslation()`
 
+Audit-aanpak: grep op `className=` + omliggende tekst-nodes, plus `aria-label="` om alle hardgecodeerde accessibility strings mee te nemen.
+
 ### Bestanden met prioriteit (hardgecodeerde tekst bevestigd)
-- `components/layouts/mobile-header.tsx` — "Toggle navigation menu", "MusicDott"
-- `components/layouts/sidebar.tsx` — nav labels, logout tekst
+- `components/layouts/mobile-header.tsx` — aria-labels, "MusicDott" app naam
+- `components/layouts/sidebar.tsx` — nav labels, logout tekst, en ~10+ extra hardgecodeerde strings: "Mijn Agenda", "Analytics & Reports", "Import Data", "Learning Hub", "School Management", "Teachers", "Manage Members", "Billing & Plans", "School Settings", etc.
 - `pages/auth-page.tsx` — loginformulier tekst
 - `pages/dashboard.tsx` — dashboardtekst
 - `pages/lessons/index.tsx` — lessen overzicht
 - `pages/students/index.tsx` — studentenoverzicht
 - `components/admin/lesson-progress-tracker.tsx` — "Teacher Notes", sectiebeschrijvingen
-- `components/import/pos-csv-import.tsx` — "Opmerkingen" label
+- `components/import/pos-csv-import.tsx` — "Opmerkingen" label (display-only, geen DeepL nodig)
 - Alle overige `.tsx`-bestanden die nog geen `useTranslation` importeren
 
 ### Uitbreiding `i18n.ts`
@@ -62,7 +65,7 @@ Nieuwe vertaalsleutels toevoegen voor alle nieuwe strings, georganiseerd per nam
 
 ### Welke content
 - `teacherNotes` (veld in de lessons/progress DB-tabel) — opmerkingen die een docent bij een les schrijft
-- `posOpmerkingen` — bestaande notatiedata uit POS-import
+- `posOpmerkingen` — display-only data uit POS-import (alleen client-side vertalen bij rendering, niet opslaan in DB)
 
 ### Server: `/api/translate`
 
@@ -72,23 +75,29 @@ Body: { text: string, targetLang: 'EN' | 'NL' }
 Response: { translatedText: string }
 ```
 
+- Vereist authenticatie (`requireAuth` middleware) — de route is niet publiek toegankelijk
 - Roept DeepL Free API aan: `https://api-free.deepl.com/v2/translate`
-- Vereist: `DEEPL_API_KEY` environment variabele
-- **Server-side cache**: `Map<string, string>` met sleutel `${targetLang}:${hash(text)}` om herhaalde API-calls te voorkomen
-- Foutafhandeling: bij DeepL-fout wordt originele tekst geretourneerd (graceful fallback)
+- `source_lang` wordt **niet** meegegeven: DeepL detecteert de brontaal automatisch (betrouwbaarder dan eigen heuristiek)
+- Vereist: `DEEPL_API_KEY` environment variabele (ook toevoegen aan `.env.example` met placeholder)
+- **Server-side cache**: `Map<string, string>` met sleutel `` `${targetLang}:${text}` `` (raw tekst als sleutel, geen hash nodig voor een in-memory Map) — **bekende beperking**: geen eviction/TTL, acceptabel voor MVP
+- Foutafhandeling: bij DeepL-fout (incl. 429 quota overschreden) → originele tekst retourneren (graceful fallback)
+- DeepL Free tier limiet: 500.000 tekens/maand — bij overschrijding valt de UI terug op originele tekst zonder foutmelding voor de gebruiker
 
 ### Frontend: auto-vertaling tonen
 
 In componenten die `teacherNotes` / `posOpmerkingen` tonen:
 1. Detecteer actieve taal via `useTranslation().language`
-2. Bij laden van de content: stuur `POST /api/translate` als taal ≠ vermoedelijke brontaal
-3. Toon vertaalde tekst met subtiel "vertaald" label
-4. Brontaal-detectie: simpel heuristisch (als platform-taal = NL en content bevat NL woorden → niet vertalen)
+2. Skip vertaling als `text` leeg of null is
+3. Stuur `POST /api/translate` bij renderen van de content
+4. Gebruik `AbortController` om in-flight requests te annuleren bij taalwisseling of unmount (voorkomt race condition)
+5. Toon vertaalde tekst met subtiel "Vertaald / Translated" label (met `title` attribuut voor screen readers)
 
 Betrokken componenten:
-- `components/admin/lesson-progress-tracker.tsx`
-- `components/lessons/lesson-play.tsx` (als teacherNotes daarin getoond wordt)
-- Andere componenten die `teacherNotes` renderen
+- `components/admin/lesson-progress-tracker.tsx` — rendert `teacherNotes`
+- `components/import/pos-csv-import.tsx` — rendert `posOpmerkingen` (1600+ regels, geen bestaande i18n-imports — niet-triviaal werk, scope beperkt tot alleen het `posOpmerkingen`-blok)
+- Andere componenten die `teacherNotes` tonen (audit bevestigt welke dit zijn)
+
+*Opmerking: `lesson-play.tsx` bevat geen `teacherNotes` — dit was een incorrecte aanname in de eerste versie van de spec.*
 
 ---
 
@@ -99,10 +108,19 @@ Gebruiker klikt vlag
     → setLanguage('nl'|'en')
     → localStorage bijgewerkt
     → React context herrendert alle t() calls
-    → Dynamische content: POST /api/translate aangeroepen
-    → DeepL API (server-side, gecached)
-    → Vertaalde tekst getoond
+    → Dynamische content: POST /api/translate aangeroepen (met AbortController)
+    → requireAuth → DeepL API (server-side, gecached)
+    → Vertaalde tekst getoond met "Vertaald" label
+    → Bij fout/quota: originele tekst getoond (stille fallback)
 ```
+
+---
+
+## Bekende beperkingen (MVP)
+
+- Server-side vertaalcache heeft geen size-limit of TTL (acceptable voor MVP, later te vervangen door LRU-cache)
+- Eerste pageload toont kort Engels voor NL-gebruikers (localStorage is niet beschikbaar vóór hydration) — bekende beperking van de huidige architectuur
+- DeepL Free tier: 500k tekens/maand, geen ingebouwde quota-monitoring
 
 ---
 
@@ -111,14 +129,15 @@ Gebruiker klikt vlag
 - RTL-taalondersteuning
 - Meer dan 2 talen
 - Vertaling van uploaded bestanden (PDF, afbeeldingen)
-- Automatische detectie van taal van docent-opmerkingen (te complex, out of scope)
+- Quota-monitoring dashboard voor DeepL-gebruik
 
 ---
 
 ## Implementatievolgorde
 
-1. Vlagschakelaar plaatsen (sidebar + mobile header)
-2. DeepL server-route aanmaken
-3. `i18n.ts` uitbreiden met ontbrekende sleutels
-4. Hardgecodeerde tekst vervangen in alle componenten/pagina's
-5. Auto-vertaling integreren in componenten die teacherNotes tonen
+1. `CompactLanguageSelector` plaatsen in sidebar en mobile header; `toggle`-variant bijwerken met vlaggen
+2. `DEEPL_API_KEY` toevoegen aan `.env.example`
+3. DeepL server-route aanmaken (`POST /api/translate` met `requireAuth` en server-side cache)
+4. `i18n.ts` uitbreiden met ontbrekende sleutels (systematische audit)
+5. Hardgecodeerde tekst vervangen in alle componenten/pagina's
+6. Auto-vertaling integreren in `lesson-progress-tracker.tsx` en andere componenten met `teacherNotes`
