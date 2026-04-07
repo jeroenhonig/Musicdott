@@ -1117,9 +1117,14 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     requireTeacherOrOwner(),
     async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSessionSchema.parse({
+      const sessionParseSchema = insertSessionSchema.extend({
+        startTime: z.coerce.date(),
+        endTime: z.coerce.date(),
+      });
+      const validatedData = sessionParseSchema.parse({
         ...req.body,
-        userId: req.user!.id
+        userId: req.user!.id,
+        schoolId: req.body.schoolId ?? (req.school as any)?.id ?? (req.user as any)!.schoolId,
       });
 
       // Verify the student exists and belongs to user's school
@@ -1185,7 +1190,11 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         return res.status(403).json({ message: "You don't have permission to edit this session" });
       }
 
-      const validatedData = insertSessionSchema.partial().parse(req.body);
+      const sessionUpdateSchema = insertSessionSchema.partial().extend({
+        startTime: z.coerce.date().optional(),
+        endTime: z.coerce.date().optional(),
+      });
+      const validatedData = sessionUpdateSchema.parse(req.body);
 
       // If updating the student, verify school isolation
       if (validatedData.studentId) {
