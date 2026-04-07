@@ -4,13 +4,14 @@ import { USER_ROLES, createStudentWithAccountSchema } from "@shared/schema";
 import { insertStudentSchema } from "@shared/schema";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth";
-import { 
-  loadSchoolContext, 
-  requireTeacherOrOwner, 
-  applySchoolFiltering 
+import {
+  loadSchoolContext,
+  requireTeacherOrOwner,
+  applySchoolFiltering
 } from "../middleware/authz";
 import { setStorageContext } from "../middleware/storage-context";
 import bcrypt from "bcrypt";
+import { logger } from "../utils/logger";
 
 // Enhanced student access middleware using school context
 // This replaces the old manual access control with proper school scoping
