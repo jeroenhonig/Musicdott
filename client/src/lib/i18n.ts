@@ -331,10 +331,6 @@ export const translations: Translations = {
     en: 'No description',
     nl: 'Geen beschrijving'
   },
-  'lessons.view': {
-    en: 'View',
-    nl: 'Bekijken'
-  },
   'lessons.viewAllCount': {
     en: 'View all',
     nl: 'Bekijk alle'
@@ -597,6 +593,649 @@ export const translations: Translations = {
     en: 'Active',
     nl: 'Actief'
   },
+  // Students index page
+  'students.searchPlaceholder': {
+    en: 'Search students...',
+    nl: 'Studenten zoeken...'
+  },
+  'students.addNew': {
+    en: 'Add New Student',
+    nl: 'Nieuwe Student Toevoegen'
+  },
+  'students.noStudents': {
+    en: 'No students yet',
+    nl: 'Nog geen studenten'
+  },
+  'students.noStudentsSearchHint': {
+    en: 'No students match your search.',
+    nl: 'Geen studenten gevonden voor uw zoekopdracht.'
+  },
+  'students.noStudentsHint': {
+    en: 'Add your first student to get started.',
+    nl: 'Voeg uw eerste student toe om te beginnen.'
+  },
+  'students.addFirst': {
+    en: 'Add First Student',
+    nl: 'Eerste Student Toevoegen'
+  },
+  'students.viewOnly': {
+    en: 'View Only',
+    nl: 'Alleen bekijken'
+  },
+  'students.ageLabel': {
+    en: 'Age',
+    nl: 'Leeftijd'
+  },
+  'students.parentLabel': {
+    en: 'Parent',
+    nl: 'Ouder'
+  },
+  'students.assignSongBtn': {
+    en: 'Assign Song',
+    nl: 'Nummer Toewijzen'
+  },
+  'students.assignLessonBtn': {
+    en: 'Assign Lesson',
+    nl: 'Les Toewijzen'
+  },
+  'students.scheduleBtn': {
+    en: 'Schedule',
+    nl: 'Inplannen'
+  },
+  'students.recurringBtn': {
+    en: 'Recurring',
+    nl: 'Terugkerend'
+  },
+  'students.messageBtn': {
+    en: 'Message',
+    nl: 'Bericht'
+  },
+
+  // Students — Add/Edit dialog
+  'students.dialog.addTitle': {
+    en: 'Add New Student',
+    nl: 'Nieuwe Student Toevoegen'
+  },
+  'students.dialog.addDescription': {
+    en: 'Create a new student profile with contact information and learning details.',
+    nl: 'Maak een nieuw studentprofiel aan met contactgegevens en leerdetails.'
+  },
+  'students.dialog.updateTitle': {
+    en: 'Update Student',
+    nl: 'Student Bijwerken'
+  },
+  'students.dialog.updateDescription': {
+    en: 'Edit student information and settings.',
+    nl: 'Bewerk studentinformatie en instellingen.'
+  },
+  'students.form.fullName': {
+    en: 'Full Name',
+    nl: 'Volledige naam'
+  },
+  'students.form.namePlaceholder': {
+    en: "Enter student's name",
+    nl: 'Voer de naam van de student in'
+  },
+  'students.form.agePlaceholder': {
+    en: 'Enter age',
+    nl: 'Voer leeftijd in'
+  },
+  'students.form.birthdate': {
+    en: 'Birthdate (Optional)',
+    nl: 'Geboortedatum (optioneel)'
+  },
+  'students.form.birthdatePlaceholder': {
+    en: 'Select birthdate',
+    nl: 'Selecteer geboortedatum'
+  },
+  'students.form.emailPlaceholder': {
+    en: 'Enter email address',
+    nl: 'Voer e-mailadres in'
+  },
+  'students.form.phonePlaceholder': {
+    en: 'Enter phone number',
+    nl: 'Voer telefoonnummer in'
+  },
+  'students.form.instrument': {
+    en: 'Instrument',
+    nl: 'Instrument'
+  },
+  'students.form.instrumentPlaceholder': {
+    en: 'Select instrument',
+    nl: 'Selecteer instrument'
+  },
+  'students.form.level': {
+    en: 'Level',
+    nl: 'Niveau'
+  },
+  'students.form.levelPlaceholder': {
+    en: 'Select level',
+    nl: 'Selecteer niveau'
+  },
+  'students.form.levelBeginner': {
+    en: 'Beginner',
+    nl: 'Beginner'
+  },
+  'students.form.levelIntermediate': {
+    en: 'Intermediate',
+    nl: 'Gevorderd'
+  },
+  'students.form.levelAdvanced': {
+    en: 'Advanced',
+    nl: 'Expert'
+  },
+  'students.form.parentName': {
+    en: 'Parent/Guardian Name',
+    nl: 'Naam ouder/voogd'
+  },
+  'students.form.parentNamePlaceholder': {
+    en: 'Enter parent/guardian name',
+    nl: 'Voer naam van ouder/voogd in'
+  },
+  'students.form.parentEmail': {
+    en: 'Parent/Guardian Email',
+    nl: 'E-mail ouder/voogd'
+  },
+  'students.form.parentEmailPlaceholder': {
+    en: 'Enter parent/guardian email',
+    nl: 'Voer e-mail van ouder/voogd in'
+  },
+  'students.form.parentPhone': {
+    en: 'Parent/Guardian Phone',
+    nl: 'Telefoon ouder/voogd'
+  },
+  'students.form.parentPhonePlaceholder': {
+    en: 'Enter parent/guardian phone number',
+    nl: 'Voer telefoonnummer van ouder/voogd in'
+  },
+  'students.form.assignedTeacher': {
+    en: 'Assigned Teacher',
+    nl: 'Toegewezen docent'
+  },
+  'students.form.teacherPlaceholder': {
+    en: 'Select teacher',
+    nl: 'Selecteer docent'
+  },
+  'students.form.noTeacher': {
+    en: 'No Teacher Assigned',
+    nl: 'Geen docent toegewezen'
+  },
+  'students.form.username': {
+    en: 'Username',
+    nl: 'Gebruikersnaam'
+  },
+  'students.form.usernamePlaceholder': {
+    en: 'Enter username for student portal',
+    nl: 'Voer gebruikersnaam in voor studentportaal'
+  },
+  'students.form.password': {
+    en: 'Password',
+    nl: 'Wachtwoord'
+  },
+  'students.form.passwordPlaceholder': {
+    en: 'Enter password',
+    nl: 'Voer wachtwoord in'
+  },
+  'students.form.passwordUpdate': {
+    en: 'Password (leave blank to keep current)',
+    nl: 'Wachtwoord (leeg laten om huidig te behouden)'
+  },
+  'students.form.passwordUpdatePlaceholder': {
+    en: 'Enter new password',
+    nl: 'Voer nieuw wachtwoord in'
+  },
+  'students.form.notes': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'students.form.notesPlaceholder': {
+    en: 'Additional notes about the student',
+    nl: 'Aanvullende opmerkingen over de student'
+  },
+  'students.form.createButton': {
+    en: 'Create Student',
+    nl: 'Student Aanmaken'
+  },
+  'students.form.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'students.form.updateButton': {
+    en: 'Update Student',
+    nl: 'Student Bijwerken'
+  },
+  'students.form.updating': {
+    en: 'Updating...',
+    nl: 'Bijwerken...'
+  },
+
+  // Students — toast messages
+  'students.toast.created': {
+    en: 'Student created successfully',
+    nl: 'Student succesvol aangemaakt'
+  },
+  'students.toast.updated': {
+    en: 'Student updated successfully',
+    nl: 'Student succesvol bijgewerkt'
+  },
+  'students.toast.deleted': {
+    en: 'Student deleted successfully',
+    nl: 'Student succesvol verwijderd'
+  },
+  'students.toast.songAssigned': {
+    en: 'Song assigned successfully',
+    nl: 'Nummer succesvol toegewezen'
+  },
+  'students.toast.lessonAssigned': {
+    en: 'Lesson assigned successfully',
+    nl: 'Les succesvol toegewezen'
+  },
+  'students.toast.sessionScheduled': {
+    en: 'Session scheduled successfully',
+    nl: 'Sessie succesvol ingepland'
+  },
+  'students.toast.recurringScheduled': {
+    en: 'Recurring lesson scheduled successfully',
+    nl: 'Terugkerende les succesvol ingepland'
+  },
+
+  // Students — delete confirmation
+  'students.delete.title': {
+    en: 'Are you absolutely sure?',
+    nl: 'Weet u het zeker?'
+  },
+  'students.delete.description': {
+    en: 'This action cannot be undone. This will permanently delete the student and remove all their data from our servers.',
+    nl: 'Deze actie kan niet ongedaan worden gemaakt. De student en alle bijbehorende gegevens worden permanent verwijderd.'
+  },
+  'students.delete.confirm': {
+    en: 'Delete Student',
+    nl: 'Student Verwijderen'
+  },
+  'students.delete.deleting': {
+    en: 'Deleting...',
+    nl: 'Verwijderen...'
+  },
+
+  // Students — Assign Song dialog
+  'students.assignSong.title': {
+    en: 'Assign Song',
+    nl: 'Nummer Toewijzen'
+  },
+  'students.assignSong.selectPlaceholder': {
+    en: 'Select a song',
+    nl: 'Selecteer een nummer'
+  },
+  'students.assignSong.notesPlaceholder': {
+    en: 'Any specific instructions or notes about this assignment',
+    nl: 'Specifieke instructies of opmerkingen over deze opdracht'
+  },
+  'students.assignSong.button': {
+    en: 'Assign Song',
+    nl: 'Nummer Toewijzen'
+  },
+  'students.assignSong.assigning': {
+    en: 'Assigning...',
+    nl: 'Toewijzen...'
+  },
+
+  // Students — Assign Lesson dialog
+  'students.assignLesson.title': {
+    en: 'Assign Lesson',
+    nl: 'Les Toewijzen'
+  },
+  'students.assignLesson.selectPlaceholder': {
+    en: 'Select a lesson',
+    nl: 'Selecteer een les'
+  },
+  'students.assignLesson.notesPlaceholder': {
+    en: 'Any specific instructions or notes about this assignment',
+    nl: 'Specifieke instructies of opmerkingen over deze opdracht'
+  },
+  'students.assignLesson.button': {
+    en: 'Assign Lesson',
+    nl: 'Les Toewijzen'
+  },
+  'students.assignLesson.assigning': {
+    en: 'Assigning...',
+    nl: 'Toewijzen...'
+  },
+
+  // Students — Schedule Session dialog
+  'students.scheduleSession.title': {
+    en: 'Schedule Session',
+    nl: 'Sessie Inplannen'
+  },
+  'students.scheduleSession.sessionTitle': {
+    en: 'Session Title',
+    nl: 'Sessietitel'
+  },
+  'students.scheduleSession.titlePlaceholder': {
+    en: 'Enter session title',
+    nl: 'Voer sessietitel in'
+  },
+  'students.scheduleSession.startTime': {
+    en: 'Start Time',
+    nl: 'Starttijd'
+  },
+  'students.scheduleSession.endTime': {
+    en: 'End Time',
+    nl: 'Eindtijd'
+  },
+  'students.scheduleSession.notesPlaceholder': {
+    en: 'Any notes about this session',
+    nl: 'Opmerkingen over deze sessie'
+  },
+  'students.scheduleSession.button': {
+    en: 'Schedule Session',
+    nl: 'Sessie Inplannen'
+  },
+  'students.scheduleSession.scheduling': {
+    en: 'Scheduling...',
+    nl: 'Inplannen...'
+  },
+
+  // Students — Recurring Lesson dialog
+  'students.recurringLesson.title': {
+    en: 'Schedule Recurring Lessons',
+    nl: 'Terugkerende Lessen Inplannen'
+  },
+  'students.recurringLesson.dayOfWeek': {
+    en: 'Day of Week',
+    nl: 'Dag van de week'
+  },
+  'students.recurringLesson.dayPlaceholder': {
+    en: 'Select day',
+    nl: 'Selecteer dag'
+  },
+  'students.recurringLesson.startTime': {
+    en: 'Start Time',
+    nl: 'Starttijd'
+  },
+  'students.recurringLesson.duration': {
+    en: 'Duration (minutes)',
+    nl: 'Duur (minuten)'
+  },
+  'students.recurringLesson.durationPlaceholder': {
+    en: 'Select duration',
+    nl: 'Selecteer duur'
+  },
+  'students.recurringLesson.min30': {
+    en: '30 minutes',
+    nl: '30 minuten'
+  },
+  'students.recurringLesson.min45': {
+    en: '45 minutes',
+    nl: '45 minuten'
+  },
+  'students.recurringLesson.min60': {
+    en: '60 minutes',
+    nl: '60 minuten'
+  },
+  'students.recurringLesson.min90': {
+    en: '90 minutes',
+    nl: '90 minuten'
+  },
+  'students.recurringLesson.location': {
+    en: 'Location (Optional)',
+    nl: 'Locatie (optioneel)'
+  },
+  'students.recurringLesson.locationPlaceholder': {
+    en: 'e.g., Room 1, Studio A',
+    nl: 'bijv. Kamer 1, Studio A'
+  },
+  'students.recurringLesson.notesOptional': {
+    en: 'Notes (Optional)',
+    nl: 'Opmerkingen (optioneel)'
+  },
+  'students.recurringLesson.notesPlaceholder': {
+    en: 'Additional notes...',
+    nl: 'Aanvullende opmerkingen...'
+  },
+  'students.recurringLesson.button': {
+    en: 'Create Recurring Lesson',
+    nl: 'Terugkerende Les Aanmaken'
+  },
+  'students.recurringLesson.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+
+  // Student details page
+  'studentDetails.invalidId': {
+    en: 'Invalid Student ID',
+    nl: 'Ongeldig student-ID'
+  },
+  'studentDetails.notFound': {
+    en: 'Student Not Found',
+    nl: 'Student niet gevonden'
+  },
+  'studentDetails.notFoundMessage': {
+    en: 'Student not found',
+    nl: 'Student niet gevonden'
+  },
+  'studentDetails.loading': {
+    en: 'Loading Student...',
+    nl: 'Student laden...'
+  },
+  'studentDetails.loadingMessage': {
+    en: 'Loading student information...',
+    nl: 'Studentinformatie laden...'
+  },
+  'studentDetails.backToStudents': {
+    en: 'Back to Students',
+    nl: 'Terug naar studenten'
+  },
+  'studentDetails.tab.assignments': {
+    en: 'Assignments',
+    nl: 'Opdrachten'
+  },
+  'studentDetails.tab.sessions': {
+    en: 'Sessions',
+    nl: 'Sessies'
+  },
+  'studentDetails.tab.achievements': {
+    en: 'Achievements',
+    nl: 'Prestaties'
+  },
+  'studentDetails.tab.notes': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+
+  // Student details — Assignments tab
+  'studentDetails.assignments.title': {
+    en: 'Assignments',
+    nl: 'Opdrachten'
+  },
+  'studentDetails.assignments.description': {
+    en: 'Track songs and lessons assigned to {name}',
+    nl: 'Bijhouden van nummers en lessen toegewezen aan {name}'
+  },
+  'studentDetails.assignments.assignMaterial': {
+    en: 'Assign Material',
+    nl: 'Materiaal Toewijzen'
+  },
+  'studentDetails.assignments.loading': {
+    en: 'Loading assignments...',
+    nl: 'Opdrachten laden...'
+  },
+  'studentDetails.assignments.none': {
+    en: 'No assignments found',
+    nl: 'Geen opdrachten gevonden'
+  },
+  'studentDetails.assignments.assignSong': {
+    en: 'Assign Song',
+    nl: 'Nummer Toewijzen'
+  },
+  'studentDetails.assignments.assignLesson': {
+    en: 'Assign Lesson',
+    nl: 'Les Toewijzen'
+  },
+  'studentDetails.assignments.col.type': {
+    en: 'Type',
+    nl: 'Type'
+  },
+  'studentDetails.assignments.col.title': {
+    en: 'Title',
+    nl: 'Titel'
+  },
+  'studentDetails.assignments.col.assignedDate': {
+    en: 'Assigned Date',
+    nl: 'Toegewezen datum'
+  },
+  'studentDetails.assignments.col.dueDate': {
+    en: 'Due Date',
+    nl: 'Vervaldatum'
+  },
+  'studentDetails.assignments.col.status': {
+    en: 'Status',
+    nl: 'Status'
+  },
+  'studentDetails.assignments.col.actions': {
+    en: 'Actions',
+    nl: 'Acties'
+  },
+  'studentDetails.assignments.typeSong': {
+    en: 'Song',
+    nl: 'Nummer'
+  },
+  'studentDetails.assignments.typeLesson': {
+    en: 'Lesson',
+    nl: 'Les'
+  },
+  'studentDetails.assignments.notSet': {
+    en: 'Not set',
+    nl: 'Niet ingesteld'
+  },
+  'studentDetails.assignments.completed': {
+    en: 'Completed',
+    nl: 'Voltooid'
+  },
+  'studentDetails.assignments.inProgress': {
+    en: 'In Progress',
+    nl: 'In uitvoering'
+  },
+  'studentDetails.assignments.editAssignment': {
+    en: 'Edit assignment',
+    nl: 'Opdracht bewerken'
+  },
+  'studentDetails.assignments.markIncomplete': {
+    en: 'Mark as incomplete',
+    nl: 'Markeren als onvoltooid'
+  },
+  'studentDetails.assignments.markComplete': {
+    en: 'Mark as complete',
+    nl: 'Markeren als voltooid'
+  },
+  'studentDetails.assignments.deleteAssignment': {
+    en: 'Delete assignment',
+    nl: 'Opdracht verwijderen'
+  },
+  'studentDetails.assignments.deleted': {
+    en: 'Assignment deleted',
+    nl: 'Opdracht verwijderd'
+  },
+  'studentDetails.assignments.deletedDescription': {
+    en: 'The assignment has been successfully removed',
+    nl: 'De opdracht is succesvol verwijderd'
+  },
+  'studentDetails.assignments.deleteFailed': {
+    en: 'Failed to delete assignment',
+    nl: 'Opdracht verwijderen mislukt'
+  },
+
+  // Student details — Sessions tab
+  'studentDetails.sessions.title': {
+    en: 'Scheduled Sessions',
+    nl: 'Geplande sessies'
+  },
+  'studentDetails.sessions.description': {
+    en: 'Upcoming and past lessons with {name}',
+    nl: 'Komende en afgelopen lessen met {name}'
+  },
+  'studentDetails.sessions.scheduleSession': {
+    en: 'Schedule Session',
+    nl: 'Sessie Inplannen'
+  },
+  'studentDetails.sessions.loading': {
+    en: 'Loading sessions...',
+    nl: 'Sessies laden...'
+  },
+  'studentDetails.sessions.none': {
+    en: 'No sessions scheduled',
+    nl: 'Geen sessies ingepland'
+  },
+  'studentDetails.sessions.scheduleFirst': {
+    en: 'Schedule First Session',
+    nl: 'Eerste sessie inplannen'
+  },
+  'studentDetails.sessions.col.title': {
+    en: 'Title',
+    nl: 'Titel'
+  },
+  'studentDetails.sessions.col.date': {
+    en: 'Date',
+    nl: 'Datum'
+  },
+  'studentDetails.sessions.col.time': {
+    en: 'Time',
+    nl: 'Tijd'
+  },
+  'studentDetails.sessions.col.duration': {
+    en: 'Duration',
+    nl: 'Duur'
+  },
+  'studentDetails.sessions.col.notes': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'studentDetails.sessions.col.actions': {
+    en: 'Actions',
+    nl: 'Acties'
+  },
+  'studentDetails.sessions.noNotes': {
+    en: 'No notes',
+    nl: 'Geen opmerkingen'
+  },
+  'studentDetails.sessions.editSession': {
+    en: 'Edit session',
+    nl: 'Sessie bewerken'
+  },
+  'studentDetails.sessions.cancelSession': {
+    en: 'Cancel session',
+    nl: 'Sessie annuleren'
+  },
+  'studentDetails.sessions.deleted': {
+    en: 'Session deleted',
+    nl: 'Sessie verwijderd'
+  },
+  'studentDetails.sessions.deletedDescription': {
+    en: 'The scheduled session has been successfully removed',
+    nl: 'De geplande sessie is succesvol verwijderd'
+  },
+  'studentDetails.sessions.deleteFailed': {
+    en: 'Failed to delete session',
+    nl: 'Sessie verwijderen mislukt'
+  },
+
+  // Student details — Notes tab
+  'studentDetails.notes.title': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'studentDetails.notes.description': {
+    en: 'Additional information about {name}',
+    nl: 'Aanvullende informatie over {name}'
+  },
+  'studentDetails.notes.none': {
+    en: 'No notes available',
+    nl: 'Geen opmerkingen beschikbaar'
+  },
+  'studentDetails.notes.addNotes': {
+    en: 'Add Notes',
+    nl: 'Opmerkingen Toevoegen'
+  },
 
   // Messages
   'messages.title': {
@@ -630,6 +1269,392 @@ export const translations: Translations = {
   'messages.message': {
     en: 'Message',
     nl: 'Bericht'
+  },
+  'messages.pageTitle': {
+    en: 'Student Messages',
+    nl: 'Studentberichten'
+  },
+  'messages.pageSubtitle': {
+    en: 'View and respond to questions from your students',
+    nl: 'Bekijk en beantwoord vragen van je studenten'
+  },
+  'messages.sendNewMessage': {
+    en: 'Send New Message',
+    nl: 'Nieuw Bericht Sturen'
+  },
+  'messages.sendNewMessageDescription': {
+    en: 'Send a message to a student or teacher',
+    nl: 'Stuur een bericht naar een student of docent'
+  },
+  'messages.sendTo': {
+    en: 'Send to',
+    nl: 'Sturen naar'
+  },
+  'messages.selectRecipientType': {
+    en: 'Select recipient type',
+    nl: 'Selecteer ontvanger type'
+  },
+  'messages.recipientStudent': {
+    en: 'Student',
+    nl: 'Student'
+  },
+  'messages.recipientTeacher': {
+    en: 'Teacher',
+    nl: 'Docent'
+  },
+  'messages.selectStudent': {
+    en: 'Select Student',
+    nl: 'Student Selecteren'
+  },
+  'messages.selectTeacher': {
+    en: 'Select Teacher',
+    nl: 'Docent Selecteren'
+  },
+  'messages.enterSubject': {
+    en: 'Enter message subject...',
+    nl: 'Voer het berichtonderwerp in...'
+  },
+  'messages.typeMessage': {
+    en: 'Type your message here...',
+    nl: 'Typ hier je bericht...'
+  },
+  'messages.sending': {
+    en: 'Sending...',
+    nl: 'Verzenden...'
+  },
+  'messages.sendMessage': {
+    en: 'Send Message',
+    nl: 'Bericht Verzenden'
+  },
+  'messages.tabAll': {
+    en: 'All',
+    nl: 'Alle'
+  },
+  'messages.tabPending': {
+    en: 'Pending Response',
+    nl: 'Wacht op Antwoord'
+  },
+  'messages.tabAnswered': {
+    en: 'Answered',
+    nl: 'Beantwoord'
+  },
+  'messages.noMessages': {
+    en: 'No messages yet',
+    nl: 'Nog geen berichten'
+  },
+  'messages.noMessagesDescription': {
+    en: "When students send you messages, they'll appear here.",
+    nl: 'Wanneer studenten je berichten sturen, verschijnen ze hier.'
+  },
+  'messages.allCaughtUp': {
+    en: 'All caught up!',
+    nl: 'Alles bijgewerkt!'
+  },
+  'messages.noPendingMessages': {
+    en: 'No messages waiting for your response.',
+    nl: 'Geen berichten die wachten op jouw antwoord.'
+  },
+  'messages.noAnsweredMessages': {
+    en: 'No answered messages',
+    nl: 'Geen beantwoorde berichten'
+  },
+  'messages.noAnsweredMessagesDescription': {
+    en: "Messages you've responded to will appear here.",
+    nl: 'Berichten waarop je hebt gereageerd, verschijnen hier.'
+  },
+  'messages.unknownStudent': {
+    en: 'Unknown Student',
+    nl: 'Onbekende Student'
+  },
+  'messages.noSubject': {
+    en: 'No Subject',
+    nl: 'Geen Onderwerp'
+  },
+  'messages.unknownDate': {
+    en: 'Unknown date',
+    nl: 'Onbekende datum'
+  },
+  'messages.noMessageContent': {
+    en: 'No message content',
+    nl: 'Geen berichtinhoud'
+  },
+  'messages.yourResponse': {
+    en: 'Your Response',
+    nl: 'Jouw Antwoord'
+  },
+  'messages.noResponseDate': {
+    en: 'No response date',
+    nl: 'Geen antwoorddatum'
+  },
+  'messages.studentReplies': {
+    en: 'Student Replies',
+    nl: 'Studentreacties'
+  },
+  'messages.sendResponse': {
+    en: 'Send Response',
+    nl: 'Antwoord Verzenden'
+  },
+  'messages.typeResponse': {
+    en: 'Type your response to the student...',
+    nl: 'Typ je antwoord aan de student...'
+  },
+  'messages.respond': {
+    en: 'Respond',
+    nl: 'Reageren'
+  },
+  'messages.badgeNew': {
+    en: 'New',
+    nl: 'Nieuw'
+  },
+  'messages.badgeAnswered': {
+    en: 'Answered',
+    nl: 'Beantwoord'
+  },
+  'messages.toastResponseSentTitle': {
+    en: 'Response sent',
+    nl: 'Antwoord verstuurd'
+  },
+  'messages.toastResponseSentDescription': {
+    en: 'Your response has been sent to the student.',
+    nl: 'Jouw antwoord is naar de student gestuurd.'
+  },
+  'messages.toastResponseErrorDescription': {
+    en: 'Failed to send response. Please try again.',
+    nl: 'Antwoord versturen mislukt. Probeer het opnieuw.'
+  },
+  'messages.toastSentTitle': {
+    en: 'Message sent',
+    nl: 'Bericht verstuurd'
+  },
+  'messages.toastSentDescription': {
+    en: 'Your message has been sent successfully.',
+    nl: 'Jouw bericht is succesvol verstuurd.'
+  },
+  'messages.toastSendErrorDescription': {
+    en: 'Failed to send message. Please try again.',
+    nl: 'Bericht versturen mislukt. Probeer het opnieuw.'
+  },
+
+  // Songs
+  'songs.title': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'songs.subtitle': {
+    en: 'Manage your song library and practice materials',
+    nl: 'Beheer je nummerbibliotheek en oefenmateriaal'
+  },
+  'songs.addSong': {
+    en: 'Add Song',
+    nl: 'Nummer Toevoegen'
+  },
+  'songs.addNewSong': {
+    en: 'Add New Song',
+    nl: 'Nieuw Nummer Toevoegen'
+  },
+  'songs.addNewSongDescription': {
+    en: 'Create a new song with practice materials and resources for your students.',
+    nl: 'Maak een nieuw nummer met oefenmateriaal en bronnen voor je studenten.'
+  },
+  'songs.editSong': {
+    en: 'Edit Song',
+    nl: 'Nummer Bewerken'
+  },
+  'songs.editSongDescription': {
+    en: "Make changes to this song and click save when you're done.",
+    nl: 'Breng wijzigingen aan in dit nummer en klik op opslaan als je klaar bent.'
+  },
+  'songs.assignSong': {
+    en: 'Assign Song to Student',
+    nl: 'Nummer Toewijzen aan Student'
+  },
+  'songs.labelTitle': {
+    en: 'Title *',
+    nl: 'Titel *'
+  },
+  'songs.labelComposer': {
+    en: 'Composer/Artist',
+    nl: 'Componist/Artiest'
+  },
+  'songs.labelGenre': {
+    en: 'Genre',
+    nl: 'Genre'
+  },
+  'songs.labelLevel': {
+    en: 'Level',
+    nl: 'Niveau'
+  },
+  'songs.labelInstrument': {
+    en: 'Instrument',
+    nl: 'Instrument'
+  },
+  'songs.labelKey': {
+    en: 'Key',
+    nl: 'Toonaard'
+  },
+  'songs.labelTempo': {
+    en: 'Tempo (BPM)',
+    nl: 'Tempo (BPM)'
+  },
+  'songs.labelDuration': {
+    en: 'Duration',
+    nl: 'Duur'
+  },
+  'songs.labelDescription': {
+    en: 'Description',
+    nl: 'Beschrijving'
+  },
+  'songs.placeholderTitle': {
+    en: 'Enter song title',
+    nl: 'Voer songtitel in'
+  },
+  'songs.placeholderComposer': {
+    en: 'E.g., Bach, The Beatles',
+    nl: 'Bijv. Bach, The Beatles'
+  },
+  'songs.placeholderGenre': {
+    en: 'E.g., Classical, Rock, Jazz',
+    nl: 'Bijv. Klassiek, Rock, Jazz'
+  },
+  'songs.placeholderInstrument': {
+    en: 'E.g., Guitar, Piano, Drums',
+    nl: 'Bijv. Gitaar, Piano, Drums'
+  },
+  'songs.placeholderKey': {
+    en: 'E.g., C Major, Em',
+    nl: 'Bijv. C Majeur, Em'
+  },
+  'songs.placeholderTempo': {
+    en: 'E.g., 120',
+    nl: 'Bijv. 120'
+  },
+  'songs.placeholderDuration': {
+    en: 'E.g., 3:45',
+    nl: 'Bijv. 3:45'
+  },
+  'songs.placeholderDescription': {
+    en: 'Add notes about the song, practice tips, or learning objectives',
+    nl: 'Voeg notities over het nummer, oefentips of leerdoelen toe'
+  },
+  'songs.selectLevel': {
+    en: 'Select level',
+    nl: 'Selecteer niveau'
+  },
+  'songs.levelNone': {
+    en: 'None',
+    nl: 'Geen'
+  },
+  'songs.levelBeginner': {
+    en: 'Beginner',
+    nl: 'Beginner'
+  },
+  'songs.levelIntermediate': {
+    en: 'Intermediate',
+    nl: 'Gemiddeld'
+  },
+  'songs.levelAdvanced': {
+    en: 'Advanced',
+    nl: 'Gevorderd'
+  },
+  'songs.contentResources': {
+    en: 'Content & Resources',
+    nl: 'Inhoud & Bronnen'
+  },
+  'songs.contentResourcesDescription': {
+    en: 'Add sheet music, audio tracks, videos, and other practice resources for this song.',
+    nl: "Voeg bladmuziek, audiotracks, video's en ander oefenmateriaal voor dit nummer toe."
+  },
+  'songs.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'songs.createSong': {
+    en: 'Create Song',
+    nl: 'Nummer Aanmaken'
+  },
+  'songs.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'songs.saveChanges': {
+    en: 'Save Changes',
+    nl: 'Wijzigingen Opslaan'
+  },
+  'songs.assigning': {
+    en: 'Assigning...',
+    nl: 'Toewijzen...'
+  },
+  'songs.assignSongButton': {
+    en: 'Assign Song',
+    nl: 'Nummer Toewijzen'
+  },
+  'songs.tabGridView': {
+    en: 'Grid View',
+    nl: 'Rasterweergave'
+  },
+  'songs.tabBrowseByArtist': {
+    en: 'Browse by Artist',
+    nl: 'Bladeren op Artiest'
+  },
+  'songs.searchPlaceholder': {
+    en: 'Search songs by title, artist, genre...',
+    nl: 'Zoek nummers op titel, artiest, genre...'
+  },
+  'songs.noSongs': {
+    en: 'No songs',
+    nl: 'Geen nummers'
+  },
+  'songs.noSongsDescription': {
+    en: 'Get started by adding your first song.',
+    nl: 'Begin met het toevoegen van je eerste nummer.'
+  },
+  'songs.practice': {
+    en: 'Practice',
+    nl: 'Oefenen'
+  },
+  'songs.assign': {
+    en: 'Assign',
+    nl: 'Toewijzen'
+  },
+  'songs.selectStudent': {
+    en: 'Select Student',
+    nl: 'Student Selecteren'
+  },
+  'songs.chooseStudent': {
+    en: 'Choose a student',
+    nl: 'Kies een student'
+  },
+  'songs.dueDateOptional': {
+    en: 'Due Date (Optional)',
+    nl: 'Vervaldatum (Optioneel)'
+  },
+  'songs.notesOptional': {
+    en: 'Notes (Optional)',
+    nl: 'Notities (Optioneel)'
+  },
+  'songs.notesPlaceholder': {
+    en: 'Add any specific instructions or notes for the student',
+    nl: 'Voeg specifieke instructies of notities voor de student toe'
+  },
+  'songs.toastCreatedDescription': {
+    en: 'Song created successfully',
+    nl: 'Nummer succesvol aangemaakt'
+  },
+  'songs.toastDeletedDescription': {
+    en: 'Song deleted successfully',
+    nl: 'Nummer succesvol verwijderd'
+  },
+  'songs.toastUpdatedDescription': {
+    en: 'Song updated successfully',
+    nl: 'Nummer succesvol bijgewerkt'
+  },
+  'songs.toastAssignedDescription': {
+    en: 'Song assigned successfully',
+    nl: 'Nummer succesvol toegewezen'
+  },
+  'songs.toastSelectStudentError': {
+    en: 'Please select a student',
+    nl: 'Selecteer een student'
   },
 
   // Common UI

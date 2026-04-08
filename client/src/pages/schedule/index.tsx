@@ -462,24 +462,24 @@ export default function SchedulePage() {
   }, [sessions]);
 
   return (
-    <AppLayout title="Schedule Management">
+    <AppLayout title={t('schedule.title')}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Schedule Management</h1>
-          <p className="text-gray-600">Manage recurring lesson schedules and individual sessions</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('schedule.title')}</h1>
+          <p className="text-gray-600">{t('schedule.subtitleManagement')}</p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Schedule
+          {t('schedule.addSchedule')}
         </Button>
       </div>
 
       {/* Tabs for different views */}
       <Tabs defaultValue="recurring" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="recurring">Recurring Schedules</TabsTrigger>
-          <TabsTrigger value="sessions">Individual Lessons</TabsTrigger>
+          <TabsTrigger value="recurring">{t('schedule.recurringSchedules')}</TabsTrigger>
+          <TabsTrigger value="sessions">{t('schedule.individualLessons')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recurring" className="space-y-6">
@@ -489,7 +489,7 @@ export default function SchedulePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <CalendarDays className="h-5 w-5" />
-                  <CardTitle>Weekly Schedule</CardTitle>
+                  <CardTitle>{t('schedule.weeklySchedule')}</CardTitle>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
@@ -547,7 +547,7 @@ export default function SchedulePage() {
                         })}
                         {(!Array.isArray(daySchedules) || daySchedules.length === 0) && (
                           <div className="text-xs text-gray-400 text-center py-4">
-                            No lessons
+                            {t('schedule.noLessons')}
                           </div>
                         )}
                       </div>
@@ -564,7 +564,7 @@ export default function SchedulePage() {
               <CardHeader>
                 <CardTitle className="flex items-center text-red-700">
                   <AlertTriangle className="h-5 w-5 mr-2" />
-                  Schedule Conflicts Detected
+                  {t('schedule.conflictsDetected')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -575,10 +575,10 @@ export default function SchedulePage() {
                     return (
                       <div key={index} className="p-3 bg-white border border-red-200 rounded-lg">
                         <div className="font-medium text-red-900">
-                          Conflict with {getStudentName(conflict.existing.studentId)}
+                          {t('schedule.conflictWith')} {getStudentName(conflict.existing.studentId)}
                         </div>
                         <div className="text-sm text-red-700">
-                          {DAYS_OF_WEEK.find(d => d.value === Number(conflict.existing.dayOfWeek))?.label || 'Unknown Day'} {conflict.existing.startTime || 'TBD'} - {conflict.existing.endTime || 'TBD'}
+                          {DAYS_OF_WEEK.find(d => d.value === Number(conflict.existing.dayOfWeek))?.label || t('schedule.unknownDay')} {conflict.existing.startTime || 'TBD'} - {conflict.existing.endTime || 'TBD'}
                         </div>
                       </div>
                     );
@@ -595,34 +595,34 @@ export default function SchedulePage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <List className="h-5 w-5" />
-                <span>Upcoming Individual Lessons</span>
+                <span>{t('schedule.upcomingIndividualLessons')}</span>
               </CardTitle>
               <CardDescription>
-                Manage individual lessons from recurring schedules. Cancel specific lessons without affecting the recurring schedule.
+                {t('schedule.upcomingIndividualDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {sessionsLoading ? (
                 <div className="flex justify-center py-8">
-                  <p>Loading sessions...</p>
+                  <p>{t('schedule.loadingSessions')}</p>
                 </div>
               ) : upcomingSessions.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No upcoming lessons scheduled</p>
-                  <p className="text-sm text-gray-400">Individual lessons are generated from recurring schedules</p>
+                  <p className="text-gray-500 mb-4">{t('schedule.noUpcomingLessons')}</p>
+                  <p className="text-sm text-gray-400">{t('schedule.sessionsFromRecurring')}</p>
                 </div>
               ) : (
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Lesson Title</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Notes</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t('schedule.table.student')}</TableHead>
+                        <TableHead>{t('schedule.table.lessonTitle')}</TableHead>
+                        <TableHead>{t('schedule.table.date')}</TableHead>
+                        <TableHead>{t('schedule.table.time')}</TableHead>
+                        <TableHead>{t('schedule.table.duration')}</TableHead>
+                        <TableHead>{t('schedule.table.notes')}</TableHead>
+                        <TableHead className="text-right">{t('schedule.table.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -641,43 +641,43 @@ export default function SchedulePage() {
                             {format(new Date(session.startTime), "h:mm a")} - {format(new Date(session.endTime), "h:mm a")}
                           </TableCell>
                           <TableCell>
-                            {Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60))} min
+                            {Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60))} {t('schedule.table.minutes')}
                           </TableCell>
                           <TableCell>
                             <div className="max-w-xs truncate">
-                              {session.notes || "No notes"}
+                              {session.notes || t('schedule.table.noNotes')}
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4 mr-1" />
-                                  Cancel
+                                  {t('schedule.cancel')}
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancel Individual Lesson</AlertDialogTitle>
+                                  <AlertDialogTitle>{t('schedule.cancelIndividualLesson')}</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to cancel "{session.title}" for {getStudentName(session.studentId)} 
+                                    Are you sure you want to cancel "{session.title}" for {getStudentName(session.studentId)}
                                     on {format(new Date(session.startTime), "MMM d, yyyy 'at' h:mm a")}?
                                     <br /><br />
-                                    This will only cancel this specific lesson and will not affect the recurring schedule.
+                                    {t('schedule.cancelLessonDescription')}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Keep Lesson</AlertDialogCancel>
+                                  <AlertDialogCancel>{t('schedule.keepLesson')}</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => deleteSessionMutation.mutate(session.id)}
                                     disabled={deleteSessionMutation.isPending}
                                     className="bg-red-600 hover:bg-red-700"
                                   >
-                                    {deleteSessionMutation.isPending ? "Cancelling..." : "Cancel Lesson"}
+                                    {deleteSessionMutation.isPending ? t('schedule.cancelling') : t('schedule.cancelLesson')}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -698,9 +698,9 @@ export default function SchedulePage() {
       <Dialog open={!!selectedSchedule} onOpenChange={() => setSelectedSchedule(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Schedule Details</DialogTitle>
+            <DialogTitle>{t('schedule.details')}</DialogTitle>
             <DialogDescription>
-              Recurring lesson schedule information
+              {t('schedule.recurringInfo')}
             </DialogDescription>
           </DialogHeader>
           {selectedSchedule && (
@@ -740,7 +740,7 @@ export default function SchedulePage() {
               onClick={() => selectedSchedule && deleteScheduleMutation.mutate(selectedSchedule.id)}
               disabled={deleteScheduleMutation.isPending}
             >
-              {deleteScheduleMutation.isPending ? "Deleting..." : "Delete Schedule"}
+              {deleteScheduleMutation.isPending ? t('schedule.deleting') : t('schedule.deleteSchedule')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -750,9 +750,9 @@ export default function SchedulePage() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Recurring Schedule</DialogTitle>
+            <DialogTitle>{t('schedule.addRecurring')}</DialogTitle>
             <DialogDescription>
-              Create a new recurring lesson schedule
+              {t('schedule.createRecurringDescription')}
             </DialogDescription>
           </DialogHeader>
           
@@ -763,11 +763,11 @@ export default function SchedulePage() {
                 name="studentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Student *</FormLabel>
+                    <FormLabel>{t('schedule.form.studentLabel')}</FormLabel>
                     <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a student" />
+                          <SelectValue placeholder={t('schedule.form.selectStudent')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -788,11 +788,11 @@ export default function SchedulePage() {
                 name="userId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Teacher *</FormLabel>
+                    <FormLabel>{t('schedule.form.teacherLabel')}</FormLabel>
                     <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a teacher" />
+                          <SelectValue placeholder={t('schedule.form.selectTeacher')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -813,11 +813,11 @@ export default function SchedulePage() {
                 name="dayOfWeek"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Day of Week *</FormLabel>
+                    <FormLabel>{t('schedule.form.dayOfWeek')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a day" />
+                          <SelectValue placeholder={t('schedule.form.selectDay')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -839,11 +839,11 @@ export default function SchedulePage() {
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time *</FormLabel>
+                      <FormLabel>{t('schedule.form.startTimeLabel')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Start" />
+                            <SelectValue placeholder={t('schedule.form.startPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -864,11 +864,11 @@ export default function SchedulePage() {
                   name="endTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Time *</FormLabel>
+                      <FormLabel>{t('schedule.form.endTimeLabel')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="End" />
+                            <SelectValue placeholder={t('schedule.form.endPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -890,16 +890,16 @@ export default function SchedulePage() {
                 name="frequency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Frequency *</FormLabel>
+                    <FormLabel>{t('schedule.form.frequencyLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select frequency" />
+                          <SelectValue placeholder={t('schedule.form.selectFrequency')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="WEEKLY">Weekly</SelectItem>
-                        <SelectItem value="BIWEEKLY">Bi-weekly</SelectItem>
+                        <SelectItem value="WEEKLY">{t('schedule.form.weekly')}</SelectItem>
+                        <SelectItem value="BIWEEKLY">{t('schedule.form.biweekly')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -912,9 +912,9 @@ export default function SchedulePage() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('schedule.form.locationLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Room 1, Studio A" {...field} />
+                      <Input placeholder={t('schedule.form.locationPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -926,9 +926,9 @@ export default function SchedulePage() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('schedule.form.notesLabel')}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Additional notes..." {...field} />
+                      <Textarea placeholder={t('schedule.form.notesPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -941,7 +941,7 @@ export default function SchedulePage() {
                   disabled={createScheduleMutation.isPending}
                   className="w-full"
                 >
-                  {createScheduleMutation.isPending ? "Creating..." : "Create Schedule"}
+                  {createScheduleMutation.isPending ? t('schedule.creating') : t('schedule.createSchedule')}
                 </Button>
               </DialogFooter>
             </form>

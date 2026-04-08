@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Edit, Trash2, Plus, Search, Play, Music, Clock, User, X, Grid, List } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 
 // Import song components
 import SongContentManager, { SongContentBlock } from "@/components/songs/song-content-manager";
@@ -25,18 +26,19 @@ import { Song, Student, type InsertSong } from "@shared/schema";
 
 export default function SongsPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  
+
   // Assignment dialog state
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
-  
+
   // Add song dialog state
   const [addTitle, setAddTitle] = useState<string>("");
   const [addDescription, setAddDescription] = useState<string>("");
@@ -48,7 +50,7 @@ export default function SongsPage() {
   const [addTempo, setAddTempo] = useState<string>("");
   const [addDuration, setAddDuration] = useState<string>("");
   const [addContentBlocks, setAddContentBlocks] = useState<SongContentBlock[]>([]);
-  
+
   // Edit dialog state
   const [editTitle, setEditTitle] = useState<string>("");
   const [editDescription, setEditDescription] = useState<string>("");
@@ -60,15 +62,15 @@ export default function SongsPage() {
   const [editTempo, setEditTempo] = useState<string>("");
   const [editDuration, setEditDuration] = useState<string>("");
   const [editContentBlocks, setEditContentBlocks] = useState<SongContentBlock[]>([]);
-  
+
   const { toast } = useToast();
-  
+
   // Handle opening the song view dialog
   const handleViewSong = (song: Song) => {
     setSelectedSong(song);
     setIsViewDialogOpen(true);
   };
-  
+
   // Handle editing a song
   const handleEditSong = (song: Song) => {
     setSelectedSong(song);
@@ -124,10 +126,10 @@ export default function SongsPage() {
       setAddTempo("");
       setAddDuration("");
       setAddContentBlocks([]);
-      toast({ title: "Success", description: "Song created successfully" });
+      toast({ title: t('common.success'), description: t('songs.toastCreatedDescription') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -139,10 +141,10 @@ export default function SongsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/songs"] });
-      toast({ title: "Success", description: "Song deleted successfully" });
+      toast({ title: t('common.success'), description: t('songs.toastDeletedDescription') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -155,10 +157,10 @@ export default function SongsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/songs"] });
       setIsEditDialogOpen(false);
-      toast({ title: "Success", description: "Song updated successfully" });
+      toast({ title: t('common.success'), description: t('songs.toastUpdatedDescription') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -179,16 +181,16 @@ export default function SongsPage() {
       setSelectedStudentId("");
       setDueDate("");
       setNotes("");
-      toast({ title: "Success", description: "Song assigned successfully" });
+      toast({ title: t('common.success'), description: t('songs.toastAssignedDescription') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
   const handleAssignSong = (song: Song) => {
     if (!selectedStudentId) {
-      toast({ title: "Error", description: "Please select a student", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('songs.toastSelectStudentError'), variant: "destructive" });
       return;
     }
 
@@ -219,7 +221,7 @@ export default function SongsPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Songs">
+      <AppLayout title={t('songs.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -228,143 +230,143 @@ export default function SongsPage() {
   }
 
   return (
-    <AppLayout title="Songs">
+    <AppLayout title={t('songs.title')}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Songs</h1>
+            <h1 className="text-3xl font-bold">{t('songs.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your song library and practice materials
+              {t('songs.subtitle')}
             </p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Song
+                {t('songs.addSong')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Song</DialogTitle>
+                <DialogTitle>{t('songs.addNewSong')}</DialogTitle>
                 <DialogDescription>
-                  Create a new song with practice materials and resources for your students.
+                  {t('songs.addNewSongDescription')}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="add-title">Title *</Label>
-                  <Input 
-                    id="add-title" 
+                  <Label htmlFor="add-title">{t('songs.labelTitle')}</Label>
+                  <Input
+                    id="add-title"
                     value={addTitle}
                     onChange={(e) => setAddTitle(e.target.value)}
-                    placeholder="Enter song title" 
+                    placeholder={t('songs.placeholderTitle')}
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="add-composer">Composer/Artist</Label>
-                    <Input 
-                      id="add-composer" 
+                    <Label htmlFor="add-composer">{t('songs.labelComposer')}</Label>
+                    <Input
+                      id="add-composer"
                       value={addComposer}
                       onChange={(e) => setAddComposer(e.target.value)}
-                      placeholder="E.g., Bach, The Beatles" 
+                      placeholder={t('songs.placeholderComposer')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="add-genre">Genre</Label>
-                    <Input 
-                      id="add-genre" 
+                    <Label htmlFor="add-genre">{t('songs.labelGenre')}</Label>
+                    <Input
+                      id="add-genre"
                       value={addGenre}
                       onChange={(e) => setAddGenre(e.target.value)}
-                      placeholder="E.g., Classical, Rock, Jazz" 
+                      placeholder={t('songs.placeholderGenre')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="add-level">Level</Label>
-                    <Select 
+                    <Label htmlFor="add-level">{t('songs.labelLevel')}</Label>
+                    <Select
                       value={addLevel}
                       onValueChange={setAddLevel}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
+                        <SelectValue placeholder={t('songs.selectLevel')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="none">{t('songs.levelNone')}</SelectItem>
+                        <SelectItem value="beginner">{t('songs.levelBeginner')}</SelectItem>
+                        <SelectItem value="intermediate">{t('songs.levelIntermediate')}</SelectItem>
+                        <SelectItem value="advanced">{t('songs.levelAdvanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="add-instrument">Instrument</Label>
-                    <Input 
-                      id="add-instrument" 
+                    <Label htmlFor="add-instrument">{t('songs.labelInstrument')}</Label>
+                    <Input
+                      id="add-instrument"
                       value={addInstrument}
                       onChange={(e) => setAddInstrument(e.target.value)}
-                      placeholder="E.g., Guitar, Piano, Drums" 
+                      placeholder={t('songs.placeholderInstrument')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="add-key">Key</Label>
-                    <Input 
-                      id="add-key" 
+                    <Label htmlFor="add-key">{t('songs.labelKey')}</Label>
+                    <Input
+                      id="add-key"
                       value={addKey}
                       onChange={(e) => setAddKey(e.target.value)}
-                      placeholder="E.g., C Major, Em" 
+                      placeholder={t('songs.placeholderKey')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="add-tempo">Tempo (BPM)</Label>
-                    <Input 
-                      id="add-tempo" 
+                    <Label htmlFor="add-tempo">{t('songs.labelTempo')}</Label>
+                    <Input
+                      id="add-tempo"
                       value={addTempo}
                       onChange={(e) => setAddTempo(e.target.value)}
-                      placeholder="E.g., 120" 
+                      placeholder={t('songs.placeholderTempo')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="add-duration">Duration</Label>
-                    <Input 
-                      id="add-duration" 
+                    <Label htmlFor="add-duration">{t('songs.labelDuration')}</Label>
+                    <Input
+                      id="add-duration"
                       value={addDuration}
                       onChange={(e) => setAddDuration(e.target.value)}
-                      placeholder="E.g., 3:45" 
+                      placeholder={t('songs.placeholderDuration')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="add-description">Description</Label>
-                  <Textarea 
-                    id="add-description" 
+                  <Label htmlFor="add-description">{t('songs.labelDescription')}</Label>
+                  <Textarea
+                    id="add-description"
                     value={addDescription}
                     onChange={(e) => setAddDescription(e.target.value)}
-                    placeholder="Add notes about the song, practice tips, or learning objectives" 
+                    placeholder={t('songs.placeholderDescription')}
                     rows={3}
                   />
                 </div>
-                
+
                 {/* Content Blocks Section */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium mb-4">Content & Resources</h3>
+                    <h3 className="text-lg font-medium mb-4">{t('songs.contentResources')}</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Add sheet music, audio tracks, videos, and other practice resources for this song.
+                      {t('songs.contentResourcesDescription')}
                     </p>
                     <SongContentManager
                       blocks={addContentBlocks}
@@ -374,15 +376,15 @@ export default function SongsPage() {
                   </div>
                 </div>
               </div>
-              
+
               <DialogFooter>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsAddDialogOpen(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     createSongMutation.mutate({
                       title: addTitle,
@@ -399,7 +401,7 @@ export default function SongsPage() {
                   }}
                   disabled={createSongMutation.isPending || !addTitle}
                 >
-                  {createSongMutation.isPending ? "Creating..." : "Create Song"}
+                  {createSongMutation.isPending ? t('songs.creating') : t('songs.createSong')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -411,20 +413,20 @@ export default function SongsPage() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="grid" className="flex items-center gap-2">
               <Grid className="h-4 w-4" />
-              Grid View
+              {t('songs.tabGridView')}
             </TabsTrigger>
             <TabsTrigger value="artist" className="flex items-center gap-2">
               <List className="h-4 w-4" />
-              Browse by Artist
+              {t('songs.tabBrowseByArtist')}
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="grid" className="space-y-6">
             {/* Search Bar */}
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search songs by title, artist, genre..."
+                placeholder={t('songs.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -436,14 +438,14 @@ export default function SongsPage() {
             {filteredSongs.length === 0 ? (
               <div className="text-center py-12">
                 <Music className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No songs</h3>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">{t('songs.noSongs')}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Get started by adding your first song.
+                  {t('songs.noSongsDescription')}
                 </p>
                 <div className="mt-6">
                   <Button onClick={() => setIsAddDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Song
+                    {t('songs.addSong')}
                   </Button>
                 </div>
               </div>
@@ -491,14 +493,14 @@ export default function SongsPage() {
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-3">
                   {song.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {song.description}
                     </p>
                   )}
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {song.genre && (
                       <Badge variant="secondary" className="text-xs">
@@ -506,8 +508,8 @@ export default function SongsPage() {
                       </Badge>
                     )}
                     {song.level && (
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         className={`text-xs ${getLevelBadgeColor(song.level)}`}
                       >
                         {song.level}
@@ -520,7 +522,7 @@ export default function SongsPage() {
                       </Badge>
                     )}
                   </div>
-                  
+
                   {(song.key || song.tempo || song.duration) && (
                     <div className="flex gap-4 text-xs text-muted-foreground">
                       {song.key && <span>Key: {song.key}</span>}
@@ -528,7 +530,7 @@ export default function SongsPage() {
                       {song.duration && <span>Duration: {song.duration}</span>}
                     </div>
                   )}
-                  
+
                   <div className="flex gap-2 pt-2">
                     <Button
                       variant="outline"
@@ -537,7 +539,7 @@ export default function SongsPage() {
                       onClick={() => handleViewSong(song)}
                     >
                       <Play className="h-4 w-4 mr-1" />
-                      Practice
+                      {t('songs.practice')}
                     </Button>
                     <Button
                       variant="default"
@@ -548,7 +550,7 @@ export default function SongsPage() {
                       }}
                     >
                       <User className="h-4 w-4 mr-1" />
-                      Assign
+                      {t('songs.assign')}
                     </Button>
                   </div>
                 </CardContent>
@@ -557,9 +559,9 @@ export default function SongsPage() {
           </div>
         )}
           </TabsContent>
-          
+
           <TabsContent value="artist" className="space-y-6">
-            <AlphabeticalBrowser 
+            <AlphabeticalBrowser
               onViewSong={handleViewSong}
               onAssignSong={(song) => {
                 setSelectedSong(song);
@@ -591,7 +593,7 @@ export default function SongsPage() {
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            
+
             {selectedSong && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {selectedSong.genre && (
@@ -611,7 +613,7 @@ export default function SongsPage() {
               </div>
             )}
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-auto mt-4">
             <div className="song-content">
               <SongContentViewer contentBlocksJson={selectedSong?.contentBlocks} />
@@ -626,124 +628,124 @@ export default function SongsPage() {
           {selectedSong && (
             <>
               <DialogHeader>
-                <DialogTitle>Edit Song</DialogTitle>
+                <DialogTitle>{t('songs.editSong')}</DialogTitle>
                 <DialogDescription>
-                  Make changes to this song and click save when you're done.
+                  {t('songs.editSongDescription')}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-title">Title *</Label>
-                  <Input 
-                    id="edit-title" 
+                  <Label htmlFor="edit-title">{t('songs.labelTitle')}</Label>
+                  <Input
+                    id="edit-title"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Enter song title" 
+                    placeholder={t('songs.placeholderTitle')}
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-composer">Composer/Artist</Label>
-                    <Input 
-                      id="edit-composer" 
+                    <Label htmlFor="edit-composer">{t('songs.labelComposer')}</Label>
+                    <Input
+                      id="edit-composer"
                       value={editComposer}
                       onChange={(e) => setEditComposer(e.target.value)}
-                      placeholder="E.g., Bach, The Beatles" 
+                      placeholder={t('songs.placeholderComposer')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="edit-genre">Genre</Label>
-                    <Input 
-                      id="edit-genre" 
+                    <Label htmlFor="edit-genre">{t('songs.labelGenre')}</Label>
+                    <Input
+                      id="edit-genre"
                       value={editGenre}
                       onChange={(e) => setEditGenre(e.target.value)}
-                      placeholder="E.g., Classical, Rock, Jazz" 
+                      placeholder={t('songs.placeholderGenre')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-level">Level</Label>
-                    <Select 
+                    <Label htmlFor="edit-level">{t('songs.labelLevel')}</Label>
+                    <Select
                       value={editLevel}
                       onValueChange={setEditLevel}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
+                        <SelectValue placeholder={t('songs.selectLevel')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="none">{t('songs.levelNone')}</SelectItem>
+                        <SelectItem value="beginner">{t('songs.levelBeginner')}</SelectItem>
+                        <SelectItem value="intermediate">{t('songs.levelIntermediate')}</SelectItem>
+                        <SelectItem value="advanced">{t('songs.levelAdvanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="edit-instrument">Instrument</Label>
-                    <Input 
-                      id="edit-instrument" 
+                    <Label htmlFor="edit-instrument">{t('songs.labelInstrument')}</Label>
+                    <Input
+                      id="edit-instrument"
                       value={editInstrument}
                       onChange={(e) => setEditInstrument(e.target.value)}
-                      placeholder="E.g., Guitar, Piano, Drums" 
+                      placeholder={t('songs.placeholderInstrument')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-key">Key</Label>
-                    <Input 
-                      id="edit-key" 
+                    <Label htmlFor="edit-key">{t('songs.labelKey')}</Label>
+                    <Input
+                      id="edit-key"
                       value={editKey}
                       onChange={(e) => setEditKey(e.target.value)}
-                      placeholder="E.g., C Major, Em" 
+                      placeholder={t('songs.placeholderKey')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="edit-tempo">Tempo (BPM)</Label>
-                    <Input 
-                      id="edit-tempo" 
+                    <Label htmlFor="edit-tempo">{t('songs.labelTempo')}</Label>
+                    <Input
+                      id="edit-tempo"
                       value={editTempo}
                       onChange={(e) => setEditTempo(e.target.value)}
-                      placeholder="E.g., 120" 
+                      placeholder={t('songs.placeholderTempo')}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="edit-duration">Duration</Label>
-                    <Input 
-                      id="edit-duration" 
+                    <Label htmlFor="edit-duration">{t('songs.labelDuration')}</Label>
+                    <Input
+                      id="edit-duration"
                       value={editDuration}
                       onChange={(e) => setEditDuration(e.target.value)}
-                      placeholder="E.g., 3:45" 
+                      placeholder={t('songs.placeholderDuration')}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Textarea 
-                    id="edit-description" 
+                  <Label htmlFor="edit-description">{t('songs.labelDescription')}</Label>
+                  <Textarea
+                    id="edit-description"
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    placeholder="Add notes about the song, practice tips, or learning objectives" 
+                    placeholder={t('songs.placeholderDescription')}
                     rows={3}
                   />
                 </div>
-                
+
                 {/* Content Blocks Section */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium mb-4">Content & Resources</h3>
+                    <h3 className="text-lg font-medium mb-4">{t('songs.contentResources')}</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Add sheet music, audio tracks, videos, and other practice resources for this song.
+                      {t('songs.contentResourcesDescription')}
                     </p>
                     <SongContentManager
                       blocks={editContentBlocks}
@@ -753,15 +755,15 @@ export default function SongsPage() {
                   </div>
                 </div>
               </div>
-              
+
               <DialogFooter>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsEditDialogOpen(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     updateSongMutation.mutate({
                       id: selectedSong.id,
@@ -781,7 +783,7 @@ export default function SongsPage() {
                   }}
                   disabled={updateSongMutation.isPending}
                 >
-                  {updateSongMutation.isPending ? "Saving..." : "Save Changes"}
+                  {updateSongMutation.isPending ? t('songs.saving') : t('songs.saveChanges')}
                 </Button>
               </DialogFooter>
             </>
@@ -795,18 +797,18 @@ export default function SongsPage() {
           {selectedSong && (
             <>
               <DialogHeader>
-                <DialogTitle>Assign Song to Student</DialogTitle>
+                <DialogTitle>{t('songs.assignSong')}</DialogTitle>
                 <DialogDescription>
                   Assign "{selectedSong.title}" to a student for practice.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="student-select">Select Student</Label>
+                  <Label htmlFor="student-select">{t('songs.selectStudent')}</Label>
                   <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a student" />
+                      <SelectValue placeholder={t('songs.chooseStudent')} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((student) => (
@@ -817,41 +819,41 @@ export default function SongsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="due-date">Due Date (Optional)</Label>
-                  <Input 
+                  <Label htmlFor="due-date">{t('songs.dueDateOptional')}</Label>
+                  <Input
                     id="due-date"
-                    type="date" 
+                    type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="assignment-notes">Notes (Optional)</Label>
-                  <Textarea 
+                  <Label htmlFor="assignment-notes">{t('songs.notesOptional')}</Label>
+                  <Textarea
                     id="assignment-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add any specific instructions or notes for the student"
+                    placeholder={t('songs.notesPlaceholder')}
                     rows={3}
                   />
                 </div>
               </div>
-              
+
               <DialogFooter>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsAssignDialogOpen(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={() => handleAssignSong(selectedSong)}
                   disabled={assignMutation.isPending || !selectedStudentId}
                 >
-                  {assignMutation.isPending ? "Assigning..." : "Assign Song"}
+                  {assignMutation.isPending ? t('songs.assigning') : t('songs.assignSongButton')}
                 </Button>
               </DialogFooter>
             </>
