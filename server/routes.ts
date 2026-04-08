@@ -181,6 +181,8 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
 
     // Register AI services routes
     app.use("/api/ai", (await import("./routes/ai-services")).default);
+    // Register translation (DeepL proxy) routes
+    app.use("/api/translate", (await import("./routes/translate")).default);
 
     // Register notation collaboration routes
     app.use("/api/notation", (await import("./routes/notation")).default);
