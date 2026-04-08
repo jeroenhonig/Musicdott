@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useTranslation } from "@/lib/i18n";
 import { securePasswordSchema } from '@shared/auth-validation';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,6 +105,7 @@ type NotificationFormValues = z.infer<typeof notificationSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesSchema>;
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -193,8 +195,8 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        title: t('settings.profile.updated'),
+        description: t('settings.profile.updatedDescription'),
       });
     },
   });
@@ -207,8 +209,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
       toast({
-        title: "School settings updated",
-        description: "School information has been successfully updated.",
+        title: t('settings.school.updated'),
+        description: t('settings.school.updatedDescription'),
       });
     },
   });
@@ -221,8 +223,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/notifications'] });
       toast({
-        title: "Notification preferences updated",
-        description: "Your notification settings have been saved.",
+        title: t('settings.notifications.updated'),
+        description: t('settings.notifications.updatedDescription'),
       });
     },
   });
@@ -235,8 +237,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
       toast({
-        title: "Preferences updated",
-        description: "Your system preferences have been saved.",
+        title: t('settings.preferences.updated'),
+        description: t('settings.preferences.updatedDescription'),
       });
     },
   });
@@ -252,13 +254,13 @@ export default function SettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
       toast({
-        title: "Password changed",
-        description: "Your password has been successfully updated.",
+        title: t('settings.security.passwordChanged'),
+        description: t('settings.security.passwordChangedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to change password",
+        title: t('settings.security.passwordChangeFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -268,8 +270,8 @@ export default function SettingsPage() {
   const handlePasswordChange = () => {
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Password mismatch",
-        description: "New password and confirmation do not match.",
+        title: t('settings.security.passwordMismatch'),
+        description: t('settings.security.passwordMismatchDescription'),
         variant: "destructive",
       });
       return;
@@ -278,7 +280,7 @@ export default function SettingsPage() {
     const passwordValidation = securePasswordSchema.safeParse(newPassword);
     if (!passwordValidation.success) {
       toast({
-        title: "Weak password",
+        title: t('settings.security.weakPassword'),
         description: passwordValidation.error.issues[0]?.message || "Use a stronger password.",
         variant: "destructive",
       });
@@ -292,54 +294,54 @@ export default function SettingsPage() {
   };
 
   return (
-    <AppLayout title="Settings">
+    <AppLayout title={t('settings.title')}>
       <div className="space-y-6">
         {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-gray-600">Manage your account, school, and system preferences</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
+        <p className="text-gray-600">{t('settings.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className={`grid w-full ${canEditSchool ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            Profile
+            {t('settings.tab.profile')}
           </TabsTrigger>
           {canEditSchool && (
             <TabsTrigger value="school" className="flex items-center gap-2">
               <School className="h-4 w-4" />
-              School
+              {t('settings.tab.school')}
             </TabsTrigger>
           )}
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notifications
+            {t('settings.tab.notifications')}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Preferences
+            {t('settings.tab.preferences')}
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Security
+            {t('settings.tab.security')}
           </TabsTrigger>
           {canEditSchool && (
             <TabsTrigger value="studios" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Studio's
+              {t('settings.tab.studios')}
             </TabsTrigger>
           )}
           {canEditSchool && (
             <TabsTrigger value="vacations" className="flex items-center gap-2">
               <CalendarX className="h-4 w-4" />
-              Vakanties
+              {t('settings.tab.vacations')}
             </TabsTrigger>
           )}
           {canEditSchool && (
             <TabsTrigger value="integrations" className="flex items-center gap-2">
               <Plug className="h-4 w-4" />
-              Integraties
+              {t('settings.tab.integrations')}
             </TabsTrigger>
           )}
         </TabsList>
@@ -350,7 +352,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Personal Information
+                {t('settings.profile.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -362,7 +364,7 @@ export default function SettingsPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('settings.profile.fullName')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -375,7 +377,7 @@ export default function SettingsPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel>{t('settings.profile.emailAddress')}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} />
                           </FormControl>

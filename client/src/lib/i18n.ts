@@ -3251,6 +3251,834 @@ export const translations: Translations = {
   'studentPortal.mySchedule.cancelFailedTitle': {
     en: 'Failed to cancel lesson',
     nl: 'Les annuleren mislukt'
+  },
+
+  // Settings page
+  'settings.title': {
+    en: 'Settings',
+    nl: 'Instellingen'
+  },
+  'settings.subtitle': {
+    en: 'Manage your account, school, and system preferences',
+    nl: 'Beheer je account, school en systeemvoorkeuren'
+  },
+  'settings.tab.profile': {
+    en: 'Profile',
+    nl: 'Profiel'
+  },
+  'settings.tab.school': {
+    en: 'School',
+    nl: 'School'
+  },
+  'settings.tab.notifications': {
+    en: 'Notifications',
+    nl: 'Meldingen'
+  },
+  'settings.tab.preferences': {
+    en: 'Preferences',
+    nl: 'Voorkeuren'
+  },
+  'settings.tab.security': {
+    en: 'Security',
+    nl: 'Beveiliging'
+  },
+  'settings.tab.studios': {
+    en: "Studio's",
+    nl: "Studio's"
+  },
+  'settings.tab.vacations': {
+    en: 'Vacations',
+    nl: 'Vakanties'
+  },
+  'settings.tab.integrations': {
+    en: 'Integrations',
+    nl: 'Integraties'
+  },
+
+  // Settings — Profile tab
+  'settings.profile.title': {
+    en: 'Personal Information',
+    nl: 'Persoonlijke gegevens'
+  },
+  'settings.profile.fullName': {
+    en: 'Full Name',
+    nl: 'Volledige naam'
+  },
+  'settings.profile.emailAddress': {
+    en: 'Email Address',
+    nl: 'E-mailadres'
+  },
+  'settings.profile.instruments': {
+    en: 'Instruments',
+    nl: 'Instrumenten'
+  },
+  'settings.profile.instrumentsPlaceholder': {
+    en: 'e.g., Piano, Guitar, Violin',
+    nl: 'bijv. Piano, Gitaar, Viool'
+  },
+  'settings.profile.instrumentsDescription': {
+    en: 'List the instruments you teach or play',
+    nl: 'Geef een lijst van de instrumenten die je geeft of speelt'
+  },
+  'settings.profile.bio': {
+    en: 'Bio',
+    nl: 'Bio'
+  },
+  'settings.profile.bioPlaceholder': {
+    en: 'Tell us about yourself...',
+    nl: 'Vertel ons iets over jezelf...'
+  },
+  'settings.profile.saveProfile': {
+    en: 'Save Profile',
+    nl: 'Profiel opslaan'
+  },
+  'settings.profile.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'settings.profile.updated': {
+    en: 'Profile updated',
+    nl: 'Profiel bijgewerkt'
+  },
+  'settings.profile.updatedDescription': {
+    en: 'Your profile has been successfully updated.',
+    nl: 'Je profiel is succesvol bijgewerkt.'
+  },
+
+  // Settings — School tab
+  'settings.school.title': {
+    en: 'School Information',
+    nl: 'Schoolinformatie'
+  },
+  'settings.school.name': {
+    en: 'School Name',
+    nl: 'Schoolnaam'
+  },
+  'settings.school.address': {
+    en: 'Address',
+    nl: 'Adres'
+  },
+  'settings.school.city': {
+    en: 'City',
+    nl: 'Stad'
+  },
+  'settings.school.phone': {
+    en: 'Phone Number',
+    nl: 'Telefoonnummer'
+  },
+  'settings.school.website': {
+    en: 'Website',
+    nl: 'Website'
+  },
+  'settings.school.websitePlaceholder': {
+    en: 'https://...',
+    nl: 'https://...'
+  },
+  'settings.school.instruments': {
+    en: 'Available Instruments',
+    nl: 'Beschikbare instrumenten'
+  },
+  'settings.school.instrumentsPlaceholder': {
+    en: 'e.g., Piano, Guitar, Violin, Drums',
+    nl: 'bijv. Piano, Gitaar, Viool, Drums'
+  },
+  'settings.school.instrumentsDescription': {
+    en: 'List all instruments taught at your school',
+    nl: 'Geef alle instrumenten op die op je school worden gegeven'
+  },
+  'settings.school.description': {
+    en: 'School Description',
+    nl: 'Schoolomschrijving'
+  },
+  'settings.school.descriptionPlaceholder': {
+    en: 'Describe your music school...',
+    nl: 'Beschrijf je muziekschool...'
+  },
+  'settings.school.save': {
+    en: 'Save School Settings',
+    nl: 'Schoolinstellingen opslaan'
+  },
+  'settings.school.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'settings.school.updated': {
+    en: 'School settings updated',
+    nl: 'Schoolinstellingen bijgewerkt'
+  },
+  'settings.school.updatedDescription': {
+    en: 'School information has been successfully updated.',
+    nl: 'Schoolinformatie is succesvol bijgewerkt.'
+  },
+
+  // Settings — Notifications tab
+  'settings.notifications.title': {
+    en: 'Notification Preferences',
+    nl: 'Meldingsvoorkeuren'
+  },
+  'settings.notifications.email': {
+    en: 'Email Notifications',
+    nl: 'E-mailmeldingen'
+  },
+  'settings.notifications.emailDescription': {
+    en: 'Receive notifications via email',
+    nl: 'Ontvang meldingen via e-mail'
+  },
+  'settings.notifications.lessonReminders': {
+    en: 'Lesson Reminders',
+    nl: 'Lesherinneringen'
+  },
+  'settings.notifications.lessonRemindersDescription': {
+    en: 'Get reminded about upcoming lessons',
+    nl: 'Ontvang herinneringen over aankomende lessen'
+  },
+  'settings.notifications.assignmentDeadlines': {
+    en: 'Assignment Deadlines',
+    nl: 'Opdracht deadlines'
+  },
+  'settings.notifications.assignmentDeadlinesDescription': {
+    en: 'Be notified when assignments are due',
+    nl: 'Ontvang een melding wanneer opdrachten moeten worden ingeleverd'
+  },
+  'settings.notifications.achievementAlerts': {
+    en: 'Achievement Alerts',
+    nl: 'Prestatieberichten'
+  },
+  'settings.notifications.achievementAlertsDescription': {
+    en: 'Get notified when students earn achievements',
+    nl: 'Ontvang een melding wanneer studenten prestaties behalen'
+  },
+  'settings.notifications.weeklyReports': {
+    en: 'Weekly Reports',
+    nl: 'Wekelijkse rapporten'
+  },
+  'settings.notifications.weeklyReportsDescription': {
+    en: 'Receive weekly progress reports',
+    nl: 'Ontvang wekelijkse voortgangsrapporten'
+  },
+  'settings.notifications.save': {
+    en: 'Save Notification Settings',
+    nl: 'Meldingsinstellingen opslaan'
+  },
+  'settings.notifications.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'settings.notifications.updated': {
+    en: 'Notification preferences updated',
+    nl: 'Meldingsvoorkeuren bijgewerkt'
+  },
+  'settings.notifications.updatedDescription': {
+    en: 'Your notification settings have been saved.',
+    nl: 'Je meldingsinstellingen zijn opgeslagen.'
+  },
+
+  // Settings — Preferences tab
+  'settings.preferences.title': {
+    en: 'System Preferences',
+    nl: 'Systeemvoorkeuren'
+  },
+  'settings.preferences.theme': {
+    en: 'Theme',
+    nl: 'Thema'
+  },
+  'settings.preferences.themeLight': {
+    en: 'Light',
+    nl: 'Licht'
+  },
+  'settings.preferences.themeDark': {
+    en: 'Dark',
+    nl: 'Donker'
+  },
+  'settings.preferences.themeSystem': {
+    en: 'System',
+    nl: 'Systeem'
+  },
+  'settings.preferences.language': {
+    en: 'Language',
+    nl: 'Taal'
+  },
+  'settings.preferences.langEnglish': {
+    en: 'English',
+    nl: 'Engels'
+  },
+  'settings.preferences.langSpanish': {
+    en: 'Spanish',
+    nl: 'Spaans'
+  },
+  'settings.preferences.langFrench': {
+    en: 'French',
+    nl: 'Frans'
+  },
+  'settings.preferences.langGerman': {
+    en: 'German',
+    nl: 'Duits'
+  },
+  'settings.preferences.dateFormat': {
+    en: 'Date Format',
+    nl: 'Datumnotatie'
+  },
+  'settings.preferences.defaultView': {
+    en: 'Default View',
+    nl: 'Standaardweergave'
+  },
+  'settings.preferences.viewDashboard': {
+    en: 'Dashboard',
+    nl: 'Dashboard'
+  },
+  'settings.preferences.viewStudents': {
+    en: 'Students',
+    nl: 'Studenten'
+  },
+  'settings.preferences.viewLessons': {
+    en: 'Lessons',
+    nl: 'Lessen'
+  },
+  'settings.preferences.viewSchedule': {
+    en: 'Schedule',
+    nl: 'Rooster'
+  },
+  'settings.preferences.save': {
+    en: 'Save Preferences',
+    nl: 'Voorkeuren opslaan'
+  },
+  'settings.preferences.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'settings.preferences.updated': {
+    en: 'Preferences updated',
+    nl: 'Voorkeuren bijgewerkt'
+  },
+  'settings.preferences.updatedDescription': {
+    en: 'Your system preferences have been saved.',
+    nl: 'Je systeemvoorkeuren zijn opgeslagen.'
+  },
+
+  // Settings — Security tab
+  'settings.security.title': {
+    en: 'Security Settings',
+    nl: 'Beveiligingsinstellingen'
+  },
+  'settings.security.changePassword': {
+    en: 'Change Password',
+    nl: 'Wachtwoord wijzigen'
+  },
+  'settings.security.changePasswordSubtitle': {
+    en: 'Update your account password',
+    nl: 'Werk je accountwachtwoord bij'
+  },
+  'settings.security.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'settings.security.changePasswordBtn': {
+    en: 'Change Password',
+    nl: 'Wachtwoord wijzigen'
+  },
+  'settings.security.currentPassword': {
+    en: 'Current Password',
+    nl: 'Huidig wachtwoord'
+  },
+  'settings.security.newPassword': {
+    en: 'New Password',
+    nl: 'Nieuw wachtwoord'
+  },
+  'settings.security.newPasswordPlaceholder': {
+    en: 'Use 8+ characters with upper/lowercase, a number, and a symbol',
+    nl: 'Gebruik 8+ tekens met hoofd-/kleine letters, een cijfer en een symbool'
+  },
+  'settings.security.confirmPassword': {
+    en: 'Confirm New Password',
+    nl: 'Nieuw wachtwoord bevestigen'
+  },
+  'settings.security.updatePassword': {
+    en: 'Update Password',
+    nl: 'Wachtwoord bijwerken'
+  },
+  'settings.security.updatingPassword': {
+    en: 'Changing...',
+    nl: 'Wijzigen...'
+  },
+  'settings.security.passwordChanged': {
+    en: 'Password changed',
+    nl: 'Wachtwoord gewijzigd'
+  },
+  'settings.security.passwordChangedDescription': {
+    en: 'Your password has been successfully updated.',
+    nl: 'Je wachtwoord is succesvol bijgewerkt.'
+  },
+  'settings.security.passwordChangeFailed': {
+    en: 'Failed to change password',
+    nl: 'Wachtwoord wijzigen mislukt'
+  },
+  'settings.security.passwordMismatch': {
+    en: 'Password mismatch',
+    nl: 'Wachtwoorden komen niet overeen'
+  },
+  'settings.security.passwordMismatchDescription': {
+    en: 'New password and confirmation do not match.',
+    nl: 'Het nieuwe wachtwoord en de bevestiging komen niet overeen.'
+  },
+  'settings.security.weakPassword': {
+    en: 'Weak password',
+    nl: 'Zwak wachtwoord'
+  },
+  'settings.security.accountInfo': {
+    en: 'Account Information',
+    nl: 'Accountinformatie'
+  },
+  'settings.security.role': {
+    en: 'Role',
+    nl: 'Rol'
+  },
+  'settings.security.accountStatus': {
+    en: 'Account Status',
+    nl: 'Accountstatus'
+  },
+  'settings.security.accountActive': {
+    en: 'Active',
+    nl: 'Actief'
+  },
+  'settings.security.memberSince': {
+    en: 'Member Since',
+    nl: 'Lid sinds'
+  },
+  'settings.security.lastLogin': {
+    en: 'Last Login',
+    nl: 'Laatste login'
+  },
+  'settings.security.lastLoginValue': {
+    en: 'Today',
+    nl: 'Vandaag'
+  },
+
+  // Settings — Studios tab
+  'settings.studios.title': {
+    en: "Studio's & Rooms",
+    nl: "Studio's & Lokalen"
+  },
+  'settings.studios.loading': {
+    en: 'Loading...',
+    nl: 'Laden…'
+  },
+  'settings.studios.empty': {
+    en: "No studio's added yet.",
+    nl: "Nog geen studio's toegevoegd."
+  },
+  'settings.studios.addNew': {
+    en: 'Add new studio',
+    nl: 'Nieuwe studio toevoegen'
+  },
+  'settings.studios.namePlaceholder': {
+    en: 'Name (e.g. Studio 11)',
+    nl: 'Naam (bijv. Studio 11)'
+  },
+  'settings.studios.locationPlaceholder': {
+    en: 'Location (optional)',
+    nl: 'Locatie (optioneel)'
+  },
+  'settings.studios.addButton': {
+    en: 'Add',
+    nl: 'Toevoegen'
+  },
+  'settings.studios.created': {
+    en: 'Studio created',
+    nl: 'Studio aangemaakt'
+  },
+  'settings.studios.deleted': {
+    en: 'Studio deleted',
+    nl: 'Studio verwijderd'
+  },
+  'settings.studios.error': {
+    en: 'Error',
+    nl: 'Fout'
+  },
+
+  // Settings — Vacations tab
+  'settings.vacations.title': {
+    en: 'Vacations & Days Off',
+    nl: 'Vakanties & Vrije dagen'
+  },
+  'settings.vacations.subtitle': {
+    en: 'Vacation periods are automatically excluded from the schedule — no lessons will be planned on those days.',
+    nl: 'Vakantieperiodes worden automatisch uitgesloten in de agenda — er worden geen lessen gepland op die dagen.'
+  },
+  'settings.vacations.loading': {
+    en: 'Loading...',
+    nl: 'Laden…'
+  },
+  'settings.vacations.empty': {
+    en: 'No vacations configured yet.',
+    nl: 'Nog geen vakanties ingesteld.'
+  },
+  'settings.vacations.blackout': {
+    en: '(day off)',
+    nl: '(vrije dag)'
+  },
+  'settings.vacations.addNew': {
+    en: 'Add new vacation period',
+    nl: 'Nieuwe vakantieperiode toevoegen'
+  },
+  'settings.vacations.namePlaceholder': {
+    en: 'Name (e.g. Spring break)',
+    nl: 'Naam (bijv. Meivakantie)'
+  },
+  'settings.vacations.addButton': {
+    en: 'Add vacation',
+    nl: 'Vakantie toevoegen'
+  },
+  'settings.vacations.saved': {
+    en: 'Vacation saved',
+    nl: 'Vakantie opgeslagen'
+  },
+  'settings.vacations.deleted': {
+    en: 'Vacation deleted',
+    nl: 'Vakantie verwijderd'
+  },
+  'settings.vacations.error': {
+    en: 'Error',
+    nl: 'Fout'
+  },
+
+  // Billing page
+  'billing.title': {
+    en: 'Billing & Subscription',
+    nl: 'Facturering & Abonnement'
+  },
+  'billing.subtitle': {
+    en: 'Manage your MusicDott subscription and billing preferences',
+    nl: 'Beheer je MusicDott-abonnement en factuurinstellingen'
+  },
+  'billing.trialRemaining': {
+    en: 'days remaining in your free trial',
+    nl: 'dagen resterend in je gratis proefperiode'
+  },
+  'billing.currentPlan': {
+    en: 'Current Plan',
+    nl: 'Huidig abonnement'
+  },
+  'billing.noPlan': {
+    en: 'No Plan',
+    nl: 'Geen abonnement'
+  },
+  'billing.monthlyCost': {
+    en: 'Monthly Cost',
+    nl: 'Maandelijkse kosten'
+  },
+  'billing.basedOnUsage': {
+    en: 'Based on current usage',
+    nl: 'Gebaseerd op huidig gebruik'
+  },
+  'billing.licenseUsage': {
+    en: 'License Usage',
+    nl: 'Licentiegebruik'
+  },
+  'billing.teachers': {
+    en: 'Teachers:',
+    nl: 'Docenten:'
+  },
+  'billing.students': {
+    en: 'Students:',
+    nl: 'Studenten:'
+  },
+  'billing.tab.overview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'billing.tab.plans': {
+    en: 'Plans',
+    nl: 'Abonnementen'
+  },
+  'billing.tab.history': {
+    en: 'Payment History',
+    nl: 'Betalingsgeschiedenis'
+  },
+  'billing.overview.pricingTitle': {
+    en: 'Current Month Pricing',
+    nl: 'Facturering huidige maand'
+  },
+  'billing.overview.pricingDescription': {
+    en: 'Your billing is automatically calculated based on actual usage',
+    nl: 'Je factuur wordt automatisch berekend op basis van het werkelijke gebruik'
+  },
+  'billing.overview.unlimitedTeachers': {
+    en: 'Unlimited teachers',
+    nl: 'Onbeperkt docenten'
+  },
+  'billing.overview.teachers': {
+    en: 'teachers',
+    nl: 'docenten'
+  },
+  'billing.overview.totalMonthly': {
+    en: 'Total Monthly',
+    nl: 'Totaal per maand'
+  },
+  'billing.overview.studentLimitWarning': {
+    en: "You're at your student license limit. Consider adding extra licenses or upgrading your plan.",
+    nl: 'Je hebt je studentlicentielimiet bereikt. Overweeg extra licenties toe te voegen of je abonnement te upgraden.'
+  },
+  'billing.overview.teacherLimitWarning': {
+    en: "You've exceeded your teacher license limit. We've automatically upgraded you to the Pro plan.",
+    nl: 'Je hebt je docentlicentielimiet overschreden. We hebben je automatisch geüpgraded naar het Pro-abonnement.'
+  },
+  'billing.plans.currentPlanBadge': {
+    en: 'Current Plan',
+    nl: 'Huidig abonnement'
+  },
+  'billing.plans.perMonth': {
+    en: 'per month',
+    nl: 'per maand'
+  },
+  'billing.plans.switchTo': {
+    en: 'Switch to this plan',
+    nl: 'Overstappen naar dit abonnement'
+  },
+  'billing.plans.updating': {
+    en: 'Updating...',
+    nl: 'Bijwerken...'
+  },
+  'billing.plans.extraLicensesTitle': {
+    en: 'Extra Student Licenses',
+    nl: 'Extra studentlicenties'
+  },
+  'billing.plans.extraLicensesDescription': {
+    en: "Add more student licenses beyond your plan's limit at €4.50 per 5 students per month",
+    nl: 'Voeg extra studentlicenties toe boven de limiet van je abonnement voor €4,50 per 5 studenten per maand'
+  },
+  'billing.plans.add5Licenses': {
+    en: 'Add 5 licenses (+€4.50/month)',
+    nl: '5 licenties toevoegen (+€4,50/maand)'
+  },
+  'billing.plans.add10Licenses': {
+    en: 'Add 10 licenses (+€9.00/month)',
+    nl: '10 licenties toevoegen (+€9,00/maand)'
+  },
+  'billing.history.title': {
+    en: 'Payment History',
+    nl: 'Betalingsgeschiedenis'
+  },
+  'billing.history.description': {
+    en: 'Your recent billing and payment records',
+    nl: 'Je recente factuur- en betalingsoverzicht'
+  },
+  'billing.history.colDate': {
+    en: 'Date',
+    nl: 'Datum'
+  },
+  'billing.history.colDescription': {
+    en: 'Description',
+    nl: 'Omschrijving'
+  },
+  'billing.history.colAmount': {
+    en: 'Amount',
+    nl: 'Bedrag'
+  },
+  'billing.history.colStatus': {
+    en: 'Status',
+    nl: 'Status'
+  },
+  'billing.history.empty': {
+    en: 'No payment history available yet',
+    nl: 'Nog geen betalingsgeschiedenis beschikbaar'
+  },
+  'billing.status.trialActive': {
+    en: 'Trial Active',
+    nl: 'Proefperiode actief'
+  },
+  'billing.status.active': {
+    en: 'Active',
+    nl: 'Actief'
+  },
+  'billing.status.pastDue': {
+    en: 'Past Due',
+    nl: 'Achterstallig'
+  },
+  'billing.status.canceled': {
+    en: 'Canceled',
+    nl: 'Geannuleerd'
+  },
+  'billing.toast.planUpdated': {
+    en: 'Plan Updated',
+    nl: 'Abonnement bijgewerkt'
+  },
+  'billing.toast.planUpdatedDescription': {
+    en: 'Your subscription plan has been updated successfully.',
+    nl: 'Je abonnement is succesvol bijgewerkt.'
+  },
+  'billing.toast.planUpdateFailed': {
+    en: 'Update Failed',
+    nl: 'Bijwerken mislukt'
+  },
+  'billing.toast.planUpdateFailedDescription': {
+    en: 'Failed to update subscription plan. Please try again.',
+    nl: 'Het bijwerken van het abonnement is mislukt. Probeer het opnieuw.'
+  },
+  'billing.toast.licensesAdded': {
+    en: 'Licenses Added',
+    nl: 'Licenties toegevoegd'
+  },
+  'billing.toast.licensesAddedDescription': {
+    en: 'Extra student licenses have been added to your subscription.',
+    nl: 'Extra studentlicenties zijn aan je abonnement toegevoegd.'
+  },
+  'billing.toast.licensesAddFailed': {
+    en: 'Failed to Add Licenses',
+    nl: 'Licenties toevoegen mislukt'
+  },
+  'billing.toast.licensesAddFailedDescription': {
+    en: 'Could not add extra licenses. Please try again.',
+    nl: 'Kon geen extra licenties toevoegen. Probeer het opnieuw.'
+  },
+
+  // Reports page
+  'reports.title': {
+    en: 'Reports & Analytics',
+    nl: 'Rapporten & Analyses'
+  },
+  'reports.subtitle': {
+    en: 'Track student progress and school performance',
+    nl: 'Volg de voortgang van studenten en de schoolprestaties'
+  },
+  'reports.loading': {
+    en: 'Loading reports...',
+    nl: 'Rapporten laden...'
+  },
+  'reports.exportCsv': {
+    en: 'Export CSV',
+    nl: 'CSV exporteren'
+  },
+  'reports.dateRange.last7': {
+    en: 'Last 7 days',
+    nl: 'Afgelopen 7 dagen'
+  },
+  'reports.dateRange.last30': {
+    en: 'Last 30 days',
+    nl: 'Afgelopen 30 dagen'
+  },
+  'reports.dateRange.last3months': {
+    en: 'Last 3 months',
+    nl: 'Afgelopen 3 maanden'
+  },
+  'reports.dateRange.lastYear': {
+    en: 'Last year',
+    nl: 'Afgelopen jaar'
+  },
+  'reports.type.overview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'reports.type.students': {
+    en: 'Student Progress',
+    nl: 'Studentvoortgang'
+  },
+  'reports.type.lessons': {
+    en: 'Lesson Analytics',
+    nl: 'Lesanalyses'
+  },
+  'reports.type.assignments': {
+    en: 'Assignments',
+    nl: 'Opdrachten'
+  },
+  'reports.metric.totalStudents': {
+    en: 'Total Students',
+    nl: 'Totaal studenten'
+  },
+  'reports.metric.totalStudentsTrend': {
+    en: '+12% from last month',
+    nl: '+12% ten opzichte van vorige maand'
+  },
+  'reports.metric.activeLessons': {
+    en: 'Active Lessons',
+    nl: 'Actieve lessen'
+  },
+  'reports.metric.activeLessonsTrend': {
+    en: '+8% from last month',
+    nl: '+8% ten opzichte van vorige maand'
+  },
+  'reports.metric.completedAssignments': {
+    en: 'Completed Assignments',
+    nl: 'Voltooide opdrachten'
+  },
+  'reports.metric.completedAssignmentsTrend': {
+    en: '+15% from last month',
+    nl: '+15% ten opzichte van vorige maand'
+  },
+  'reports.metric.upcomingSessions': {
+    en: 'Upcoming Sessions',
+    nl: 'Aankomende sessies'
+  },
+  'reports.metric.upcomingSessionsPeriod': {
+    en: 'Next 7 days',
+    nl: 'Komende 7 dagen'
+  },
+  'reports.studentProgress.title': {
+    en: 'Student Progress Overview',
+    nl: 'Overzicht studentvoortgang'
+  },
+  'reports.studentProgress.colStudent': {
+    en: 'Student Name',
+    nl: 'Studentnaam'
+  },
+  'reports.studentProgress.colCompletedLessons': {
+    en: 'Completed Lessons',
+    nl: 'Voltooide lessen'
+  },
+  'reports.studentProgress.colAssignments': {
+    en: 'Assignments',
+    nl: 'Opdrachten'
+  },
+  'reports.studentProgress.colXp': {
+    en: 'XP Earned',
+    nl: 'XP verdiend'
+  },
+  'reports.studentProgress.colLastActivity': {
+    en: 'Last Activity',
+    nl: 'Laatste activiteit'
+  },
+  'reports.studentProgress.colProgress': {
+    en: 'Progress',
+    nl: 'Voortgang'
+  },
+  'reports.studentProgress.never': {
+    en: 'Never',
+    nl: 'Nooit'
+  },
+  'reports.studentProgress.empty': {
+    en: 'No student data available for the selected period',
+    nl: 'Geen studentgegevens beschikbaar voor de geselecteerde periode'
+  },
+  'reports.popularLessons.title': {
+    en: 'Popular Lessons',
+    nl: 'Populaire lessen'
+  },
+  'reports.popularLessons.completions': {
+    en: 'completions',
+    nl: 'voltooiingen'
+  },
+  'reports.popularLessons.empty': {
+    en: 'No lesson data available',
+    nl: 'Geen lesgegevens beschikbaar'
+  },
+  'reports.upcomingDeadlines.title': {
+    en: 'Upcoming Deadlines',
+    nl: 'Aankomende deadlines'
+  },
+  'reports.upcomingDeadlines.due': {
+    en: 'Due:',
+    nl: 'Deadline:'
+  },
+  'reports.upcomingDeadlines.statusPending': {
+    en: 'pending',
+    nl: 'in behandeling'
+  },
+  'reports.upcomingDeadlines.statusOverdue': {
+    en: 'overdue',
+    nl: 'te laat'
+  },
+  'reports.upcomingDeadlines.empty': {
+    en: 'No upcoming deadlines',
+    nl: 'Geen aankomende deadlines'
   }
 };
 

@@ -85,7 +85,7 @@ export default function MyAssignmentsPage() {
                     
                     {assignment.notes && (
                       <div className="p-3 bg-purple-50 rounded-lg">
-                        <h4 className="font-medium text-sm text-purple-900 mb-1">Practice Notes:</h4>
+                        <h4 className="font-medium text-sm text-purple-900 mb-1">{t('studentPortal.myAssignments.practiceNotes')}</h4>
                         <p className="text-sm text-purple-800">{assignment.notes}</p>
                       </div>
                     )}
@@ -93,11 +93,11 @@ export default function MyAssignmentsPage() {
                     <div className="flex space-x-2">
                       <Button className="flex-1" size="sm" variant="outline">
                         <PlayCircle className="h-4 w-4 mr-2" />
-                        Listen
+                        {t('studentPortal.myAssignments.listen')}
                       </Button>
                       <Button className="flex-1" size="sm">
                         <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Practice
+                        {t('studentPortal.myAssignments.practice')}
                       </Button>
                     </div>
                   </CardContent>
@@ -109,8 +109,8 @@ export default function MyAssignmentsPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No song assignments yet</h3>
-              <p className="text-gray-600">Your teacher will assign songs for you to practice.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.myAssignments.noAssignmentsTitle')}</h3>
+              <p className="text-gray-600">{t('studentPortal.myAssignments.noAssignmentsDesc')}</p>
             </CardContent>
           </Card>
         )}
