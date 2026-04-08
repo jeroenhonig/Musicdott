@@ -784,6 +784,16 @@ export const translations: Translations = {
   'notice.visitMain': {
     en: 'Visit musicdott.app for MusicDott 1.0',
     nl: 'Bezoek musicdott.app voor MusicDott 1.0'
+  },
+
+  // 404 page
+  'error.404Title': {
+    en: '404 Page Not Found',
+    nl: '404 Pagina niet gevonden'
+  },
+  'error.404Description': {
+    en: 'The page you are looking for does not exist.',
+    nl: 'De pagina die je zoekt bestaat niet.'
   }
 };
 
