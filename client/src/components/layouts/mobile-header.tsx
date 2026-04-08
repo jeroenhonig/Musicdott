@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAnnounce } from "@/hooks/use-announce";
 import { NotificationBell } from "@/components/notification-bell";
+import { CompactLanguageSelector } from "@/components/language/language-selector";
 
 interface MobileHeaderProps {
   toggleMobileMenu: () => void;
@@ -49,6 +50,7 @@ export default function MobileHeader({ toggleMobileMenu }: MobileHeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <CompactLanguageSelector />
         <NotificationBell />
         <Avatar 
           className="h-8 w-8"
