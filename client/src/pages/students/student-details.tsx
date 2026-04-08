@@ -41,11 +41,13 @@ import {
 import { format } from "date-fns";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 
 export default function StudentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const studentId = parseInt(id);
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const { data: student, isLoading: isLoadingStudent } = useQuery<Student>({
     queryKey: [`/api/students/${studentId}`],
@@ -69,13 +71,13 @@ export default function StudentDetailsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/students/${studentId}/assignments`] });
       toast({
-        title: "Assignment deleted",
-        description: "The assignment has been successfully removed",
+        title: t('studentDetails.assignments.deleted'),
+        description: t('studentDetails.assignments.deletedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete assignment",
+        title: t('studentDetails.assignments.deleteFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -89,13 +91,13 @@ export default function StudentDetailsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/students/${studentId}/sessions`] });
       toast({
-        title: "Session deleted",
-        description: "The scheduled session has been successfully removed",
+        title: t('studentDetails.sessions.deleted'),
+        description: t('studentDetails.sessions.deletedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete session",
+        title: t('studentDetails.sessions.deleteFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -133,13 +135,13 @@ export default function StudentDetailsPage() {
   
   if (isNaN(studentId)) {
     return (
-      <AppLayout title="Student Not Found">
+      <AppLayout title={t('studentDetails.notFound')}>
         <div className="flex flex-col items-center justify-center py-12">
-          <h2 className="text-xl font-semibold mb-4">Invalid Student ID</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('studentDetails.invalidId')}</h2>
           <Button asChild>
             <Link href="/students">
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Students
+              {t('studentDetails.backToStudents')}
             </Link>
           </Button>
         </div>
@@ -149,9 +151,9 @@ export default function StudentDetailsPage() {
   
   if (isLoadingStudent) {
     return (
-      <AppLayout title="Loading Student...">
+      <AppLayout title={t('studentDetails.loading')}>
         <div className="flex justify-center py-12">
-          <p>Loading student information...</p>
+          <p>{t('studentDetails.loadingMessage')}</p>
         </div>
       </AppLayout>
     );
@@ -159,13 +161,13 @@ export default function StudentDetailsPage() {
   
   if (!student) {
     return (
-      <AppLayout title="Student Not Found">
+      <AppLayout title={t('studentDetails.notFound')}>
         <div className="flex flex-col items-center justify-center py-12">
-          <h2 className="text-xl font-semibold mb-4">Student not found</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('studentDetails.notFoundMessage')}</h2>
           <Button asChild>
             <Link href="/students">
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Students
+              {t('studentDetails.backToStudents')}
             </Link>
           </Button>
         </div>
@@ -179,7 +181,7 @@ export default function StudentDetailsPage() {
         <Button variant="outline" asChild>
           <Link href="/students">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Students
+            {t('studentDetails.backToStudents')}
           </Link>
         </Button>
       </div>
@@ -225,11 +227,11 @@ export default function StudentDetailsPage() {
               <div className="flex w-full mt-6 space-x-2">
                 <Button variant="outline" className="flex-1">
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {t('common.edit')}
                 </Button>
                 <Button variant="destructive" className="flex-1">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {t('common.delete')}
                 </Button>
               </div>
             </div>
@@ -241,19 +243,19 @@ export default function StudentDetailsPage() {
             <TabsList className="mb-4">
               <TabsTrigger value="assignments" className="flex items-center">
                 <BookOpen className="h-4 w-4 mr-2" />
-                Assignments
+                {t('studentDetails.tab.assignments')}
               </TabsTrigger>
               <TabsTrigger value="sessions" className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2" />
-                Sessions
+                {t('studentDetails.tab.sessions')}
               </TabsTrigger>
               <TabsTrigger value="achievements" className="flex items-center">
                 <Award className="h-4 w-4 mr-2" />
-                Achievements
+                {t('studentDetails.tab.achievements')}
               </TabsTrigger>
               <TabsTrigger value="notes" className="flex items-center">
                 <CalendarRange className="h-4 w-4 mr-2" />
-                Notes
+                {t('studentDetails.tab.notes')}
               </TabsTrigger>
             </TabsList>
             
@@ -261,34 +263,34 @@ export default function StudentDetailsPage() {
               <Card>
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Assignments</CardTitle>
+                    <CardTitle>{t('studentDetails.assignments.title')}</CardTitle>
                     <CardDescription>
-                      Track songs and lessons assigned to {student.name}
+                      {t('studentDetails.assignments.description', { name: student.name })}
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
-                      Assign Material
+                      {t('studentDetails.assignments.assignMaterial')}
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {isLoadingAssignments ? (
                     <div className="flex justify-center py-8">
-                      <p>Loading assignments...</p>
+                      <p>{t('studentDetails.assignments.loading')}</p>
                     </div>
                   ) : assignments?.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <p className="text-gray-500 mb-4">No assignments found</p>
+                      <p className="text-gray-500 mb-4">{t('studentDetails.assignments.none')}</p>
                       <div className="flex space-x-2">
                         <Button variant="outline">
                           <Music className="h-4 w-4 mr-2" />
-                          Assign Song
+                          {t('studentDetails.assignments.assignSong')}
                         </Button>
                         <Button variant="outline">
                           <BookOpen className="h-4 w-4 mr-2" />
-                          Assign Lesson
+                          {t('studentDetails.assignments.assignLesson')}
                         </Button>
                       </div>
                     </div>
@@ -297,12 +299,12 @@ export default function StudentDetailsPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Assigned Date</TableHead>
-                            <TableHead>Due Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{t('studentDetails.assignments.col.type')}</TableHead>
+                            <TableHead>{t('studentDetails.assignments.col.title')}</TableHead>
+                            <TableHead>{t('studentDetails.assignments.col.assignedDate')}</TableHead>
+                            <TableHead>{t('studentDetails.assignments.col.dueDate')}</TableHead>
+                            <TableHead>{t('studentDetails.assignments.col.status')}</TableHead>
+                            <TableHead className="text-right">{t('studentDetails.assignments.col.actions')}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -310,7 +312,7 @@ export default function StudentDetailsPage() {
                             <TableRow key={assignment.id}>
                               <TableCell>
                                 <Badge variant="outline">
-                                  {assignment.songId ? "Song" : "Lesson"}
+{assignment.songId ? t('studentDetails.assignments.typeSong') : t('studentDetails.assignments.typeLesson')}
                                 </Badge>
                               </TableCell>
                               <TableCell>
@@ -318,13 +320,13 @@ export default function StudentDetailsPage() {
                               </TableCell>
                               <TableCell>{formatDate(assignment.assignedDate)}</TableCell>
                               <TableCell>
-                                {assignment.dueDate ? formatDate(assignment.dueDate) : "Not set"}
+                                {assignment.dueDate ? formatDate(assignment.dueDate) : t('studentDetails.assignments.notSet')}
                               </TableCell>
                               <TableCell>
                                 {assignment.completedDate ? (
-                                  <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                                  <Badge className="bg-green-100 text-green-800">{t('studentDetails.assignments.completed')}</Badge>
                                 ) : (
-                                  <Badge variant="outline">In Progress</Badge>
+                                  <Badge variant="outline">{t('studentDetails.assignments.inProgress')}</Badge>
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
@@ -338,18 +340,18 @@ export default function StudentDetailsPage() {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem>
                                       <Edit className="mr-2 h-4 w-4" />
-                                      Edit assignment
+                                      {t('studentDetails.assignments.editAssignment')}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
                                       {assignment.completedDate ? (
                                         <>
                                           <Calendar className="mr-2 h-4 w-4" />
-                                          Mark as incomplete
+                                          {t('studentDetails.assignments.markIncomplete')}
                                         </>
                                       ) : (
                                         <>
                                           <Calendar className="mr-2 h-4 w-4" />
-                                          Mark as complete
+                                          {t('studentDetails.assignments.markComplete')}
                                         </>
                                       )}
                                     </DropdownMenuItem>
@@ -359,7 +361,7 @@ export default function StudentDetailsPage() {
                                       disabled={deleteAssignmentMutation.isPending}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete assignment
+                                      {t('studentDetails.assignments.deleteAssignment')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -382,29 +384,29 @@ export default function StudentDetailsPage() {
               <Card>
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Scheduled Sessions</CardTitle>
+                    <CardTitle>{t('studentDetails.sessions.title')}</CardTitle>
                     <CardDescription>
-                      Upcoming and past lessons with {student.name}
+                      {t('studentDetails.sessions.description', { name: student.name })}
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
-                      Schedule Session
+                      {t('studentDetails.sessions.scheduleSession')}
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {isLoadingSessions ? (
                     <div className="flex justify-center py-8">
-                      <p>Loading sessions...</p>
+                      <p>{t('studentDetails.sessions.loading')}</p>
                     </div>
                   ) : sessions?.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <p className="text-gray-500 mb-4">No sessions scheduled</p>
+                      <p className="text-gray-500 mb-4">{t('studentDetails.sessions.none')}</p>
                       <Button>
                         <Calendar className="h-4 w-4 mr-2" />
-                        Schedule First Session
+                        {t('studentDetails.sessions.scheduleFirst')}
                       </Button>
                     </div>
                   ) : (
@@ -412,12 +414,12 @@ export default function StudentDetailsPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Time</TableHead>
-                            <TableHead>Duration</TableHead>
-                            <TableHead>Notes</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.title')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.date')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.time')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.duration')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.notes')}</TableHead>
+                            <TableHead className="text-right">{t('studentDetails.sessions.col.actions')}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -435,7 +437,7 @@ export default function StudentDetailsPage() {
                               </TableCell>
                               <TableCell>
                                 <div className="max-w-xs truncate">
-                                  {session.notes || "No notes"}
+{session.notes || t('studentDetails.sessions.noNotes')}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
@@ -449,14 +451,14 @@ export default function StudentDetailsPage() {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem>
                                       <Edit className="mr-2 h-4 w-4" />
-                                      Edit session
+                                      {t('studentDetails.sessions.editSession')}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem className="text-red-600" 
                                       onClick={() => deleteSessionMutation.mutate(session.id)} 
                                       disabled={deleteSessionMutation.isPending}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
-                                      Cancel session
+                                      {t('studentDetails.sessions.cancelSession')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -474,9 +476,9 @@ export default function StudentDetailsPage() {
             <TabsContent value="notes">
               <Card>
                 <CardHeader>
-                  <CardTitle>Notes</CardTitle>
+                  <CardTitle>{t('studentDetails.notes.title')}</CardTitle>
                   <CardDescription>
-                    Additional information about {student.name}
+                    {t('studentDetails.notes.description', { name: student.name })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -485,10 +487,10 @@ export default function StudentDetailsPage() {
                       <p className="whitespace-pre-line">{student.notes}</p>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-gray-500 mb-2">No notes available</p>
+                        <p className="text-gray-500 mb-2">{t('studentDetails.notes.none')}</p>
                         <Button variant="outline">
                           <Edit className="h-4 w-4 mr-2" />
-                          Add Notes
+                          {t('studentDetails.notes.addNotes')}
                         </Button>
                       </div>
                     )}

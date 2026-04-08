@@ -1284,7 +1284,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={assignSongMutation.isPending}>
-                    {assignSongMutation.isPending ? "Assigning..." : "Assign Song"}
+                    {assignSongMutation.isPending ? t('students.assignSong.assigning') : t('students.assignSong.button')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1345,7 +1345,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={assignLessonMutation.isPending}>
-                    {assignLessonMutation.isPending ? "Assigning..." : "Assign Lesson"}
+                    {assignLessonMutation.isPending ? t('students.assignLesson.assigning') : t('students.assignLesson.button')}
                   </Button>
                 </DialogFooter>
               </form>
