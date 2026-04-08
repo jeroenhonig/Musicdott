@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +66,7 @@ interface ReportData {
 }
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState('30');
   const [reportType, setReportType] = useState('overview');
 
@@ -121,20 +123,20 @@ export default function ReportsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <BarChart3 className="h-8 w-8 animate-pulse mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500">Loading reports...</p>
+          <p className="text-gray-500">{t('reports.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <AppLayout title="Reports & Analytics">
+    <AppLayout title={t('reports.title')}>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-          <p className="text-gray-600">Track student progress and school performance</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('reports.title')}</h1>
+          <p className="text-gray-600">{t('reports.subtitle')}</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -143,10 +145,10 @@ export default function ReportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 3 months</SelectItem>
-              <SelectItem value="365">Last year</SelectItem>
+              <SelectItem value="7">{t('reports.dateRange.last7')}</SelectItem>
+              <SelectItem value="30">{t('reports.dateRange.last30')}</SelectItem>
+              <SelectItem value="90">{t('reports.dateRange.last3months')}</SelectItem>
+              <SelectItem value="365">{t('reports.dateRange.lastYear')}</SelectItem>
             </SelectContent>
           </Select>
           
@@ -155,16 +157,16 @@ export default function ReportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="overview">Overview</SelectItem>
-              <SelectItem value="students">Student Progress</SelectItem>
-              <SelectItem value="lessons">Lesson Analytics</SelectItem>
-              <SelectItem value="assignments">Assignments</SelectItem>
+              <SelectItem value="overview">{t('reports.type.overview')}</SelectItem>
+              <SelectItem value="students">{t('reports.type.students')}</SelectItem>
+              <SelectItem value="lessons">{t('reports.type.lessons')}</SelectItem>
+              <SelectItem value="assignments">{t('reports.type.assignments')}</SelectItem>
             </SelectContent>
           </Select>
           
           <Button onClick={handleExportReport} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            {t('reports.exportCsv')}
           </Button>
         </div>
       </div>
@@ -175,14 +177,14 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Students</p>
+                <p className="text-sm font-medium text-gray-600">{t('reports.metric.totalStudents')}</p>
                 <p className="text-2xl font-bold">{reportData?.totalStudents || 0}</p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
             <div className="mt-4 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-green-600">+12% from last month</span>
+              <span className="text-green-600">{t('reports.metric.totalStudentsTrend')}</span>
             </div>
           </CardContent>
         </Card>
@@ -191,14 +193,14 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Lessons</p>
+                <p className="text-sm font-medium text-gray-600">{t('reports.metric.activeLessons')}</p>
                 <p className="text-2xl font-bold">{reportData?.activeLessons || 0}</p>
               </div>
               <BookOpen className="h-8 w-8 text-green-600" />
             </div>
             <div className="mt-4 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-green-600">+8% from last month</span>
+              <span className="text-green-600">{t('reports.metric.activeLessonsTrend')}</span>
             </div>
           </CardContent>
         </Card>
@@ -207,14 +209,14 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed Assignments</p>
+                <p className="text-sm font-medium text-gray-600">{t('reports.metric.completedAssignments')}</p>
                 <p className="text-2xl font-bold">{reportData?.completedAssignments || 0}</p>
               </div>
               <Trophy className="h-8 w-8 text-yellow-600" />
             </div>
             <div className="mt-4 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-green-600">+15% from last month</span>
+              <span className="text-green-600">{t('reports.metric.completedAssignmentsTrend')}</span>
             </div>
           </CardContent>
         </Card>
@@ -223,14 +225,14 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Upcoming Sessions</p>
+                <p className="text-sm font-medium text-gray-600">{t('reports.metric.upcomingSessions')}</p>
                 <p className="text-2xl font-bold">{reportData?.upcomingSessions || 0}</p>
               </div>
               <Calendar className="h-8 w-8 text-purple-600" />
             </div>
             <div className="mt-4 flex items-center text-sm">
               <Clock className="h-4 w-4 text-blue-500 mr-1" />
-              <span className="text-blue-600">Next 7 days</span>
+              <span className="text-blue-600">{t('reports.metric.upcomingSessionsPeriod')}</span>
             </div>
           </CardContent>
         </Card>
@@ -241,7 +243,7 @@ export default function ReportsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Student Progress Overview
+            {t('reports.studentProgress.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -250,12 +252,12 @@ export default function ReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student Name</TableHead>
-                    <TableHead>Completed Lessons</TableHead>
-                    <TableHead>Assignments</TableHead>
-                    <TableHead>XP Earned</TableHead>
-                    <TableHead>Last Activity</TableHead>
-                    <TableHead>Progress</TableHead>
+                    <TableHead>{t('reports.studentProgress.colStudent')}</TableHead>
+                    <TableHead>{t('reports.studentProgress.colCompletedLessons')}</TableHead>
+                    <TableHead>{t('reports.studentProgress.colAssignments')}</TableHead>
+                    <TableHead>{t('reports.studentProgress.colXp')}</TableHead>
+                    <TableHead>{t('reports.studentProgress.colLastActivity')}</TableHead>
+                    <TableHead>{t('reports.studentProgress.colProgress')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -278,7 +280,7 @@ export default function ReportsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {student.lastActivity ? format(new Date(student.lastActivity), 'MMM dd, yyyy') : 'Never'}
+                          {student.lastActivity ? format(new Date(student.lastActivity), 'MMM dd, yyyy') : t('reports.studentProgress.never')}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -300,7 +302,7 @@ export default function ReportsPage() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No student data available for the selected period</p>
+              <p>{t('reports.studentProgress.empty')}</p>
             </div>
           )}
         </CardContent>
@@ -312,7 +314,7 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Music className="h-5 w-5" />
-              Popular Lessons
+              {t('reports.popularLessons.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -322,7 +324,7 @@ export default function ReportsPage() {
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium">{lesson.lessonTitle}</p>
-                      <p className="text-sm text-gray-600">{lesson.completions} completions</p>
+                      <p className="text-sm text-gray-600">{lesson.completions} {t('reports.popularLessons.completions')}</p>
                     </div>
                     {lesson.avgRating && typeof lesson.avgRating === 'number' && (
                       <Badge variant="secondary">
@@ -335,7 +337,7 @@ export default function ReportsPage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No lesson data available</p>
+                <p>{t('reports.popularLessons.empty')}</p>
               </div>
             )}
           </CardContent>
@@ -345,7 +347,7 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Upcoming Deadlines
+              {t('reports.upcomingDeadlines.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -357,13 +359,13 @@ export default function ReportsPage() {
                       <p className="font-medium">{deadline.studentName}</p>
                       <p className="text-sm text-gray-600">{deadline.assignmentTitle}</p>
                       <p className="text-xs text-gray-500">
-                        Due: {format(new Date(deadline.dueDate), 'MMM dd, yyyy')}
+                        {t('reports.upcomingDeadlines.due')} {format(new Date(deadline.dueDate), 'MMM dd, yyyy')}
                       </p>
                     </div>
                     <Badge 
                       variant={deadline.status === 'overdue' ? 'destructive' : 'secondary'}
                     >
-                      {deadline.status}
+                      {deadline.status === 'overdue' ? t('reports.upcomingDeadlines.statusOverdue') : t('reports.upcomingDeadlines.statusPending')}
                     </Badge>
                   </div>
                 ))}
@@ -371,7 +373,7 @@ export default function ReportsPage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No upcoming deadlines</p>
+                <p>{t('reports.upcomingDeadlines.empty')}</p>
               </div>
             )}
           </CardContent>

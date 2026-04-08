@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +82,7 @@ interface PaymentRecord {
 }
 
 export default function BillingPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -111,14 +113,14 @@ export default function BillingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/status"] });
       toast({
-        title: "Plan Updated",
-        description: "Your subscription plan has been updated successfully.",
+        title: t('billing.toast.planUpdated'),
+        description: t('billing.toast.planUpdatedDescription'),
       });
     },
     onError: () => {
       toast({
-        title: "Update Failed",
-        description: "Failed to update subscription plan. Please try again.",
+        title: t('billing.toast.planUpdateFailed'),
+        description: t('billing.toast.planUpdateFailedDescription'),
         variant: "destructive",
       });
     },
@@ -133,14 +135,14 @@ export default function BillingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/status"] });
       toast({
-        title: "Licenses Added",
-        description: "Extra student licenses have been added to your subscription.",
+        title: t('billing.toast.licensesAdded'),
+        description: t('billing.toast.licensesAddedDescription'),
       });
     },
     onError: () => {
       toast({
-        title: "Failed to Add Licenses",
-        description: "Could not add extra licenses. Please try again.",
+        title: t('billing.toast.licensesAddFailed'),
+        description: t('billing.toast.licensesAddFailedDescription'),
         variant: "destructive",
       });
     },
@@ -152,16 +154,16 @@ export default function BillingPage() {
 
   const getStatusBadge = (status: string, isTrialActive: boolean) => {
     if (isTrialActive) {
-      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Trial Active</Badge>;
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{t('billing.status.trialActive')}</Badge>;
     }
-    
+
     switch (status) {
       case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-800">{t('billing.status.active')}</Badge>;
       case 'past_due':
-        return <Badge variant="destructive">Past Due</Badge>;
+        return <Badge variant="destructive">{t('billing.status.pastDue')}</Badge>;
       case 'canceled':
-        return <Badge variant="secondary">Canceled</Badge>;
+        return <Badge variant="secondary">{t('billing.status.canceled')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -183,20 +185,20 @@ export default function BillingPage() {
   }
 
   return (
-    <AppLayout title="Billing & Subscription">
+    <AppLayout title={t('billing.title')}>
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
-          <h1 className="text-3xl font-bold">Billing & Subscription</h1>
+          <h1 className="text-3xl font-bold">{t('billing.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your MusicDott subscription and billing preferences
+            {t('billing.subtitle')}
           </p>
           </div>
           {subscriptionStatus?.isTrialActive && (
             <Alert className="max-w-md">
               <Clock className="h-4 w-4" />
               <AlertDescription>
-                <strong>{subscriptionStatus.trialDaysRemaining} days</strong> remaining in your free trial
+                <strong>{subscriptionStatus.trialDaysRemaining} days</strong> {t('billing.trialRemaining')}
               </AlertDescription>
             </Alert>
           )}
@@ -206,12 +208,12 @@ export default function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('billing.currentPlan')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {subscriptionStatus?.planName || 'No Plan'}
+              {subscriptionStatus?.planName || t('billing.noPlan')}
             </div>
             <div className="flex items-center gap-2 mt-2">
               {subscriptionStatus && getStatusBadge(subscriptionStatus.status, subscriptionStatus.isTrialActive)}
@@ -221,7 +223,7 @@ export default function BillingPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Cost</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('billing.monthlyCost')}</CardTitle>
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -229,21 +231,21 @@ export default function BillingPage() {
               {subscriptionStatus?.pricing ? formatPrice(subscriptionStatus.pricing.total) : '€0.00'}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Based on current usage
+              {t('billing.basedOnUsage')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">License Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('billing.licenseUsage')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {subscriptionStatus?.licenseStatus?.teachers && (
                 <div className="flex justify-between text-sm">
-                  <span>Teachers:</span>
+                  <span>{t('billing.teachers')}</span>
                   <span>
                     {subscriptionStatus.licenseStatus.teachers.used}/
                     {subscriptionStatus.licenseStatus.teachers.available === -1 
@@ -254,7 +256,7 @@ export default function BillingPage() {
               )}
               {subscriptionStatus?.licenseStatus?.students && (
                 <div className="flex justify-between text-sm">
-                  <span>Students:</span>
+                  <span>{t('billing.students')}</span>
                   <span>
                     {subscriptionStatus.licenseStatus.students.used}/
                     {subscriptionStatus.licenseStatus.students.available}
@@ -268,9 +270,9 @@ export default function BillingPage() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
-          <TabsTrigger value="history">Payment History</TabsTrigger>
+          <TabsTrigger value="overview">{t('billing.tab.overview')}</TabsTrigger>
+          <TabsTrigger value="plans">{t('billing.tab.plans')}</TabsTrigger>
+          <TabsTrigger value="history">{t('billing.tab.history')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -278,9 +280,9 @@ export default function BillingPage() {
           {subscriptionStatus?.pricing && (
             <Card>
               <CardHeader>
-                <CardTitle>Current Month Pricing</CardTitle>
+                <CardTitle>{t('billing.overview.pricingTitle')}</CardTitle>
                 <CardDescription>
-                  Your billing is automatically calculated based on actual usage
+                  {t('billing.overview.pricingDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -289,9 +291,9 @@ export default function BillingPage() {
                     <div>
                       <span className="font-medium">{subscriptionStatus.pricing.basePlan.name}</span>
                       <div className="text-sm text-muted-foreground">
-                        {subscriptionStatus.pricing.basePlan.includedTeachers === -1 
-                          ? 'Unlimited teachers' 
-                          : `${subscriptionStatus.pricing.basePlan.includedTeachers} teachers`} • {subscriptionStatus.pricing.basePlan.includedStudents} students
+                        {subscriptionStatus.pricing.basePlan.includedTeachers === -1
+                          ? t('billing.overview.unlimitedTeachers')
+                          : `${subscriptionStatus.pricing.basePlan.includedTeachers} ${t('billing.overview.teachers')}`} • {subscriptionStatus.pricing.basePlan.includedStudents} {t('billing.overview.studentsLabel')}
                       </div>
                     </div>
                     <span className="font-medium">{formatPrice(subscriptionStatus.pricing.basePlan.price)}</span>
@@ -312,7 +314,7 @@ export default function BillingPage() {
                   ))}
 
                   <div className="flex justify-between py-3 border-t-2 font-bold text-lg">
-                    <span>Total Monthly</span>
+                    <span>{t('billing.overview.totalMonthly')}</span>
                     <span>{formatPrice(subscriptionStatus.pricing.total)}</span>
                   </div>
                 </div>
@@ -327,7 +329,7 @@ export default function BillingPage() {
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    You're at your student license limit. Consider adding extra licenses or upgrading your plan.
+                    {t('billing.overview.studentLimitWarning')}
                   </AlertDescription>
                 </Alert>
               )}
@@ -336,7 +338,7 @@ export default function BillingPage() {
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    You've exceeded your teacher license limit. We've automatically upgraded you to the Pro plan.
+                    {t('billing.overview.teacherLimitWarning')}
                   </AlertDescription>
                 </Alert>
               )}
@@ -355,11 +357,11 @@ export default function BillingPage() {
                       <CardDescription className="mt-2">{plan.description}</CardDescription>
                     </div>
                     {subscriptionStatus?.planName === plan.name && (
-                      <Badge>Current Plan</Badge>
+                      <Badge>{t('billing.plans.currentPlanBadge')}</Badge>
                     )}
                   </div>
                   <div className="text-3xl font-bold">{formatPrice(plan.priceMonthly)}</div>
-                  <div className="text-sm text-muted-foreground">per month</div>
+                  <div className="text-sm text-muted-foreground">{t('billing.plans.perMonth')}</div>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 mb-4">
@@ -377,7 +379,7 @@ export default function BillingPage() {
                       disabled={upgradePlanMutation.isPending}
                       className="w-full"
                     >
-                      {upgradePlanMutation.isPending ? 'Updating...' : 'Switch to this plan'}
+                      {upgradePlanMutation.isPending ? t('billing.plans.updating') : t('billing.plans.switchTo')}
                     </Button>
                   )}
                 </CardContent>
@@ -388,9 +390,9 @@ export default function BillingPage() {
           {/* Extra Licenses */}
           <Card>
             <CardHeader>
-              <CardTitle>Extra Student Licenses</CardTitle>
+              <CardTitle>{t('billing.plans.extraLicensesTitle')}</CardTitle>
               <CardDescription>
-                Add more student licenses beyond your plan's limit at €4.50 per 5 students per month
+                {t('billing.plans.extraLicensesDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -400,14 +402,14 @@ export default function BillingPage() {
                   onClick={() => addLicensesMutation.mutate(5)}
                   disabled={addLicensesMutation.isPending}
                 >
-                  Add 5 licenses (+€4.50/month)
+                  {t('billing.plans.add5Licenses')}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => addLicensesMutation.mutate(10)}
                   disabled={addLicensesMutation.isPending}
                 >
-                  Add 10 licenses (+€9.00/month)
+                  {t('billing.plans.add10Licenses')}
                 </Button>
               </div>
             </CardContent>
@@ -417,8 +419,8 @@ export default function BillingPage() {
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-              <CardDescription>Your recent billing and payment records</CardDescription>
+              <CardTitle>{t('billing.history.title')}</CardTitle>
+              <CardDescription>{t('billing.history.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {summaryLoading ? (
@@ -431,10 +433,10 @@ export default function BillingPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('billing.history.colDate')}</TableHead>
+                      <TableHead>{t('billing.history.colDescription')}</TableHead>
+                      <TableHead>{t('billing.history.colAmount')}</TableHead>
+                      <TableHead>{t('billing.history.colStatus')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -456,7 +458,7 @@ export default function BillingPage() {
                 </Table>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  No payment history available yet
+                  {t('billing.history.empty')}
                 </div>
               )}
             </CardContent>

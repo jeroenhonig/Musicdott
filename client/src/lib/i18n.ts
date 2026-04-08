@@ -3810,6 +3810,10 @@ export const translations: Translations = {
     en: 'teachers',
     nl: 'docenten'
   },
+  'billing.overview.studentsLabel': {
+    en: 'students',
+    nl: 'studenten'
+  },
   'billing.overview.totalMonthly': {
     en: 'Total Monthly',
     nl: 'Totaal per maand'
@@ -4079,6 +4083,582 @@ export const translations: Translations = {
   'reports.upcomingDeadlines.empty': {
     en: 'No upcoming deadlines',
     nl: 'Geen aankomende deadlines'
+  },
+
+  // Teachers page
+  'teachers.title': {
+    en: 'Teachers',
+    nl: 'Docenten'
+  },
+  'teachers.subtitle': {
+    en: 'Manage the teachers in your music school',
+    nl: 'Beheer de docenten van je muziekschool'
+  },
+  'teachers.addTeacher': {
+    en: 'Add Teacher',
+    nl: 'Docent Toevoegen'
+  },
+  'teachers.searchPlaceholder': {
+    en: 'Search teachers...',
+    nl: 'Docenten zoeken...'
+  },
+  'teachers.loading': {
+    en: 'Loading teachers...',
+    nl: 'Docenten laden...'
+  },
+  'teachers.noTeachersFound': {
+    en: 'No teachers found',
+    nl: 'Geen docenten gevonden'
+  },
+  'teachers.noTeachersSearch': {
+    en: 'No teachers match your search criteria.',
+    nl: 'Geen docenten komen overeen met je zoekopdracht.'
+  },
+  'teachers.noTeachersEmpty': {
+    en: 'Get started by adding your first teacher.',
+    nl: 'Begin door je eerste docent toe te voegen.'
+  },
+  'teachers.roleBadge': {
+    en: 'Teacher',
+    nl: 'Docent'
+  },
+  'teachers.dialog.addTitle': {
+    en: 'Add New Teacher',
+    nl: 'Nieuwe Docent Toevoegen'
+  },
+  'teachers.dialog.addDescription': {
+    en: 'Create a new teacher account for your music school.',
+    nl: 'Maak een nieuw docentaccount aan voor je muziekschool.'
+  },
+  'teachers.dialog.editTitle': {
+    en: 'Edit Teacher',
+    nl: 'Docent Bewerken'
+  },
+  'teachers.dialog.editDescription': {
+    en: "Update the teacher's information.",
+    nl: 'Werk de informatie van de docent bij.'
+  },
+  'teachers.dialog.deleteTitle': {
+    en: 'Delete Teacher',
+    nl: 'Docent Verwijderen'
+  },
+  'teachers.dialog.deleteDescription': {
+    en: 'Are you sure you want to delete {name}? This action cannot be undone. Students assigned to this teacher will need to be reassigned.',
+    nl: 'Weet je zeker dat je {name} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt. Studenten die aan deze docent zijn gekoppeld moeten opnieuw worden toegewezen.'
+  },
+  'teachers.form.fullName': {
+    en: 'Full Name',
+    nl: 'Volledige naam'
+  },
+  'teachers.form.email': {
+    en: 'Email',
+    nl: 'E-mail'
+  },
+  'teachers.form.username': {
+    en: 'Username',
+    nl: 'Gebruikersnaam'
+  },
+  'teachers.form.password': {
+    en: 'Password',
+    nl: 'Wachtwoord'
+  },
+  'teachers.form.instruments': {
+    en: 'Instruments',
+    nl: 'Instrumenten'
+  },
+  'teachers.form.instrumentsPlaceholder': {
+    en: 'Piano, Guitar, Drums',
+    nl: 'Piano, Gitaar, Drums'
+  },
+  'teachers.form.instrumentsDescription': {
+    en: 'List the instruments this teacher specializes in',
+    nl: 'Geef de instrumenten op waarin deze docent is gespecialiseerd'
+  },
+  'teachers.form.bio': {
+    en: 'Bio',
+    nl: 'Bio'
+  },
+  'teachers.form.bioPlaceholder': {
+    en: "Brief description of the teacher's background and experience...",
+    nl: 'Korte beschrijving van de achtergrond en ervaring van de docent...'
+  },
+  'teachers.form.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'teachers.form.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'teachers.form.createButton': {
+    en: 'Create Teacher',
+    nl: 'Docent Aanmaken'
+  },
+  'teachers.form.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'teachers.form.saveChanges': {
+    en: 'Save Changes',
+    nl: 'Wijzigingen Opslaan'
+  },
+  'teachers.form.deleting': {
+    en: 'Deleting...',
+    nl: 'Verwijderen...'
+  },
+  'teachers.form.deleteButton': {
+    en: 'Delete',
+    nl: 'Verwijderen'
+  },
+  'teachers.toast.created': {
+    en: 'Teacher created',
+    nl: 'Docent aangemaakt'
+  },
+  'teachers.toast.createdDescription': {
+    en: 'The teacher account has been created successfully.',
+    nl: 'Het docentaccount is succesvol aangemaakt.'
+  },
+  'teachers.toast.createFailed': {
+    en: 'Failed to create teacher',
+    nl: 'Docent aanmaken mislukt'
+  },
+  'teachers.toast.updated': {
+    en: 'Teacher updated',
+    nl: 'Docent bijgewerkt'
+  },
+  'teachers.toast.updatedDescription': {
+    en: 'The teacher information has been updated successfully.',
+    nl: 'De docentinformatie is succesvol bijgewerkt.'
+  },
+  'teachers.toast.updateFailed': {
+    en: 'Failed to update teacher',
+    nl: 'Docent bijwerken mislukt'
+  },
+  'teachers.toast.deleted': {
+    en: 'Teacher deleted',
+    nl: 'Docent verwijderd'
+  },
+  'teachers.toast.deletedDescription': {
+    en: 'The teacher has been removed from your school.',
+    nl: 'De docent is verwijderd uit je school.'
+  },
+  'teachers.toast.deleteFailed': {
+    en: 'Failed to delete teacher',
+    nl: 'Docent verwijderen mislukt'
+  },
+
+  // School Members page
+  'schoolMembers.title': {
+    en: 'School Members',
+    nl: 'Schoolleden'
+  },
+  'schoolMembers.subtitle': {
+    en: 'Manage teachers and staff for {school}',
+    nl: 'Beheer docenten en medewerkers voor {school}'
+  },
+  'schoolMembers.noSchoolSelected': {
+    en: 'No school selected. Please select a school first.',
+    nl: 'Geen school geselecteerd. Selecteer eerst een school.'
+  },
+  'schoolMembers.inviteMember': {
+    en: 'Invite Member',
+    nl: 'Lid Uitnodigen'
+  },
+  'schoolMembers.teamMembers': {
+    en: 'Team Members',
+    nl: 'Teamleden'
+  },
+  'schoolMembers.noMembers': {
+    en: 'No team members yet. Invite teachers and staff to join your school.',
+    nl: 'Nog geen teamleden. Nodig docenten en medewerkers uit om lid te worden van je school.'
+  },
+  'schoolMembers.confirmRemove': {
+    en: 'Are you sure you want to remove {name} from your school?',
+    nl: 'Weet je zeker dat je {name} uit je school wilt verwijderen?'
+  },
+  'schoolMembers.removeFromSchool': {
+    en: 'Remove from school',
+    nl: 'Verwijderen uit school'
+  },
+  'schoolMembers.never': {
+    en: 'Never',
+    nl: 'Nooit'
+  },
+  'schoolMembers.dialog.inviteTitle': {
+    en: 'Invite New Member',
+    nl: 'Nieuw Lid Uitnodigen'
+  },
+  'schoolMembers.form.firstName': {
+    en: 'First Name',
+    nl: 'Voornaam'
+  },
+  'schoolMembers.form.lastName': {
+    en: 'Last Name',
+    nl: 'Achternaam'
+  },
+  'schoolMembers.form.email': {
+    en: 'Email',
+    nl: 'E-mail'
+  },
+  'schoolMembers.form.role': {
+    en: 'Role',
+    nl: 'Rol'
+  },
+  'schoolMembers.form.selectRole': {
+    en: 'Select role',
+    nl: 'Selecteer rol'
+  },
+  'schoolMembers.form.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'schoolMembers.form.sending': {
+    en: 'Sending...',
+    nl: 'Versturen...'
+  },
+  'schoolMembers.form.sendInvitation': {
+    en: 'Send Invitation',
+    nl: 'Uitnodiging Versturen'
+  },
+  'schoolMembers.role.teacher': {
+    en: 'Teacher',
+    nl: 'Docent'
+  },
+  'schoolMembers.role.schoolOwner': {
+    en: 'School Owner',
+    nl: 'Schooleigenaar'
+  },
+  'schoolMembers.table.member': {
+    en: 'Member',
+    nl: 'Lid'
+  },
+  'schoolMembers.table.role': {
+    en: 'Role',
+    nl: 'Rol'
+  },
+  'schoolMembers.table.status': {
+    en: 'Status',
+    nl: 'Status'
+  },
+  'schoolMembers.table.joined': {
+    en: 'Joined',
+    nl: 'Lid geworden'
+  },
+  'schoolMembers.table.lastActive': {
+    en: 'Last Active',
+    nl: 'Laatst actief'
+  },
+  'schoolMembers.table.actions': {
+    en: 'Actions',
+    nl: 'Acties'
+  },
+  'schoolMembers.status.active': {
+    en: 'Active',
+    nl: 'Actief'
+  },
+  'schoolMembers.status.inactive': {
+    en: 'Inactive',
+    nl: 'Inactief'
+  },
+  'schoolMembers.stats.totalMembers': {
+    en: 'Total Members',
+    nl: 'Totaal Leden'
+  },
+  'schoolMembers.stats.activeMembers': {
+    en: 'Active Members',
+    nl: 'Actieve Leden'
+  },
+  'schoolMembers.stats.teachers': {
+    en: 'Teachers',
+    nl: 'Docenten'
+  },
+  'schoolMembers.toast.inviteSentTitle': {
+    en: 'Invitation sent!',
+    nl: 'Uitnodiging verstuurd!'
+  },
+  'schoolMembers.toast.inviteSentDescription': {
+    en: 'The member has been invited to join your school.',
+    nl: 'Het lid is uitgenodigd om lid te worden van je school.'
+  },
+  'schoolMembers.toast.inviteFailedTitle': {
+    en: 'Invitation failed',
+    nl: 'Uitnodiging mislukt'
+  },
+  'schoolMembers.toast.removedTitle': {
+    en: 'Member removed',
+    nl: 'Lid verwijderd'
+  },
+  'schoolMembers.toast.removedDescription': {
+    en: 'The member has been removed from your school.',
+    nl: 'Het lid is verwijderd uit je school.'
+  },
+  'schoolMembers.toast.removeFailedTitle': {
+    en: 'Failed to remove member',
+    nl: 'Lid verwijderen mislukt'
+  },
+
+  // School Dashboard page
+  'schoolDashboard.title': {
+    en: 'School Dashboard',
+    nl: 'School Dashboard'
+  },
+  'schoolDashboard.subtitle': {
+    en: "Overview of your school's performance and student activity",
+    nl: 'Overzicht van de prestaties van je school en de activiteit van studenten'
+  },
+  'schoolDashboard.stats.totalStudents': {
+    en: 'Total Students',
+    nl: 'Totaal Studenten'
+  },
+  'schoolDashboard.stats.thisMonth': {
+    en: 'this month',
+    nl: 'deze maand'
+  },
+  'schoolDashboard.stats.teachers': {
+    en: 'Teachers',
+    nl: 'Docenten'
+  },
+  'schoolDashboard.stats.activeInstructors': {
+    en: 'Active instructors',
+    nl: 'Actieve instructeurs'
+  },
+  'schoolDashboard.stats.lessons': {
+    en: 'Lessons',
+    nl: 'Lessen'
+  },
+  'schoolDashboard.stats.totalLessonLibrary': {
+    en: 'Total lesson library',
+    nl: 'Totale lessenbibliotheek'
+  },
+  'schoolDashboard.stats.songs': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'schoolDashboard.stats.songRepertoire': {
+    en: 'Song repertoire',
+    nl: 'Nummerrepertoire'
+  },
+  'schoolDashboard.tab.studentActivity': {
+    en: 'Student Activity',
+    nl: 'Studentactiviteit'
+  },
+  'schoolDashboard.tab.performanceTrends': {
+    en: 'Performance Trends',
+    nl: 'Prestatietrends'
+  },
+  'schoolDashboard.tab.schoolOverview': {
+    en: 'School Overview',
+    nl: 'Schooloverzicht'
+  },
+  'schoolDashboard.activity.title': {
+    en: 'Recent Student Activity',
+    nl: 'Recente Studentactiviteit'
+  },
+  'schoolDashboard.activity.description': {
+    en: 'Most active students and their practice sessions',
+    nl: 'Meest actieve studenten en hun oefensessies'
+  },
+  'schoolDashboard.activity.sessions': {
+    en: 'sessions',
+    nl: 'sessies'
+  },
+  'schoolDashboard.activity.practiced': {
+    en: 'practiced',
+    nl: 'geoefend'
+  },
+  'schoolDashboard.activity.noPractice': {
+    en: 'No practice yet',
+    nl: 'Nog niet geoefend'
+  },
+  'schoolDashboard.activity.lastSeen': {
+    en: 'Last seen',
+    nl: 'Laatst gezien'
+  },
+  'schoolDashboard.activity.neverLoggedIn': {
+    en: 'Never logged in',
+    nl: 'Nooit ingelogd'
+  },
+  'schoolDashboard.activity.noData': {
+    en: 'No student activity data available yet',
+    nl: 'Nog geen studentactiviteitsgegevens beschikbaar'
+  },
+  'schoolDashboard.performance.title': {
+    en: 'Performance Trends',
+    nl: 'Prestatietrends'
+  },
+  'schoolDashboard.performance.description': {
+    en: 'Student engagement over the past 6 months',
+    nl: 'Studentbetrokkenheid over de afgelopen 6 maanden'
+  },
+  'schoolDashboard.performance.loadingTrends': {
+    en: 'Loading trends...',
+    nl: 'Trends laden...'
+  },
+  'schoolDashboard.performance.activeStudents': {
+    en: 'Active Students',
+    nl: 'Actieve Studenten'
+  },
+  'schoolDashboard.performance.totalSessions': {
+    en: 'Total Sessions',
+    nl: 'Totaal Sessies'
+  },
+  'schoolDashboard.practiceDuration.title': {
+    en: 'Practice Duration Trends',
+    nl: 'Oefenduurtrends'
+  },
+  'schoolDashboard.practiceDuration.description': {
+    en: 'Total practice time per month',
+    nl: 'Totale oefentijd per maand'
+  },
+  'schoolDashboard.practiceDuration.loading': {
+    en: 'Loading practice data...',
+    nl: 'Oefengegevens laden...'
+  },
+  'schoolDashboard.practiceDuration.practiceTime': {
+    en: 'Practice Time',
+    nl: 'Oefentijd'
+  },
+  'schoolDashboard.practiceDuration.practiceDuration': {
+    en: 'Practice Duration',
+    nl: 'Oefeningsduur'
+  },
+  'schoolDashboard.overview.thisMonthActivity': {
+    en: "This Month's Activity",
+    nl: 'Activiteit Deze Maand'
+  },
+  'schoolDashboard.overview.practiceSessions': {
+    en: 'Practice Sessions',
+    nl: 'Oefensessies'
+  },
+  'schoolDashboard.overview.newStudents': {
+    en: 'New Students',
+    nl: 'Nieuwe Studenten'
+  },
+  'schoolDashboard.overview.totalSessionsAllTime': {
+    en: 'Total Sessions (All Time)',
+    nl: 'Totaal Sessies (Altijd)'
+  },
+  'schoolDashboard.overview.contentLibrary': {
+    en: 'Content Library',
+    nl: 'Inhoudsbibliotheek'
+  },
+  'schoolDashboard.overview.totalLessons': {
+    en: 'Total Lessons',
+    nl: 'Totaal Lessen'
+  },
+  'schoolDashboard.overview.totalSongs': {
+    en: 'Total Songs',
+    nl: 'Totaal Nummers'
+  },
+  'schoolDashboard.overview.activeTeachers': {
+    en: 'Active Teachers',
+    nl: 'Actieve Docenten'
+  },
+
+  // Teach page (teacher control interface)
+  'teach.loading': {
+    en: 'Loading…',
+    nl: 'Laden…'
+  },
+  'teach.lessonNotFound': {
+    en: 'Lesson not found.',
+    nl: 'Les niet gevonden.'
+  },
+  'teach.back': {
+    en: 'Back',
+    nl: 'Terug'
+  },
+  'teach.reactionReady': {
+    en: 'Ready!',
+    nl: 'Klaar!'
+  },
+  'teach.studentConnected': {
+    en: 'Student connected',
+    nl: 'Leerling verbonden'
+  },
+  'teach.waitingForStudent': {
+    en: 'Waiting for student…',
+    nl: 'Wachten op leerling…'
+  },
+  'teach.closeScreen': {
+    en: 'Close screen',
+    nl: 'Sluit scherm'
+  },
+  'teach.openStudentScreen': {
+    en: 'Open student screen',
+    nl: 'Open leerlingscherm'
+  },
+  'teach.lessonContent': {
+    en: 'Lesson content',
+    nl: 'Lesinhoud'
+  },
+  'teach.blocks': {
+    en: 'blocks',
+    nl: 'blokken'
+  },
+  'teach.block': {
+    en: 'Block',
+    nl: 'Blok'
+  },
+  'teach.noContentBlocks': {
+    en: 'No content blocks.',
+    nl: 'Geen content blokken.'
+  },
+  'teach.clearScreen': {
+    en: 'Clear screen',
+    nl: 'Leeg scherm'
+  },
+  'teach.labelOptional': {
+    en: 'Label (optional)',
+    nl: 'Label (optioneel)'
+  },
+  'teach.timer.title': {
+    en: 'Timer',
+    nl: 'Timer'
+  },
+  'teach.timer.minutes': {
+    en: 'minutes',
+    nl: 'minuten'
+  },
+  'teach.timer.push': {
+    en: 'Push timer',
+    nl: 'Push timer'
+  },
+  'teach.pause.title': {
+    en: 'Pause',
+    nl: 'Pauze'
+  },
+  'teach.pause.messagePlaceholder': {
+    en: 'Message (optional)',
+    nl: 'Bericht (optioneel)'
+  },
+  'teach.pause.push': {
+    en: 'Push pause',
+    nl: 'Push pauze'
+  },
+  'teach.metronome.title': {
+    en: 'Metronome',
+    nl: 'Metronoom'
+  },
+  'teach.metronome.beats': {
+    en: 'Beats',
+    nl: 'Maat'
+  },
+  'teach.metronome.push': {
+    en: 'Push metronome',
+    nl: 'Push metronoom'
+  },
+  'teach.previewStudentScreen': {
+    en: 'Preview student screen',
+    nl: 'Voorbeeld leerlingscherm'
+  },
+  'teach.clickBlockToPush': {
+    en: 'Click a block to push it to the student screen',
+    nl: 'Klik op een blok om het te pushen naar het leerlingscherm'
+  },
+  'teach.openScreenToStart': {
+    en: 'Open the student screen to get started',
+    nl: 'Open het leerlingscherm om te beginnen'
   }
 };
 
