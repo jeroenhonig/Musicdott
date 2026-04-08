@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ interface LessonProgress {
 export default function LessonProgressTracker() {
   const queryClient = useQueryClient();
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   const { data: progressData, isLoading } = useQuery<LessonProgress[]>({
     queryKey: ['/api/lesson-progress'],
@@ -210,20 +212,20 @@ export default function LessonProgressTracker() {
 
                       {progress.timeSpent > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          Time spent: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
+                          {t('progress.timeSpent')}: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
                         </p>
                       )}
 
                       {progress.notes && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium mb-1">Student Notes:</p>
+                          <p className="text-xs font-medium mb-1">{t('progress.studentNotes')}</p>
                           <p className="text-sm bg-gray-50 p-2 rounded">{progress.notes}</p>
                         </div>
                       )}
 
                       {progress.teacherNotes && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium mb-1">Teacher Notes:</p>
+                          <p className="text-xs font-medium mb-1">{t('progress.teacherNotes')}</p>
                           <p className="text-sm bg-blue-50 p-2 rounded">{progress.teacherNotes}</p>
                         </div>
                       )}
@@ -240,9 +242,9 @@ export default function LessonProgressTracker() {
         <Card>
           <CardContent className="text-center py-12">
             <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium mb-2">No Progress Data</h3>
+            <h3 className="text-lg font-medium mb-2">{t('progress.noData')}</h3>
             <p className="text-muted-foreground">
-              Progress tracking will be available once students start practicing lessons.
+              {t('progress.noDataDescription')}
             </p>
           </CardContent>
         </Card>
