@@ -37,6 +37,7 @@ import { useTranslation } from "@/lib/i18n";
 import RequireRole, { RequireTeacher, RequireSchoolOwner } from "@/components/rbac/require-role";
 import SchoolPicker from "@/components/rbac/school-picker";
 import RoleIndicator from "@/components/rbac/role-indicator";
+import { CompactLanguageSelector } from "@/components/language/language-selector";
 
 interface SidebarProps {
   isMobile?: boolean;
@@ -144,10 +145,11 @@ export default function Sidebar({ isMobile = false, closeMobileMenu }: SidebarPr
       aria-label={isMobile ? "Mobile sidebar menu" : "Sidebar menu"}
     >
       <div className="flex-1 flex flex-col pt-8 pb-6 overflow-y-auto">
-        <div className="flex items-center flex-shrink-0 px-6 mb-4">
+        <div className="flex items-center justify-between flex-shrink-0 px-6 mb-4">
           <div className="flex items-center p-3 rounded-2xl">
             <img src={logo} alt="MusicDott Logo" className="h-8" />
           </div>
+          <CompactLanguageSelector />
         </div>
         
         {/* School Picker for users with multiple school memberships */}
