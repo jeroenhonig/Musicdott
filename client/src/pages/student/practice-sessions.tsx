@@ -11,10 +11,12 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
 import { EVENT_TYPES, EVENT_ENTITIES, EVENT_ACTIONS } from "@shared/events";
+import { useTranslation } from "@/lib/i18n";
 
 export default function PracticeSessionsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
   
   // Real-time synchronization for practice session coordination
@@ -71,14 +73,14 @@ export default function PracticeSessionsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/practice-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/practice-sessions/active"] });
       toast({
-        title: "Practice session started",
-        description: "Your practice time is now being tracked.",
+        title: t('studentPortal.practice.toast.startedTitle'),
+        description: t('studentPortal.practice.toast.startedDescription'),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to start practice session",
+        title: t('common.error'),
+        description: t('studentPortal.practice.toast.startError'),
         variant: "destructive",
       });
     },
@@ -113,14 +115,14 @@ export default function PracticeSessionsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/practice-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/practice-sessions/active"] });
       toast({
-        title: "Practice session ended",
-        description: "Great work! Your practice time has been recorded.",
+        title: t('studentPortal.practice.toast.endedTitle'),
+        description: t('studentPortal.practice.toast.endedDescription'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to end practice session",
+        title: t('common.error'),
+        description: t('studentPortal.practice.toast.endError'),
         variant: "destructive",
       });
     },
@@ -130,7 +132,7 @@ export default function PracticeSessionsPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Practice Sessions">
+      <AppLayout title={t('studentPortal.practice.title')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -155,24 +157,24 @@ export default function PracticeSessionsPage() {
   }, 0) : 0;
 
   return (
-    <AppLayout title="Practice Sessions">
+    <AppLayout title={t('studentPortal.practice.title')}>
       <div className="p-6 space-y-6">
         <div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Practice Sessions</h1>
-              <p className="text-gray-600 mt-2">Track your practice time and build consistency</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.practice.title')}</h1>
+              <p className="text-gray-600 mt-2">{t('studentPortal.practice.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-2">
               {isConnected ? (
                 <div className="flex items-center space-x-1 text-green-600">
                   <Wifi className="h-4 w-4" />
-                  <span className="text-sm">Live tracking</span>
+                  <span className="text-sm">{t('studentPortal.practice.liveTracking')}</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-1 text-gray-400">
                   <WifiOff className="h-4 w-4" />
-                  <span className="text-sm">Offline</span>
+                  <span className="text-sm">{t('studentPortal.practice.offline')}</span>
                 </div>
               )}
             </div>
@@ -186,10 +188,10 @@ export default function PracticeSessionsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-medium">Practice in progress</span>
+                  <span className="text-lg font-medium">{t('studentPortal.practice.inProgress')}</span>
                 </div>
                 <p className="text-gray-600">
-                  Started: {format(new Date(activeSession.startTime), "h:mm a")}
+                  {t('studentPortal.practice.started')} {format(new Date(activeSession.startTime), "h:mm a")}
                 </p>
                 <Button
                   onClick={() => endSessionMutation.mutate(activeSession.id)}
@@ -199,15 +201,15 @@ export default function PracticeSessionsPage() {
                   data-testid="button-end-practice"
                 >
                   <Square className="h-5 w-5 mr-2" />
-                  End Practice Session
+                  {t('studentPortal.practice.endSession')}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
                 <PlayCircle className="h-16 w-16 text-green-600 mx-auto" />
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Ready to practice?</h3>
-                  <p className="text-gray-600 mb-4">Start a practice session to track your progress</p>
+                  <h3 className="text-xl font-semibold mb-2">{t('studentPortal.practice.readyToPractice')}</h3>
+                  <p className="text-gray-600 mb-4">{t('studentPortal.practice.startPrompt')}</p>
                   <Button
                     onClick={() => startSessionMutation.mutate()}
                     disabled={startSessionMutation.isPending}
@@ -215,7 +217,7 @@ export default function PracticeSessionsPage() {
                     data-testid="button-start-practice"
                   >
                     <PlayCircle className="h-5 w-5 mr-2" />
-                    Start Practice Session
+                    {t('studentPortal.practice.startSession')}
                   </Button>
                 </div>
               </div>
@@ -229,25 +231,25 @@ export default function PracticeSessionsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
-                <span>Practice Stats</span>
+                <span>{t('studentPortal.practice.statsTitle')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</div>
-                  <p className="text-gray-600">Total Practice Time</p>
+                  <p className="text-gray-600">{t('studentPortal.practice.totalPracticeTime')}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <div className="text-xl font-semibold">{Array.isArray(practiceSessions) ? practiceSessions.length : 0}</div>
-                    <p className="text-sm text-gray-600">Sessions</p>
+                    <p className="text-sm text-gray-600">{t('studentPortal.practice.sessions')}</p>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">
                       {Array.isArray(practiceSessions) && practiceSessions.length ? Math.round(totalMinutes / practiceSessions.length) : 0}m
                     </div>
-                    <p className="text-sm text-gray-600">Avg Session</p>
+                    <p className="text-sm text-gray-600">{t('studentPortal.practice.avgSession')}</p>
                   </div>
                 </div>
               </div>
@@ -259,17 +261,17 @@ export default function PracticeSessionsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-purple-600" />
-                <span>Recent Sessions</span>
+                <span>{t('studentPortal.practice.recentSessions')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {recentSessions.length > 0 ? (
                 <div className="space-y-3">
                   {recentSessions.map((session: any) => {
-                    const duration = session.endTime 
+                    const duration = session.endTime
                       ? Math.floor((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60))
                       : 0;
-                    
+
                     return (
                       <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div>
@@ -284,7 +286,7 @@ export default function PracticeSessionsPage() {
                           {session.endTime ? (
                             <Badge variant="outline">{duration}m</Badge>
                           ) : (
-                            <Badge variant="secondary">Active</Badge>
+                            <Badge variant="secondary">{t('studentPortal.practice.activeBadge')}</Badge>
                           )}
                         </div>
                       </div>
@@ -292,7 +294,7 @@ export default function PracticeSessionsPage() {
                   })}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No practice sessions yet</p>
+                <p className="text-gray-500 text-center py-4">{t('studentPortal.practice.noSessions')}</p>
               )}
             </CardContent>
           </Card>

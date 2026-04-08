@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Plus, 
-  FileMusic, 
-  Users, 
+import {
+  Plus,
+  FileMusic,
+  Users,
   Clock,
   Search,
   Music2,
@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import CollaborativeNotationEditor from "@/components/notation/collaborative-notation-editor";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/lib/i18n";
 
 interface NotationDocument {
   id: string;
@@ -38,6 +39,7 @@ interface NotationDocument {
 export default function CollaborativeNotationPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const [documents, setDocuments] = useState<NotationDocument[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
@@ -69,8 +71,8 @@ export default function CollaborativeNotationPage() {
   const createDocument = async () => {
     if (!newDocumentTitle.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Please enter a document title",
+        title: t('tools.collaborative.validationError'),
+        description: t('tools.collaborative.validationErrorDescription'),
         variant: "destructive",
       });
       return;
@@ -98,8 +100,8 @@ export default function CollaborativeNotationPage() {
       setShowCreateForm(false);
       
       toast({
-        title: "Document Created",
-        description: "New notation document created successfully",
+        title: t('tools.collaborative.documentCreated'),
+        description: t('tools.collaborative.documentCreatedDescription'),
       });
 
       // Open the new document
@@ -108,8 +110,8 @@ export default function CollaborativeNotationPage() {
     } catch (error) {
       console.error("Error creating document:", error);
       toast({
-        title: "Creation Error",
-        description: "Failed to create notation document",
+        title: t('tools.collaborative.creationError'),
+        description: t('tools.collaborative.creationErrorDescription'),
         variant: "destructive",
       });
     } finally {
@@ -130,11 +132,11 @@ export default function CollaborativeNotationPage() {
             variant="outline"
             onClick={() => setSelectedDocument(null)}
           >
-            ← Back to Documents
+            {t('tools.collaborative.backToDocuments')}
           </Button>
           <div className="flex items-center gap-2">
             <Music2 className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold">Collaborative Notation Editor</span>
+            <span className="font-semibold">{t('tools.collaborative.editorTitle')}</span>
           </div>
         </div>
         
@@ -142,12 +144,12 @@ export default function CollaborativeNotationPage() {
           <CollaborativeNotationEditor
             documentId={selectedDocument}
             userId={user?.id || 1}
-            username={user?.username || "Unknown User"}
+            username={user?.username || t('tools.collaborative.unknownUser')}
             onSave={(data) => {
               console.log("Saving notation data:", data);
               toast({
-                title: "Saved",
-                description: "Changes saved successfully",
+                title: t('tools.collaborative.saved'),
+                description: t('tools.collaborative.savedDescription'),
               });
             }}
           />
@@ -163,16 +165,16 @@ export default function CollaborativeNotationPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Music2 className="w-8 h-8 text-blue-600" />
-            Collaborative Notation
+            {t('tools.collaborative.title')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Create and edit musical scores in real-time with your team
+            {t('tools.collaborative.subtitle')}
           </p>
         </div>
         
         <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          New Score
+          {t('tools.collaborative.newScore')}
         </Button>
       </div>
 
@@ -183,7 +185,7 @@ export default function CollaborativeNotationPage() {
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
               <Input
-                placeholder="Search notation documents..."
+                placeholder={t('tools.collaborative.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -197,42 +199,42 @@ export default function CollaborativeNotationPage() {
       {showCreateForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Create New Notation Document</CardTitle>
+            <CardTitle>{t('tools.collaborative.createTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Title</label>
+              <label className="block text-sm font-medium mb-2">{t('tools.collaborative.labelTitle')}</label>
               <Input
                 value={newDocumentTitle}
                 onChange={(e) => setNewDocumentTitle(e.target.value)}
-                placeholder="Enter document title..."
+                placeholder={t('tools.collaborative.titlePlaceholder')}
                 maxLength={100}
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium mb-2">Description (Optional)</label>
+              <label className="block text-sm font-medium mb-2">{t('tools.collaborative.labelDescription')}</label>
               <Input
                 value={newDocumentDescription}
                 onChange={(e) => setNewDocumentDescription(e.target.value)}
-                placeholder="Enter description..."
+                placeholder={t('tools.collaborative.descriptionPlaceholder')}
                 maxLength={500}
               />
             </div>
 
             <div className="flex gap-2 pt-4">
               <Button onClick={createDocument} disabled={loading}>
-                {loading ? "Creating..." : "Create Document"}
+                {loading ? t('tools.collaborative.creating') : t('tools.collaborative.createDocument')}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowCreateForm(false);
                   setNewDocumentTitle("");
                   setNewDocumentDescription("");
                 }}
               >
-                Cancel
+                {t('tools.collaborative.cancel')}
               </Button>
             </div>
           </CardContent>
@@ -267,7 +269,7 @@ export default function CollaborativeNotationPage() {
                     <h3 className="font-semibold truncate">{document.title}</h3>
                   </div>
                   {document.isOwner && (
-                    <Badge variant="secondary">Owner</Badge>
+                    <Badge variant="secondary">{t('tools.collaborative.owner')}</Badge>
                   )}
                 </div>
 
@@ -307,7 +309,7 @@ export default function CollaborativeNotationPage() {
                     }}
                   >
                     <Edit className="w-4 h-4 mr-1" />
-                    Edit
+                    {t('tools.collaborative.edit')}
                   </Button>
                   <Button 
                     size="sm" 
@@ -322,8 +324,8 @@ export default function CollaborativeNotationPage() {
                           `${window.location.origin}/notation/${document.id}`
                         );
                         toast({
-                          title: "Link Copied",
-                          description: "Share link copied to clipboard",
+                          title: t('tools.collaborative.linkCopied'),
+                          description: t('tools.collaborative.linkCopiedDescription'),
                         });
                       });
                     }}
@@ -340,18 +342,18 @@ export default function CollaborativeNotationPage() {
           <CardContent className="p-12 text-center">
             <FileMusic className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No notation documents found
+              {t('tools.collaborative.noDocumentsFound')}
             </h3>
             <p className="text-gray-500 mb-6">
-              {searchTerm 
-                ? "Try adjusting your search terms"
-                : "Create your first collaborative score to get started"
+              {searchTerm
+                ? t('tools.collaborative.noDocumentsSearch')
+                : t('tools.collaborative.noDocumentsCreate')
               }
             </p>
             {!searchTerm && (
               <Button onClick={() => setShowCreateForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create First Score
+                {t('tools.collaborative.createFirstScore')}
               </Button>
             )}
           </CardContent>

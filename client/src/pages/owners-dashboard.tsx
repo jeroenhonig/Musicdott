@@ -12,6 +12,7 @@ import PlatformOwnerLayout from "@/components/layouts/platform-owner-layout";
 import CustomerService from "@/components/customer-service";
 import BillingManagement from "@/components/billing-management";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 import {
   Users,
   Building2,
@@ -95,6 +96,7 @@ export default function OwnersDashboard() {
   const [schoolSearch, setSchoolSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Dialog states
@@ -150,14 +152,14 @@ export default function OwnersDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "School aangemaakt", description: "De school is succesvol aangemaakt" });
+      toast({ title: t('ownersDashboard.toastSchoolCreated'), description: t('ownersDashboard.toastSchoolCreatedDesc') });
       setCreateSchoolOpen(false);
       setNewSchool({ name: "", city: "", address: "", phone: "", website: "", ownerId: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/all-schools"] });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/platform-stats"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Fout", description: error.message, variant: "destructive" });
+      toast({ title: t('ownersDashboard.toastError'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -183,14 +185,14 @@ export default function OwnersDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Gebruiker aangemaakt", description: "De gebruiker is succesvol aangemaakt" });
+      toast({ title: t('ownersDashboard.toastUserCreated'), description: t('ownersDashboard.toastUserCreatedDesc') });
       setCreateUserOpen(false);
       setNewUser({ username: "", email: "", name: "", password: "", role: "school_owner", schoolId: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/all-users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/platform-stats"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Fout", description: error.message, variant: "destructive" });
+      toast({ title: t('ownersDashboard.toastError'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -209,13 +211,13 @@ export default function OwnersDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Eigenaar toegewezen", description: "De eigenaar is succesvol aan de school toegewezen" });
+      toast({ title: t('ownersDashboard.toastOwnerAssigned'), description: t('ownersDashboard.toastOwnerAssignedDesc') });
       setAssignOwnerOpen(false);
       setSelectedSchool(null);
       queryClient.invalidateQueries({ queryKey: ["/api/owners/all-schools"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Fout", description: error.message, variant: "destructive" });
+      toast({ title: t('ownersDashboard.toastError'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -232,12 +234,12 @@ export default function OwnersDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Gebruiker verwijderd", description: "De gebruiker is succesvol verwijderd" });
+      toast({ title: t('ownersDashboard.toastUserDeleted'), description: t('ownersDashboard.toastUserDeletedDesc') });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/all-users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/platform-stats"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Fout", description: error.message, variant: "destructive" });
+      toast({ title: t('ownersDashboard.toastError'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -254,12 +256,12 @@ export default function OwnersDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "School verwijderd", description: "De school is succesvol verwijderd" });
+      toast({ title: t('ownersDashboard.toastSchoolDeleted'), description: t('ownersDashboard.toastSchoolDeletedDesc') });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/all-schools"] });
       queryClient.invalidateQueries({ queryKey: ["/api/owners/platform-stats"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Fout", description: error.message, variant: "destructive" });
+      toast({ title: t('ownersDashboard.toastError'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -271,7 +273,7 @@ export default function OwnersDashboard() {
   };
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return "Nooit";
+    if (!dateStr) return t('ownersDashboard.never');
     return new Date(dateStr).toLocaleDateString('nl-NL', {
       year: 'numeric',
       month: 'short',
@@ -296,18 +298,18 @@ export default function OwnersDashboard() {
   // Helper to check if school has issues
   const getSchoolWarnings = (school: SchoolData) => {
     const warnings: string[] = [];
-    if (!school.owner_id) warnings.push("Geen eigenaar toegewezen");
-    if (!school.name) warnings.push("Geen naam");
-    if (!school.city && !school.address) warnings.push("Geen locatie");
+    if (!school.owner_id) warnings.push(t('ownersDashboard.warningNoOwner'));
+    if (!school.name) warnings.push(t('ownersDashboard.warningNoName'));
+    if (!school.city && !school.address) warnings.push(t('ownersDashboard.warningNoLocation'));
     return warnings;
   };
 
   // Helper to check if user has issues
   const getUserWarnings = (user: UserData) => {
     const warnings: string[] = [];
-    if (!user.email) warnings.push("Geen email");
+    if (!user.email) warnings.push(t('ownersDashboard.warningNoEmail'));
     if ((user.role === 'school_owner' || user.role === 'teacher') && !user.school_id) {
-      warnings.push("Geen school toegewezen");
+      warnings.push(t('ownersDashboard.warningNoSchool'));
     }
     return warnings;
   };
@@ -316,28 +318,28 @@ export default function OwnersDashboard() {
     switch (status) {
       case "active":
       case "current":
-        return <Badge className="bg-green-500 hover:bg-green-600">Actief</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600">{t('ownersDashboard.statusActive')}</Badge>;
       case "trial":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Proef</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600">{t('ownersDashboard.statusTrial')}</Badge>;
       case "overdue":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Achterstallig</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600">{t('ownersDashboard.statusOverdue')}</Badge>;
       case "suspended":
-        return <Badge className="bg-red-500 hover:bg-red-600">Opgeschort</Badge>;
+        return <Badge className="bg-red-500 hover:bg-red-600">{t('ownersDashboard.statusSuspended')}</Badge>;
       default:
-        return <Badge variant="outline">{status || "Onbekend"}</Badge>;
+        return <Badge variant="outline">{status || t('ownersDashboard.statusUnknown')}</Badge>;
     }
   };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "platform_owner":
-        return <Badge className="bg-purple-500 hover:bg-purple-600">Platform Owner</Badge>;
+        return <Badge className="bg-purple-500 hover:bg-purple-600">{t('ownersDashboard.rolePlatformOwner')}</Badge>;
       case "school_owner":
-        return <Badge className="bg-indigo-500 hover:bg-indigo-600">School Owner</Badge>;
+        return <Badge className="bg-indigo-500 hover:bg-indigo-600">{t('ownersDashboard.roleSchoolOwner')}</Badge>;
       case "teacher":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Docent</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600">{t('ownersDashboard.roleTeacher')}</Badge>;
       case "student":
-        return <Badge className="bg-green-500 hover:bg-green-600">Leerling</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600">{t('ownersDashboard.roleStudent')}</Badge>;
       default:
         return <Badge variant="outline">{role}</Badge>;
     }
@@ -351,45 +353,45 @@ export default function OwnersDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-300">Totaal Scholen</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-300">{t('ownersDashboard.statTotalSchools')}</CardTitle>
                   <Building2 className="h-4 w-4 text-indigo-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">{stats?.totalSchools || 0}</div>
-                  <p className="text-xs text-slate-400">{stats?.activeSubscriptions || 0} actieve abonnementen</p>
+                  <p className="text-xs text-slate-400">{stats?.activeSubscriptions || 0} {t('ownersDashboard.statActiveSubscriptions')}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-300">Totaal Gebruikers</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-300">{t('ownersDashboard.statTotalUsers')}</CardTitle>
                   <Users className="h-4 w-4 text-blue-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">{stats?.totalUsers || 0}</div>
-                  <p className="text-xs text-slate-400">{stats?.totalTeachers || 0} docenten, {stats?.totalStudents || 0} leerlingen</p>
+                  <p className="text-xs text-slate-400">{stats?.totalTeachers || 0} {t('ownersDashboard.roleTeacher').toLowerCase()}, {stats?.totalStudents || 0} {t('ownersDashboard.roleStudent').toLowerCase()}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-300">Maandelijkse Omzet</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-300">{t('ownersDashboard.statMonthlyRevenue')}</CardTitle>
                   <DollarSign className="h-4 w-4 text-green-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">{stats ? formatCurrency(stats.monthlyRecurringRevenue) : "€0,00"}</div>
-                  <p className="text-xs text-slate-400">+{stats?.growthRate || 0}% sinds vorige maand</p>
+                  <p className="text-xs text-slate-400">+{stats?.growthRate || 0}% {t('ownersDashboard.statGrowthRate')}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-300">Content Gemaakt</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-300">{t('ownersDashboard.statContentCreated')}</CardTitle>
                   <BookOpen className="h-4 w-4 text-purple-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">{(stats?.totalLessons || 0) + (stats?.totalSongs || 0)}</div>
-                  <p className="text-xs text-slate-400">{stats?.totalLessons || 0} lessen, {stats?.totalSongs || 0} nummers</p>
+                  <p className="text-xs text-slate-400">{stats?.totalLessons || 0} {t('nav.lessons').toLowerCase()}, {stats?.totalSongs || 0} {t('nav.search').toLowerCase()}</p>
                 </CardContent>
               </Card>
             </div>
@@ -397,8 +399,8 @@ export default function OwnersDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="text-white">Omzet Groei</CardTitle>
-                  <CardDescription className="text-slate-400">Maandelijks terugkerende omzet</CardDescription>
+                  <CardTitle className="text-white">{t('ownersDashboard.revenueGrowth')}</CardTitle>
+                  <CardDescription className="text-slate-400">{t('ownersDashboard.monthlyRecurringRevenue')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
@@ -409,7 +411,7 @@ export default function OwnersDashboard() {
                       <Tooltip
                         contentStyle={{ backgroundColor: '#1E293B', border: '1px solid #374151' }}
                         labelStyle={{ color: '#F3F4F6' }}
-                        formatter={(value: number) => [formatCurrency(value), "Omzet"]}
+                        formatter={(value: number) => [formatCurrency(value), t('ownersDashboard.revenueTooltip')]}
                       />
                       <Area type="monotone" dataKey="revenue" stroke="#6366F1" fill="#6366F140" />
                     </AreaChart>
@@ -419,8 +421,8 @@ export default function OwnersDashboard() {
 
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="text-white">Recente Scholen</CardTitle>
-                  <CardDescription className="text-slate-400">Laatst geregistreerde scholen</CardDescription>
+                  <CardTitle className="text-white">{t('ownersDashboard.recentSchools')}</CardTitle>
+                  <CardDescription className="text-slate-400">{t('ownersDashboard.latestRegisteredSchools')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -434,7 +436,7 @@ export default function OwnersDashboard() {
                             )}
                             <div>
                               <p className="text-sm font-medium text-white">{school.name || `School #${school.id}`}</p>
-                              <p className="text-xs text-slate-400">{school.total_students || 0} leerlingen</p>
+                              <p className="text-xs text-slate-400">{school.total_students || 0} {t('ownersDashboard.roleStudent').toLowerCase()}</p>
                             </div>
                           </div>
                           {getStatusBadge(school.subscription_status)}
@@ -442,7 +444,7 @@ export default function OwnersDashboard() {
                       );
                     })}
                     {(!schools || schools.length === 0) && (
-                      <p className="text-slate-400 text-sm">Nog geen scholen geregistreerd</p>
+                      <p className="text-slate-400 text-sm">{t('ownersDashboard.noSchoolsRegistered')}</p>
                     )}
                   </div>
                 </CardContent>
@@ -457,14 +459,14 @@ export default function OwnersDashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-white">Alle Scholen</CardTitle>
-                  <CardDescription className="text-slate-400">Beheer alle geregistreerde muziekscholen</CardDescription>
+                  <CardTitle className="text-white">{t('ownersDashboard.allSchoolsTitle')}</CardTitle>
+                  <CardDescription className="text-slate-400">{t('ownersDashboard.allSchoolsDescription')}</CardDescription>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="relative w-64">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      placeholder="Zoek scholen..."
+                      placeholder={t('ownersDashboard.searchSchoolsPlaceholder')}
                       value={schoolSearch}
                       onChange={(e) => setSchoolSearch(e.target.value)}
                       className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
@@ -475,19 +477,19 @@ export default function OwnersDashboard() {
                     <DialogTrigger asChild>
                       <Button className="bg-indigo-600 hover:bg-indigo-700">
                         <Plus className="h-4 w-4 mr-2" />
-                        Nieuwe School
+                        {t('ownersDashboard.newSchool')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-slate-800 border-slate-700">
                       <DialogHeader>
-                        <DialogTitle className="text-white">Nieuwe School Aanmaken</DialogTitle>
+                        <DialogTitle className="text-white">{t('ownersDashboard.createSchoolTitle')}</DialogTitle>
                         <DialogDescription className="text-slate-400">
-                          Maak een nieuwe muziekschool aan. Je kunt optioneel direct een eigenaar toewijzen.
+                          {t('ownersDashboard.createSchoolDescription')}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="school-name" className="text-slate-300">Naam *</Label>
+                          <Label htmlFor="school-name" className="text-slate-300">{t('ownersDashboard.schoolFieldName')}</Label>
                           <Input
                             id="school-name"
                             value={newSchool.name}
@@ -498,7 +500,7 @@ export default function OwnersDashboard() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="school-city" className="text-slate-300">Stad</Label>
+                            <Label htmlFor="school-city" className="text-slate-300">{t('ownersDashboard.schoolFieldCity')}</Label>
                             <Input
                               id="school-city"
                               value={newSchool.city}
@@ -508,7 +510,7 @@ export default function OwnersDashboard() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="school-phone" className="text-slate-300">Telefoon</Label>
+                            <Label htmlFor="school-phone" className="text-slate-300">{t('ownersDashboard.schoolFieldPhone')}</Label>
                             <Input
                               id="school-phone"
                               value={newSchool.phone}
@@ -519,7 +521,7 @@ export default function OwnersDashboard() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="school-address" className="text-slate-300">Adres</Label>
+                          <Label htmlFor="school-address" className="text-slate-300">{t('ownersDashboard.schoolFieldAddress')}</Label>
                           <Input
                             id="school-address"
                             value={newSchool.address}
@@ -529,7 +531,7 @@ export default function OwnersDashboard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="school-website" className="text-slate-300">Website</Label>
+                          <Label htmlFor="school-website" className="text-slate-300">{t('ownersDashboard.schoolFieldWebsite')}</Label>
                           <Input
                             id="school-website"
                             value={newSchool.website}
@@ -539,16 +541,16 @@ export default function OwnersDashboard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="school-owner" className="text-slate-300">Eigenaar (optioneel)</Label>
+                          <Label htmlFor="school-owner" className="text-slate-300">{t('ownersDashboard.schoolFieldOwner')}</Label>
                           <Select
                             value={newSchool.ownerId || "none"}
                             onValueChange={(value) => setNewSchool({ ...newSchool, ownerId: value === "none" ? "" : value })}
                           >
                             <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                              <SelectValue placeholder="Selecteer een eigenaar..." />
+                              <SelectValue placeholder={t('ownersDashboard.schoolOwnerPlaceholder')} />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-700 border-slate-600">
-                              <SelectItem value="none">Geen eigenaar</SelectItem>
+                              <SelectItem value="none">{t('ownersDashboard.schoolNoOwner')}</SelectItem>
                               {availableSchoolOwners.map((owner) => (
                                 <SelectItem key={owner.id} value={owner.id.toString()}>
                                   {owner.name} ({owner.email})
@@ -564,14 +566,14 @@ export default function OwnersDashboard() {
                           onClick={() => setCreateSchoolOpen(false)}
                           className="border-slate-600 text-slate-300 hover:bg-slate-700"
                         >
-                          Annuleren
+                          {t('ownersDashboard.cancel')}
                         </Button>
                         <Button
                           onClick={() => createSchoolMutation.mutate(newSchool)}
                           disabled={!newSchool.name || createSchoolMutation.isPending}
                           className="bg-indigo-600 hover:bg-indigo-700"
                         >
-                          {createSchoolMutation.isPending ? "Bezig..." : "Aanmaken"}
+                          {createSchoolMutation.isPending ? t('ownersDashboard.creating') : t('ownersDashboard.create')}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -581,18 +583,18 @@ export default function OwnersDashboard() {
             </CardHeader>
             <CardContent>
               {schoolsLoading ? (
-                <p className="text-center text-slate-400 py-8">Laden...</p>
+                <p className="text-center text-slate-400 py-8">{t('ownersDashboard.loading')}</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                      <TableHead className="text-slate-300">School Naam</TableHead>
-                      <TableHead className="text-slate-300">Eigenaar</TableHead>
-                      <TableHead className="text-slate-300">Stad</TableHead>
-                      <TableHead className="text-slate-300">Docenten</TableHead>
-                      <TableHead className="text-slate-300">Leerlingen</TableHead>
-                      <TableHead className="text-slate-300">Status</TableHead>
-                      <TableHead className="text-slate-300">Acties</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableSchoolName')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableOwner')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableCity')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableTeachers')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableStudents')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableStatus')}</TableHead>
+                      <TableHead className="text-slate-300">{t('ownersDashboard.tableActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -608,14 +610,14 @@ export default function OwnersDashboard() {
                                   title={warnings.join(", ")}
                                 />
                               )}
-                              <span>{school.name || <span className="text-slate-500 italic">Geen naam</span>}</span>
+                              <span>{school.name || <span className="text-slate-500 italic">{t('ownersDashboard.noName')}</span>}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-slate-300">
                             {school.owner_name || (
                               <span className="text-yellow-500 flex items-center gap-1">
                                 <AlertTriangle className="h-3 w-3" />
-                                Niet toegewezen
+                                {t('ownersDashboard.notAssigned')}
                               </span>
                             )}
                           </TableCell>
@@ -636,14 +638,14 @@ export default function OwnersDashboard() {
                                   className="h-8 border-slate-600 text-slate-300 hover:bg-slate-700"
                                 >
                                   <UserPlus className="h-3 w-3 mr-1" />
-                                  Eigenaar
+                                  {t('ownersDashboard.assignOwnerButton')}
                                 </Button>
                               )}
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                  if (confirm(`Weet je zeker dat je "${school.name}" wilt verwijderen?`)) {
+                                  if (confirm(t('ownersDashboard.confirmDeleteSchool').replace('{name}', school.name || ''))) {
                                     deleteSchoolMutation.mutate(school.id);
                                   }
                                 }}
@@ -659,7 +661,7 @@ export default function OwnersDashboard() {
                     {filteredSchools.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-slate-400 py-8">
-                          Geen scholen gevonden
+                          {t('ownersDashboard.noSchoolsFound')}
                         </TableCell>
                       </TableRow>
                     )}
@@ -672,14 +674,14 @@ export default function OwnersDashboard() {
             <Dialog open={assignOwnerOpen} onOpenChange={setAssignOwnerOpen}>
               <DialogContent className="bg-slate-800 border-slate-700">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Eigenaar Toewijzen</DialogTitle>
+                  <DialogTitle className="text-white">{t('ownersDashboard.assignOwnerTitle')}</DialogTitle>
                   <DialogDescription className="text-slate-400">
-                    Wijs een eigenaar toe aan {selectedSchool?.name}
+                    {t('ownersDashboard.assignOwnerDescription').replace('{school}', selectedSchool?.name || '')}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-300">Selecteer Eigenaar</Label>
+                    <Label className="text-slate-300">{t('ownersDashboard.selectOwnerLabel')}</Label>
                     <Select
                       onValueChange={(value) => {
                         if (selectedSchool && value) {
@@ -691,7 +693,7 @@ export default function OwnersDashboard() {
                       }}
                     >
                       <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                        <SelectValue placeholder="Kies een school owner..." />
+                        <SelectValue placeholder={t('ownersDashboard.selectOwnerPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-700 border-slate-600">
                         {availableSchoolOwners.map((owner) => (
@@ -704,7 +706,7 @@ export default function OwnersDashboard() {
                   </div>
                   {availableSchoolOwners.length === 0 && (
                     <p className="text-sm text-yellow-500">
-                      Er zijn geen school owners beschikbaar. Maak eerst een school owner aan.
+                      {t('ownersDashboard.noOwnersAvailable')}
                     </p>
                   )}
                 </div>
@@ -717,7 +719,7 @@ export default function OwnersDashboard() {
                     }}
                     className="border-slate-600 text-slate-300 hover:bg-slate-700"
                   >
-                    Annuleren
+                    {t('ownersDashboard.cancel')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -757,7 +759,7 @@ export default function OwnersDashboard() {
         if (usersWithoutSchool.length > 0) {
           usersGroupedBySchool.unshift({
             schoolId: null,
-            schoolName: 'Platform Gebruikers (Geen School)',
+            schoolName: t('ownersDashboard.platformUsersNoSchool'),
             users: usersWithoutSchool
           });
         }
@@ -768,25 +770,25 @@ export default function OwnersDashboard() {
               <Card className="bg-purple-900/30 border-purple-500/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-purple-400">{roleStats.platform_owner}</p>
-                  <p className="text-xs text-purple-300">Platform Owners</p>
+                  <p className="text-xs text-purple-300">{t('ownersDashboard.rolePlatformOwner')}</p>
                 </CardContent>
               </Card>
               <Card className="bg-indigo-900/30 border-indigo-500/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-indigo-400">{roleStats.school_owner}</p>
-                  <p className="text-xs text-indigo-300">School Owners</p>
+                  <p className="text-xs text-indigo-300">{t('ownersDashboard.roleSchoolOwner')}</p>
                 </CardContent>
               </Card>
               <Card className="bg-blue-900/30 border-blue-500/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-blue-400">{roleStats.teacher}</p>
-                  <p className="text-xs text-blue-300">Docenten</p>
+                  <p className="text-xs text-blue-300">{t('ownersDashboard.roleTeacher')}</p>
                 </CardContent>
               </Card>
               <Card className="bg-green-900/30 border-green-500/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-green-400">{roleStats.student}</p>
-                  <p className="text-xs text-green-300">Leerlingen</p>
+                  <p className="text-xs text-green-300">{t('ownersDashboard.roleStudent')}</p>
                 </CardContent>
               </Card>
             </div>
@@ -795,14 +797,14 @@ export default function OwnersDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-white">Alle Gebruikers per School</CardTitle>
-                    <CardDescription className="text-slate-400">Bekijk gebruikers gegroepeerd per school</CardDescription>
+                    <CardTitle className="text-white">{t('ownersDashboard.allUsersTitle')}</CardTitle>
+                    <CardDescription className="text-slate-400">{t('ownersDashboard.allUsersDescription')}</CardDescription>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="relative w-64">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        placeholder="Zoek gebruikers..."
+                        placeholder={t('ownersDashboard.searchUsersPlaceholder')}
                         value={userSearch}
                         onChange={(e) => setUserSearch(e.target.value)}
                         className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
@@ -813,19 +815,19 @@ export default function OwnersDashboard() {
                       <DialogTrigger asChild>
                         <Button className="bg-indigo-600 hover:bg-indigo-700">
                           <Plus className="h-4 w-4 mr-2" />
-                          Nieuwe Gebruiker
+                          {t('ownersDashboard.newUser')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="bg-slate-800 border-slate-700">
                         <DialogHeader>
-                          <DialogTitle className="text-white">Nieuwe Gebruiker Aanmaken</DialogTitle>
+                          <DialogTitle className="text-white">{t('ownersDashboard.createUserTitle')}</DialogTitle>
                           <DialogDescription className="text-slate-400">
-                            Maak een nieuwe school owner, docent of leerling aan.
+                            {t('ownersDashboard.createUserDescription')}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="user-name" className="text-slate-300">Naam *</Label>
+                            <Label htmlFor="user-name" className="text-slate-300">{t('ownersDashboard.userFieldName')}</Label>
                             <Input
                               id="user-name"
                               value={newUser.name}
@@ -836,7 +838,7 @@ export default function OwnersDashboard() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor="user-username" className="text-slate-300">Gebruikersnaam *</Label>
+                              <Label htmlFor="user-username" className="text-slate-300">{t('ownersDashboard.userFieldUsername')}</Label>
                               <Input
                                 id="user-username"
                                 value={newUser.username}
@@ -846,7 +848,7 @@ export default function OwnersDashboard() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="user-email" className="text-slate-300">Email *</Label>
+                              <Label htmlFor="user-email" className="text-slate-300">{t('ownersDashboard.userFieldEmail')}</Label>
                               <Input
                                 id="user-email"
                                 type="email"
@@ -858,7 +860,7 @@ export default function OwnersDashboard() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="user-password" className="text-slate-300">Wachtwoord *</Label>
+                            <Label htmlFor="user-password" className="text-slate-300">{t('ownersDashboard.userFieldPassword')}</Label>
                             <Input
                               id="user-password"
                               type="password"
@@ -870,7 +872,7 @@ export default function OwnersDashboard() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor="user-role" className="text-slate-300">Rol *</Label>
+                              <Label htmlFor="user-role" className="text-slate-300">{t('ownersDashboard.userFieldRole')}</Label>
                               <Select
                                 value={newUser.role}
                                 onValueChange={(value) => setNewUser({ ...newUser, role: value })}
@@ -879,23 +881,23 @@ export default function OwnersDashboard() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-slate-700 border-slate-600">
-                                  <SelectItem value="school_owner">School Owner</SelectItem>
-                                  <SelectItem value="teacher">Docent</SelectItem>
-                                  <SelectItem value="student">Leerling</SelectItem>
+                                  <SelectItem value="school_owner">{t('ownersDashboard.roleSchoolOwner')}</SelectItem>
+                                  <SelectItem value="teacher">{t('ownersDashboard.userRoleTeacher')}</SelectItem>
+                                  <SelectItem value="student">{t('ownersDashboard.userRoleStudent')}</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="user-school" className="text-slate-300">School (optioneel)</Label>
+                              <Label htmlFor="user-school" className="text-slate-300">{t('ownersDashboard.userFieldSchool')}</Label>
                               <Select
                                 value={newUser.schoolId || "none"}
                                 onValueChange={(value) => setNewUser({ ...newUser, schoolId: value === "none" ? "" : value })}
                               >
                                 <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                                  <SelectValue placeholder="Geen school" />
+                                  <SelectValue placeholder={t('ownersDashboard.userNoSchool')} />
                                 </SelectTrigger>
                                 <SelectContent className="bg-slate-700 border-slate-600">
-                                  <SelectItem value="none">Geen school</SelectItem>
+                                  <SelectItem value="none">{t('ownersDashboard.userNoSchool')}</SelectItem>
                                   {schools?.map((school) => (
                                     <SelectItem key={school.id} value={school.id.toString()}>
                                       {school.name}
@@ -912,14 +914,14 @@ export default function OwnersDashboard() {
                             onClick={() => setCreateUserOpen(false)}
                             className="border-slate-600 text-slate-300 hover:bg-slate-700"
                           >
-                            Annuleren
+                            {t('ownersDashboard.cancel')}
                           </Button>
                           <Button
                             onClick={() => createUserMutation.mutate(newUser)}
                             disabled={!newUser.name || !newUser.username || !newUser.email || !newUser.password || createUserMutation.isPending}
                             className="bg-indigo-600 hover:bg-indigo-700"
                           >
-                            {createUserMutation.isPending ? "Bezig..." : "Aanmaken"}
+                            {createUserMutation.isPending ? t('ownersDashboard.creating') : t('ownersDashboard.create')}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
@@ -929,7 +931,7 @@ export default function OwnersDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {usersLoading ? (
-                  <p className="text-center text-slate-400 py-8">Laden...</p>
+                  <p className="text-center text-slate-400 py-8">{t('ownersDashboard.loading')}</p>
                 ) : (
                   <>
                     {usersGroupedBySchool.map((group) => (
@@ -941,32 +943,32 @@ export default function OwnersDashboard() {
                             )}
                             <Building2 className="h-4 w-4 text-indigo-400" />
                             <span className="font-medium text-white">{group.schoolName}</span>
-                            <Badge variant="outline" className="text-xs ml-2">{group.users.length} gebruikers</Badge>
+                            <Badge variant="outline" className="text-xs ml-2">{group.users.length} {t('ownersDashboard.usersLabel')}</Badge>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-400">
                             <span className="flex items-center gap-1">
                               <UserCog className="h-3 w-3 text-indigo-400" />
-                              {group.users.filter(u => u.role === 'school_owner').length} Owners
+                              {group.users.filter(u => u.role === 'school_owner').length} {t('ownersDashboard.roleSchoolOwner')}
                             </span>
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3 text-blue-400" />
-                              {group.users.filter(u => u.role === 'teacher').length} Docenten
+                              {group.users.filter(u => u.role === 'teacher').length} {t('ownersDashboard.roleTeacher')}
                             </span>
                             <span className="flex items-center gap-1">
                               <GraduationCap className="h-3 w-3 text-green-400" />
-                              {group.users.filter(u => u.role === 'student').length} Leerlingen
+                              {group.users.filter(u => u.role === 'student').length} {t('ownersDashboard.roleStudent')}
                             </span>
                           </div>
                         </div>
                         <Table>
                           <TableHeader>
                             <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                              <TableHead className="text-slate-300">Naam</TableHead>
-                              <TableHead className="text-slate-300">Gebruikersnaam</TableHead>
-                              <TableHead className="text-slate-300">Email</TableHead>
-                              <TableHead className="text-slate-300">Rol</TableHead>
-                              <TableHead className="text-slate-300">Laatste Login</TableHead>
-                              <TableHead className="text-slate-300">Acties</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableUserName')}</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableUsername')}</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableEmail')}</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableRole')}</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableLastLogin')}</TableHead>
+                              <TableHead className="text-slate-300">{t('ownersDashboard.tableActions')}</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -982,7 +984,7 @@ export default function OwnersDashboard() {
                                           title={warnings.join(", ")}
                                         />
                                       )}
-                                      {user.name || <span className="text-slate-500 italic">Geen naam</span>}
+                                      {user.name || <span className="text-slate-500 italic">{t('ownersDashboard.noUserName')}</span>}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-slate-300">{user.username}</TableCell>
@@ -995,7 +997,7 @@ export default function OwnersDashboard() {
                                         size="sm"
                                         variant="outline"
                                         onClick={() => {
-                                          if (confirm(`Weet je zeker dat je "${user.name}" wilt verwijderen?`)) {
+                                          if (confirm(t('ownersDashboard.confirmDeleteUser').replace('{name}', user.name || ''))) {
                                             deleteUserMutation.mutate(user.id);
                                           }
                                         }}
@@ -1012,13 +1014,13 @@ export default function OwnersDashboard() {
                         </Table>
                         {group.users.length > 20 && (
                           <div className="px-4 py-2 text-center text-xs text-slate-400 bg-slate-700/30">
-                            Toont 20 van {group.users.length} gebruikers in deze school
+                            {t('ownersDashboard.showingUsersOf').replace('{total}', String(group.users.length))}
                           </div>
                         )}
                       </div>
                     ))}
                     {usersGroupedBySchool.length === 0 && (
-                      <p className="text-center text-slate-400 py-8">Geen gebruikers gevonden</p>
+                      <p className="text-center text-slate-400 py-8">{t('ownersDashboard.noUsersFound')}</p>
                     )}
                   </>
                 )}
@@ -1045,18 +1047,18 @@ export default function OwnersDashboard() {
         return (
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-white">Admin Audit Log</CardTitle>
-              <CardDescription className="text-slate-400">Volg alle administratieve acties op het platform</CardDescription>
+              <CardTitle className="text-white">{t('ownersDashboard.auditLogTitle')}</CardTitle>
+              <CardDescription className="text-slate-400">{t('ownersDashboard.auditLogDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                    <TableHead className="text-slate-300">Datum/Tijd</TableHead>
-                    <TableHead className="text-slate-300">Uitvoerder</TableHead>
-                    <TableHead className="text-slate-300">Actie</TableHead>
-                    <TableHead className="text-slate-300">Doel</TableHead>
-                    <TableHead className="text-slate-300">Details</TableHead>
+                    <TableHead className="text-slate-300">{t('ownersDashboard.auditTableDateTime')}</TableHead>
+                    <TableHead className="text-slate-300">{t('ownersDashboard.auditTableActor')}</TableHead>
+                    <TableHead className="text-slate-300">{t('ownersDashboard.auditTableAction')}</TableHead>
+                    <TableHead className="text-slate-300">{t('ownersDashboard.auditTableTarget')}</TableHead>
+                    <TableHead className="text-slate-300">{t('ownersDashboard.auditTableDetails')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1078,7 +1080,7 @@ export default function OwnersDashboard() {
                   {(!auditLog || auditLog.length === 0) && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-slate-400 py-8">
-                        Nog geen audit log entries
+                        {t('ownersDashboard.noAuditEntries')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -1095,12 +1097,12 @@ export default function OwnersDashboard() {
 
   const getTitle = () => {
     switch (activeTab) {
-      case "overview": return "Platform Overzicht";
-      case "schools": return "Scholen Beheer";
-      case "users": return "Gebruikers Beheer";
-      case "customer-service": return "Klantenservice";
-      case "billing": return "Facturatie Beheer";
-      case "audit-log": return "Audit Log";
+      case "overview": return t('ownersDashboard.tabOverview');
+      case "schools": return t('ownersDashboard.tabSchools');
+      case "users": return t('ownersDashboard.tabUsers');
+      case "customer-service": return t('ownersDashboard.tabCustomerService');
+      case "billing": return t('ownersDashboard.tabBilling');
+      case "audit-log": return t('ownersDashboard.tabAuditLog');
       default: return "Platform Dashboard";
     }
   };

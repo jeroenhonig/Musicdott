@@ -8,10 +8,12 @@ import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 
 export default function AchievementsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const { data: studentAchievements, isLoading } = useQuery({
     queryKey: ["/api/students", user?.id, "achievements"],
@@ -33,7 +35,7 @@ export default function AchievementsPage() {
 
   if (isLoading || achievementsLoading) {
     return (
-      <AppLayout title="My Achievements">
+      <AppLayout title={t('studentPortal.achievements.title')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -73,11 +75,11 @@ export default function AchievementsPage() {
   };
 
   return (
-    <AppLayout title="My Achievements">
+    <AppLayout title={t('studentPortal.achievements.title')}>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Achievements</h1>
-          <p className="text-gray-600 mt-2">Track your musical journey and celebrate your progress</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.achievements.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('studentPortal.achievements.subtitle')}</p>
         </div>
 
         {/* Progress Overview */}
@@ -85,20 +87,20 @@ export default function AchievementsPage() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Trophy className="h-6 w-6 text-yellow-600" />
-              <span>Achievement Progress</span>
+              <span>{t('studentPortal.achievements.progressTitle')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Overall Progress</span>
+                  <span className="text-sm font-medium">{t('studentPortal.achievements.overallProgress')}</span>
                   <span className="text-sm text-gray-500">
                     {earnedAchievements.length} / {totalAchievements.length}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
+                  <div
                     className="bg-yellow-600 h-3 rounded-full transition-all duration-300"
                     style={{ width: `${completionRate}%` }}
                   ></div>
@@ -106,7 +108,7 @@ export default function AchievementsPage() {
               </div>
               <div className="ml-6 text-center">
                 <div className="text-3xl font-bold text-yellow-600">{completionRate}%</div>
-                <div className="text-sm text-gray-500">Complete</div>
+                <div className="text-sm text-gray-500">{t('studentPortal.achievements.complete')}</div>
               </div>
             </div>
           </CardContent>
@@ -114,7 +116,7 @@ export default function AchievementsPage() {
 
         {/* Earned Achievements */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Earned Achievements</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('studentPortal.achievements.earnedTitle')}</h2>
           {earnedAchievements.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {earnedAchievements.map((studentAchievement: any) => {
@@ -125,7 +127,7 @@ export default function AchievementsPage() {
                   <Card key={studentAchievement.id} className="relative overflow-hidden">
                     {studentAchievement.isNew && (
                       <div className="absolute top-2 right-2">
-                        <Badge variant="default" className="bg-red-500">New!</Badge>
+                        <Badge variant="default" className="bg-red-500">{t('studentPortal.achievements.newBadge')}</Badge>
                       </div>
                     )}
                     <CardHeader className="pb-3">
@@ -139,20 +141,20 @@ export default function AchievementsPage() {
                     </CardHeader>
                     <CardContent className="text-center">
                       <div className="text-sm text-gray-500 mb-3">
-                        Earned: {format(new Date(studentAchievement.dateEarned), "MMM d, yyyy")}
+                        {t('studentPortal.achievements.earned')} {format(new Date(studentAchievement.dateEarned), "MMM d, yyyy")}
                       </div>
                       <div className="flex items-center justify-center space-x-2">
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        <span className="text-green-600 font-medium">Completed</span>
+                        <span className="text-green-600 font-medium">{t('studentPortal.achievements.completed')}</span>
                       </div>
                       {studentAchievement.isNew && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="mt-3"
                           onClick={() => markSeenMutation.mutate(studentAchievement.id)}
                         >
-                          Mark as Seen
+                          {t('studentPortal.achievements.markSeen')}
                         </Button>
                       )}
                     </CardContent>
@@ -164,8 +166,8 @@ export default function AchievementsPage() {
             <Card>
               <CardContent className="p-8 text-center">
                 <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No achievements yet</h3>
-                <p className="text-gray-600">Keep practicing to earn your first achievement!</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.achievements.noneTitle')}</h3>
+                <p className="text-gray-600">{t('studentPortal.achievements.noneDescription')}</p>
               </CardContent>
             </Card>
           )}
@@ -173,10 +175,10 @@ export default function AchievementsPage() {
 
         {/* Available Achievements */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Available Achievements</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('studentPortal.achievements.availableTitle')}</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {totalAchievements
-              .filter((achievement: any) => 
+              .filter((achievement: any) =>
                 !earnedAchievements.some((earned: any) => earned.achievementId === achievement.id)
               )
               .map((achievement: any) => (
@@ -193,7 +195,7 @@ export default function AchievementsPage() {
                   <CardContent className="text-center">
                     <div className="flex items-center justify-center space-x-2 text-gray-500">
                       <Target className="h-4 w-4" />
-                      <span className="text-sm">Not earned yet</span>
+                      <span className="text-sm">{t('studentPortal.achievements.notEarned')}</span>
                     </div>
                   </CardContent>
                 </Card>

@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ContentEditor from "@/components/ContentEditor";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 
 interface ContentPreview {
   type: string;
@@ -54,6 +55,7 @@ interface CSVImportResult {
 }
 
 export default function ImportPage() {
+  const { t } = useTranslation();
   const [contentToPreview, setContentToPreview] = useState("");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [importData, setImportData] = useState("");
@@ -74,7 +76,7 @@ export default function ImportPage() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Preview Error",
+        title: t('import.toast.previewError'),
         description: error.message,
         variant: "destructive",
       });
@@ -89,14 +91,14 @@ export default function ImportPage() {
     },
     onSuccess: (result: ImportResult) => {
       toast({
-        title: "Import Complete",
-        description: `Successfully imported ${result.success} songs. ${result.failed} failed.`,
+        title: t('import.toast.importComplete'),
+        description: t('import.toast.importSongsSuccess', { success: String(result.success), failed: String(result.failed) }),
       });
       setImportData("");
     },
     onError: (error: Error) => {
       toast({
-        title: "Import Error",
+        title: t('import.toast.importError'),
         description: error.message,
         variant: "destructive",
       });
@@ -111,14 +113,14 @@ export default function ImportPage() {
     },
     onSuccess: (result: ImportResult) => {
       toast({
-        title: "Import Complete",
-        description: `Successfully imported ${result.success} lessons. ${result.failed} failed.`,
+        title: t('import.toast.importComplete'),
+        description: t('import.toast.importLessonsSuccess', { success: String(result.success), failed: String(result.failed) }),
       });
       setImportData("");
     },
     onError: (error: Error) => {
       toast({
-        title: "Import Error",
+        title: t('import.toast.importError'),
         description: error.message,
         variant: "destructive",
       });
@@ -149,7 +151,7 @@ export default function ImportPage() {
       const totalFailed = result.results.songs.failed + result.results.lessons.failed;
       
       toast({
-        title: "CSV Import Complete",
+        title: t('import.toast.csvImportComplete'),
         description: `Successfully imported ${totalImported} items. ${totalFailed} failed. Converted ${result.converted.songs} songs and ${result.converted.lessons} lessons from CSV.`,
       });
       
@@ -160,7 +162,7 @@ export default function ImportPage() {
     },
     onError: (error: Error) => {
       toast({
-        title: "CSV Import Error",
+        title: t('import.toast.csvImportError'),
         description: error.message,
         variant: "destructive",
       });
@@ -170,8 +172,8 @@ export default function ImportPage() {
   const handlePreview = () => {
     if (!contentToPreview.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some content to preview",
+        title: t('common.error'),
+        description: t('import.toast.noContent'),
         variant: "destructive",
       });
       return;
@@ -183,8 +185,8 @@ export default function ImportPage() {
   const handleImport = () => {
     if (!importData.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter data to import",
+        title: t('common.error'),
+        description: t('import.toast.noData'),
         variant: "destructive",
       });
       return;
@@ -204,8 +206,8 @@ export default function ImportPage() {
       }
     } catch (error) {
       toast({
-        title: "Parse Error",
-        description: "Invalid JSON format. Please check your data.",
+        title: t('import.toast.parseError'),
+        description: t('import.toast.invalidJson'),
         variant: "destructive",
       });
     }
@@ -221,8 +223,8 @@ export default function ImportPage() {
   const handleCsvImport = () => {
     if (!csvFiles.songs && !csvFiles.lessons) {
       toast({
-        title: "Error",
-        description: "Please select at least one CSV file to import",
+        title: t('common.error'),
+        description: t('import.toast.noFile'),
         variant: "destructive",
       });
       return;
@@ -266,13 +268,12 @@ export default function ImportPage() {
   };
 
   return (
-    <AppLayout title="Import from Old MusicDott">
+    <AppLayout title={t('import.title')}>
       <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Import from Old MusicDott</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('import.title')}</h1>
           <p className="text-gray-600">
-            Import your existing content from the old MusicDott system. Convert embedded content 
-            and Groovescribe patterns into the new format.
+            {t('import.subtitle')}
           </p>
         </div>
 
@@ -282,15 +283,15 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5" />
-              CSV Import
+              {t('import.csv.title')}
             </CardTitle>
             <CardDescription>
-              Import directly from MusicDott 1.0 CSV files (POS_Songs.csv and POS_Notatie.csv).
+              {t('import.csv.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="songs-csv">Songs CSV (POS_Songs.csv)</Label>
+              <Label htmlFor="songs-csv">{t('import.csv.songsLabel')}</Label>
               <Input
                 id="songs-csv"
                 type="file"
@@ -302,13 +303,13 @@ export default function ImportPage() {
               />
               {csvFiles.songs && (
                 <p className="text-sm text-green-600 mt-1">
-                  ✓ {csvFiles.songs.name} selected
+                  ✓ {t('import.csv.fileSelected', { name: csvFiles.songs.name })}
                 </p>
               )}
             </div>
 
             <div>
-              <Label htmlFor="lessons-csv">Lessons CSV (POS_Notatie.csv)</Label>
+              <Label htmlFor="lessons-csv">{t('import.csv.lessonsLabel')}</Label>
               <Input
                 id="lessons-csv"
                 type="file"
@@ -320,7 +321,7 @@ export default function ImportPage() {
               />
               {csvFiles.lessons && (
                 <p className="text-sm text-green-600 mt-1">
-                  ✓ {csvFiles.lessons.name} selected
+                  ✓ {t('import.csv.fileSelected', { name: csvFiles.lessons.name })}
                 </p>
               )}
             </div>
@@ -332,13 +333,13 @@ export default function ImportPage() {
               data-testid="button-csv-import"
             >
               <FileUp className="h-4 w-4 mr-2" />
-              {csvImportMutation.isPending ? "Converting & Importing..." : "Import CSV Files"}
+              {csvImportMutation.isPending ? t('import.csv.buttonImporting') : t('import.csv.button')}
             </Button>
 
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription className="text-xs">
-                <strong>Automatic conversion:</strong> YouTube URLs become video embeds, Groovescribe patterns are preserved, and all content is properly structured.
+                <strong>{t('import.csv.autoConversionNote')}</strong> {t('import.csv.autoConversionDesc')}
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -349,21 +350,21 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              Content Preview
+              {t('import.preview.title')}
             </CardTitle>
             <CardDescription>
-              Test how your old content will be converted. Paste a sample with embedded content.
+              {t('import.preview.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="preview-content">Sample Content</Label>
+              <Label htmlFor="preview-content">{t('import.preview.sampleLabel')}</Label>
               <ContentEditor
                 initial={contentToPreview}
                 onChange={(value) => setContentToPreview(value)}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Content is automatically normalized when you click outside the editor
+                {t('import.preview.normalizeNote')}
               </p>
             </div>
             
@@ -372,12 +373,12 @@ export default function ImportPage() {
               disabled={previewMutation.isPending}
               className="w-full"
             >
-              {previewMutation.isPending ? "Analyzing..." : "Preview Conversion"}
+              {previewMutation.isPending ? t('import.preview.buttonAnalyzing') : t('import.preview.button')}
             </Button>
 
             {preview && (
               <div className="mt-4 space-y-3">
-                <h4 className="font-semibold">Detected Content Blocks:</h4>
+                <h4 className="font-semibold">{t('import.preview.detectedBlocks')}</h4>
                 {preview.detectedBlocks.length > 0 ? (
                   preview.detectedBlocks.map((block, index) => (
                     <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
@@ -394,7 +395,7 @@ export default function ImportPage() {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      No content blocks detected. Make sure your content includes embedded iframes or Groovescribe patterns.
+                      {t('import.preview.noBlocksDetected')}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -408,38 +409,38 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              JSON Import
+              {t('import.json.title')}
             </CardTitle>
             <CardDescription>
-              Import multiple songs or lessons from your exported JSON data.
+              {t('import.json.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="import-type">Import Type</Label>
+              <Label htmlFor="import-type">{t('import.json.importTypeLabel')}</Label>
               <div className="flex gap-2 mt-1">
                 <Button
                   variant={importType === "songs" ? "default" : "outline"}
                   onClick={() => setImportType("songs")}
                   size="sm"
                 >
-                  Songs
+                  {t('import.json.songs')}
                 </Button>
                 <Button
                   variant={importType === "lessons" ? "default" : "outline"}
                   onClick={() => setImportType("lessons")}
                   size="sm"
                 >
-                  Lessons
+                  {t('import.json.lessons')}
                 </Button>
               </div>
             </div>
             
             <div>
-              <Label htmlFor="import-data">JSON Data</Label>
+              <Label htmlFor="import-data">{t('import.json.dataLabel')}</Label>
               <Textarea
                 id="import-data"
-                placeholder={`Paste your ${importType} data as JSON array here...`}
+                placeholder={importType === "songs" ? t('import.json.dataPlaceholderSongs') : t('import.json.dataPlaceholderLessons')}
                 value={importData}
                 onChange={(e) => setImportData(e.target.value)}
                 rows={8}
@@ -453,9 +454,9 @@ export default function ImportPage() {
               className="w-full"
               data-testid="button-json-import"
             >
-              {(importSongsMutation.isPending || importLessonsMutation.isPending) 
-                ? "Importing..." 
-                : `Import ${importType}`}
+              {(importSongsMutation.isPending || importLessonsMutation.isPending)
+                ? t('import.json.buttonImporting')
+                : importType === "songs" ? t('import.json.buttonSongs') : t('import.json.buttonLessons')}
             </Button>
           </CardContent>
         </Card>
@@ -466,14 +467,14 @@ export default function ImportPage() {
       {/* Help Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Import Format Examples</CardTitle>
+          <CardTitle>{t('import.examples.title')}</CardTitle>
           <CardDescription>
-            Use these examples to format your data correctly for import.
+            {t('import.examples.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <h4 className="font-semibold mb-2">Songs Format:</h4>
+            <h4 className="font-semibold mb-2">{t('import.examples.songsFormat')}</h4>
             <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
 {`[
   {
@@ -489,7 +490,7 @@ export default function ImportPage() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-2">Lessons Format:</h4>
+            <h4 className="font-semibold mb-2">{t('import.examples.lessonsFormat')}</h4>
             <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
 {`[
   {
@@ -507,8 +508,7 @@ export default function ImportPage() {
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Supported Content Types:</strong> YouTube videos, Spotify tracks, Apple Music, 
-              Groovescribe patterns, and text content will be automatically detected and converted.
+              <strong>{t('import.examples.supportedTypes')}</strong> {t('import.examples.supportedTypesDesc')}
             </AlertDescription>
           </Alert>
         </CardContent>

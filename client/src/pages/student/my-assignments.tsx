@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import Layout from "@/components/layouts/app-layout";
 
 export default function MyAssignmentsPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   const { data: assignments = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/students", user?.id, "assignments"],
@@ -21,7 +23,7 @@ export default function MyAssignmentsPage() {
 
   if (isLoading || songsLoading) {
     return (
-      <Layout title="My Assignments">
+      <Layout title={t('studentPortal.myAssignments.title')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -39,11 +41,11 @@ export default function MyAssignmentsPage() {
   const songAssignments = assignments?.filter((a: any) => a.songId) || [];
 
   return (
-    <Layout title="My Assignments">
+    <Layout title={t('studentPortal.myAssignments.title')}>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Assignments</h1>
-          <p className="text-gray-600 mt-2">Practice songs assigned by your teacher</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.myAssignments.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('studentPortal.myAssignments.subtitle')}</p>
         </div>
 
         {songAssignments.length > 0 ? (
@@ -57,7 +59,7 @@ export default function MyAssignmentsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-2">
                         <Music className="h-5 w-5 text-purple-600" />
-                        <CardTitle className="text-lg">{song?.title || "Song"}</CardTitle>
+                        <CardTitle className="text-lg">{song?.title || t('studentPortal.myAssignments.song')}</CardTitle>
                       </div>
                       <Badge variant={assignment.status === 'completed' ? 'default' : 'secondary'}>
                         {assignment.status || 'assigned'}
@@ -66,7 +68,7 @@ export default function MyAssignmentsPage() {
                     {assignment.dueDate && (
                       <CardDescription className="flex items-center space-x-1">
                         <Clock className="h-4 w-4" />
-                        <span>Due: {format(new Date(assignment.dueDate), "MMM d, yyyy")}</span>
+                        <span>{t('studentPortal.myAssignments.due')} {format(new Date(assignment.dueDate), "MMM d, yyyy")}</span>
                       </CardDescription>
                     )}
                   </CardHeader>
@@ -77,13 +79,13 @@ export default function MyAssignmentsPage() {
                     )}
                     
                     <div className="flex items-center justify-between text-sm text-gray-500">
-                      {song?.key && <span>Key: {song.key}</span>}
-                      {song?.duration && <span>Duration: {song.duration}</span>}
+                      {song?.key && <span>{t('studentPortal.myAssignments.key')} {song.key}</span>}
+                      {song?.duration && <span>{t('studentPortal.myAssignments.duration')} {song.duration}</span>}
                     </div>
                     
                     {assignment.notes && (
                       <div className="p-3 bg-purple-50 rounded-lg">
-                        <h4 className="font-medium text-sm text-purple-900 mb-1">Practice Notes:</h4>
+                        <h4 className="font-medium text-sm text-purple-900 mb-1">{t('studentPortal.myAssignments.practiceNotes')}</h4>
                         <p className="text-sm text-purple-800">{assignment.notes}</p>
                       </div>
                     )}
@@ -91,11 +93,11 @@ export default function MyAssignmentsPage() {
                     <div className="flex space-x-2">
                       <Button className="flex-1" size="sm" variant="outline">
                         <PlayCircle className="h-4 w-4 mr-2" />
-                        Listen
+                        {t('studentPortal.myAssignments.listen')}
                       </Button>
                       <Button className="flex-1" size="sm">
                         <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Practice
+                        {t('studentPortal.myAssignments.practice')}
                       </Button>
                     </div>
                   </CardContent>
@@ -107,8 +109,8 @@ export default function MyAssignmentsPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No song assignments yet</h3>
-              <p className="text-gray-600">Your teacher will assign songs for you to practice.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.myAssignments.noAssignmentsTitle')}</h3>
+              <p className="text-gray-600">{t('studentPortal.myAssignments.noAssignmentsDesc')}</p>
             </CardContent>
           </Card>
         )}

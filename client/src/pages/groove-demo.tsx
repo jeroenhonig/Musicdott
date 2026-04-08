@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GrooveDemo() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
   
   // Get actual lesson data with GrooveScribe patterns
   const { data: lessons, isLoading } = useQuery({
@@ -21,13 +23,13 @@ export default function GrooveDemo() {
   if (isLoading) {
     return (
       <Layout title="GrooveScribe Demo">
-        <div>Loading lessons...</div>
+        <div>{t('grooveDemo.loading')}</div>
       </Layout>
     );
   }
 
   // Find lessons with GrooveScribe patterns
-  const lessonsWithGrooves = lessons?.filter(lesson => 
+  const lessonsWithGrooves = lessons?.filter(lesson =>
     lesson.contentBlocks?.some(block => block.type === 'groovescribe')
   ) || [];
 
@@ -40,25 +42,25 @@ export default function GrooveDemo() {
     <Layout title="GrooveScribe Patterns from Stored Data">
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setLocation('/lessons')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Lessons
+            {t('grooveDemo.backToLessons')}
           </Button>
-          <h1 className="text-2xl font-bold">Live GrooveScribe Patterns</h1>
+          <h1 className="text-2xl font-bold">{t('grooveDemo.livePatterns')}</h1>
         </div>
 
         {firstLessonWithGroove && (
           <Card>
             <CardHeader>
-              <CardTitle>Lesson: {firstLessonWithGroove.title}</CardTitle>
+              <CardTitle>{t('grooveDemo.lessonLabel')}: {firstLessonWithGroove.title}</CardTitle>
               <p className="text-gray-600">
-                Category: {firstLessonWithGroove.category || 'Uncategorized'} • 
-                Level: {firstLessonWithGroove.level} • 
-                Patterns: {groovePatterns.length}
+                {t('grooveDemo.categoryLabel')}: {firstLessonWithGroove.category || t('grooveDemo.uncategorized')} •{' '}
+                {t('grooveDemo.levelLabel')}: {firstLessonWithGroove.level} •{' '}
+                {t('grooveDemo.patternsLabel')}: {groovePatterns.length}
               </p>
             </CardHeader>
             <CardContent>
@@ -67,7 +69,7 @@ export default function GrooveDemo() {
                   <GrooveDisplay
                     key={index}
                     pattern={pattern.pattern}
-                    title={`Pattern ${index + 1}: ${pattern.title || 'Groove Pattern'}`}
+                    title={`${t('grooveDemo.patternLabel')} ${index + 1}: ${pattern.title || t('grooveDemo.groovePattern')}`}
                   />
                 ))}
               </div>
@@ -77,7 +79,7 @@ export default function GrooveDemo() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Stored Lesson Statistics</CardTitle>
+            <CardTitle>{t('grooveDemo.statistics')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -85,19 +87,19 @@ export default function GrooveDemo() {
                 <div className="text-2xl font-bold text-blue-600">
                   {lessons?.length || 0}
                 </div>
-                <div className="text-sm text-gray-600">Total Lessons</div>
+                <div className="text-sm text-gray-600">{t('grooveDemo.totalLessons')}</div>
               </div>
               <div className="text-center p-4 bg-green-50 rounded">
                 <div className="text-2xl font-bold text-green-600">
                   {lessonsWithGrooves.length}
                 </div>
-                <div className="text-sm text-gray-600">With GrooveScribe</div>
+                <div className="text-sm text-gray-600">{t('grooveDemo.withGrooveScribe')}</div>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded">
                 <div className="text-2xl font-bold text-purple-600">
                   {groovePatterns.length}
                 </div>
-                <div className="text-sm text-gray-600">Patterns in Current</div>
+                <div className="text-sm text-gray-600">{t('grooveDemo.patternsInCurrent')}</div>
               </div>
             </div>
           </CardContent>

@@ -50,6 +50,7 @@ import { z } from "zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 
 // Create a student form schema with teacher assignment and scheduling options
 const studentFormSchema = z.object({
@@ -111,6 +112,7 @@ export default function StudentsPage() {
   const [isRecurringLessonDialogOpen, setIsRecurringLessonDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const { 
     user, 
@@ -227,13 +229,13 @@ export default function StudentsPage() {
       setIsDialogOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Student created successfully",
+        title: t('common.success'),
+        description: t('students.toast.created'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -259,13 +261,13 @@ export default function StudentsPage() {
       setIsAssignSongDialogOpen(false);
       assignSongForm.reset();
       toast({
-        title: "Success",
-        description: "Song assigned successfully",
+        title: t('common.success'),
+        description: t('students.toast.songAssigned'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -291,13 +293,13 @@ export default function StudentsPage() {
       setIsAssignLessonDialogOpen(false);
       assignLessonForm.reset();
       toast({
-        title: "Success",
-        description: "Lesson assigned successfully",
+        title: t('common.success'),
+        description: t('students.toast.lessonAssigned'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -345,13 +347,13 @@ export default function StudentsPage() {
       setIsRecurringLessonDialogOpen(false);
       recurringLessonForm.reset();
       toast({
-        title: "Success",
-        description: "Recurring lesson scheduled successfully",
+        title: t('common.success'),
+        description: t('students.toast.recurringScheduled'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -378,13 +380,13 @@ export default function StudentsPage() {
       setIsScheduleSessionDialogOpen(false);
       scheduleSessionForm.reset();
       toast({
-        title: "Success",
-        description: "Session scheduled successfully",
+        title: t('common.success'),
+        description: t('students.toast.sessionScheduled'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -412,13 +414,13 @@ export default function StudentsPage() {
       setIsUpdateDialogOpen(false);
       updateForm.reset();
       toast({
-        title: "Success",
-        description: "Student updated successfully",
+        title: t('common.success'),
+        description: t('students.toast.updated'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -437,13 +439,13 @@ export default function StudentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/students"] });
       toast({
-        title: "Success",
-        description: "Student deleted successfully",
+        title: t('common.success'),
+        description: t('students.toast.deleted'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -542,12 +544,12 @@ export default function StudentsPage() {
   };
   
   return (
-    <AppLayout title="Students">
+    <AppLayout title={t('students.title')}>
       <div className="space-y-6">
         {/* Header with role context */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Students</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('students.title')}</h1>
             <div className="flex items-center gap-2 mt-1">
               <RoleIndicator size="sm" />
               {currentSchool && (
@@ -564,7 +566,7 @@ export default function StudentsPage() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               type="search"
-              placeholder="Search students..."
+              placeholder={t('students.searchPlaceholder')}
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -578,14 +580,14 @@ export default function StudentsPage() {
               <DialogTrigger asChild>
                 <Button className="w-full md:w-auto" data-testid="button-add-student">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add New Student
+                  {t('students.addNew')}
                 </Button>
               </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Student</DialogTitle>
+                <DialogTitle>{t('students.dialog.addTitle')}</DialogTitle>
                 <DialogDescription>
-                  Create a new student profile with contact information and learning details.
+                  {t('students.dialog.addDescription')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -596,9 +598,9 @@ export default function StudentsPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>{t('students.form.fullName')} <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter student's name" {...field} />
+                            <Input placeholder={t('students.form.namePlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -624,7 +626,7 @@ export default function StudentsPage() {
                       name="birthdate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Birthdate (Optional)</FormLabel>
+                          <FormLabel>{t('students.form.birthdate')}</FormLabel>
                           <FormControl>
                             <Input type="date" placeholder="Select birthdate" {...field} />
                           </FormControl>
@@ -667,11 +669,11 @@ export default function StudentsPage() {
                       name="instrument"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Instrument <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>{t('students.form.instrument')} <span className="text-red-500">*</span></FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select instrument" />
+                                <SelectValue placeholder={t('students.form.instrumentPlaceholder')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -692,17 +694,17 @@ export default function StudentsPage() {
                       name="level"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Level</FormLabel>
+                          <FormLabel>{t('students.form.level')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select level" />
+                                <SelectValue placeholder={t('students.form.levelPlaceholder')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="beginner">Beginner</SelectItem>
-                              <SelectItem value="intermediate">Intermediate</SelectItem>
-                              <SelectItem value="advanced">Advanced</SelectItem>
+                              <SelectItem value="beginner">{t('students.form.levelBeginner')}</SelectItem>
+                              <SelectItem value="intermediate">{t('students.form.levelIntermediate')}</SelectItem>
+                              <SelectItem value="advanced">{t('students.form.levelAdvanced')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -716,9 +718,9 @@ export default function StudentsPage() {
                       name="parentName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Parent/Guardian Name</FormLabel>
+                          <FormLabel>{t('students.form.parentName')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter parent/guardian name" {...field} />
+                            <Input placeholder={t('students.form.parentNamePlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -729,9 +731,9 @@ export default function StudentsPage() {
                       name="parentEmail"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Parent/Guardian Email</FormLabel>
+                          <FormLabel>{t('students.form.parentEmail')}</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="Enter parent/guardian email" {...field} />
+                            <Input type="email" placeholder={t('students.form.parentEmailPlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -743,9 +745,9 @@ export default function StudentsPage() {
                     name="parentPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Parent/Guardian Phone</FormLabel>
+                        <FormLabel>{t('students.form.parentPhone')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter parent/guardian phone number" {...field} />
+                          <Input placeholder={t('students.form.parentPhonePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -757,9 +759,9 @@ export default function StudentsPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>{t('students.form.username')} <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter username for student portal" {...field} />
+                            <Input placeholder={t('students.form.usernamePlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -770,9 +772,9 @@ export default function StudentsPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>{t('students.form.password')} <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Enter password" {...field} />
+                            <Input type="password" placeholder={t('students.form.passwordPlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -784,10 +786,10 @@ export default function StudentsPage() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t('students.form.notes')}</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Additional notes about the student" 
+                            placeholder={t('students.form.notesPlaceholder')} 
                             {...field} 
                           />
                         </FormControl>
@@ -797,7 +799,7 @@ export default function StudentsPage() {
                   />
                   <DialogFooter>
                     <Button type="submit" disabled={createStudentMutation.isPending}>
-                      {createStudentMutation.isPending ? "Creating..." : "Create Student"}
+  {createStudentMutation.isPending ? t('students.form.creating') : t('students.form.createButton')}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -827,17 +829,17 @@ export default function StudentsPage() {
         ) : filteredStudents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Users className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-500 mb-2">No students yet</h3>
+            <h3 className="text-lg font-medium text-gray-500 mb-2">{t('students.noStudents')}</h3>
             <p className="text-sm text-gray-400 mb-6">
               {searchTerm
-                ? "No students match your search."
-                : "Add your first student to get started."}
+                ? t('students.noStudentsSearchHint')
+                : t('students.noStudentsHint')}
             </p>
             {!searchTerm && (
               <RequireTeacher>
                 <Button onClick={() => setIsDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add First Student
+                  {t('students.addFirst')}
                 </Button>
               </RequireTeacher>
             )}
@@ -861,10 +863,10 @@ export default function StudentsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-gray-600">
-                    {student.age && <p>Age: {student.age}</p>}
-                    {student.email && <p>Email: {student.email}</p>}
-                    {student.phone && <p>Phone: {student.phone}</p>}
-                    {student.parentName && <p>Parent: {student.parentName}</p>}
+                    {student.age && <p>{t('students.ageLabel')}: {student.age}</p>}
+                    {student.email && <p>{t('students.email')}: {student.email}</p>}
+                    {student.phone && <p>{t('students.phone')}: {student.phone}</p>}
+                    {student.parentName && <p>{t('students.parentLabel')}: {student.parentName}</p>}
                   </div>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {/* Teacher+ actions - Edit, Assign, Schedule */}
@@ -876,7 +878,7 @@ export default function StudentsPage() {
                         data-testid={`button-edit-${student.id}`}
                       >
                         <Edit className="h-3 w-3 mr-1" />
-                        Edit
+                        {t('common.edit')}
                       </Button>
                       <Button
                         variant="outline"
@@ -885,7 +887,7 @@ export default function StudentsPage() {
                         data-testid={`button-assign-song-${student.id}`}
                       >
                         <Music className="h-3 w-3 mr-1" />
-                        Assign Song
+                        {t('students.assignSongBtn')}
                       </Button>
                       <Button
                         variant="outline"
@@ -894,7 +896,7 @@ export default function StudentsPage() {
                         data-testid={`button-assign-lesson-${student.id}`}
                       >
                         <BookOpen className="h-3 w-3 mr-1" />
-                        Assign Lesson
+                        {t('students.assignLessonBtn')}
                       </Button>
                       <Button
                         variant="outline"
@@ -903,7 +905,7 @@ export default function StudentsPage() {
                         data-testid={`button-schedule-${student.id}`}
                       >
                         <Calendar className="h-3 w-3 mr-1" />
-                        Schedule
+                        {t('students.scheduleBtn')}
                       </Button>
                       <Button
                         variant="outline"
@@ -915,7 +917,7 @@ export default function StudentsPage() {
                         data-testid={`button-recurring-${student.id}`}
                       >
                         <Calendar className="h-3 w-3 mr-1" />
-                        Recurring
+                        {t('students.recurringBtn')}
                       </Button>
                       <Button
                         variant="outline"
@@ -924,7 +926,7 @@ export default function StudentsPage() {
                       >
                         <a href={`/messages?student=${student.id}`} data-testid={`link-message-${student.id}`}>
                           <MessageSquare className="h-3 w-3 mr-1" />
-                          Message
+                          {t('students.messageBtn')}
                         </a>
                       </Button>
                     </RequireTeacher>
@@ -940,25 +942,24 @@ export default function StudentsPage() {
                             data-testid={`button-delete-${student.id}`}
                           >
                             <Trash2 className="h-3 w-3 mr-1" />
-                            Delete
+                            {t('common.delete')}
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('students.delete.title')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the student
-                              "{selectedStudent?.name}" and remove all their data from our servers.
+                              {t('students.delete.description')}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={confirmDeleteStudent}
                               className="bg-red-600 hover:bg-red-700"
                               disabled={deleteStudentMutation.isPending}
                             >
-                              {deleteStudentMutation.isPending ? "Deleting..." : "Delete Student"}
+{deleteStudentMutation.isPending ? t('students.delete.deleting') : t('students.delete.confirm')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -969,7 +970,7 @@ export default function StudentsPage() {
                     <RequireRole roles={['student']}>
                       <div className="text-sm text-muted-foreground px-2 py-1">
                         <Shield className="h-3 w-3 inline mr-1" />
-                        View Only
+                        {t('students.viewOnly')}
                       </div>
                     </RequireRole>
                   </div>
@@ -983,9 +984,9 @@ export default function StudentsPage() {
         <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Update Student</DialogTitle>
+              <DialogTitle>{t('students.dialog.updateTitle')}</DialogTitle>
               <DialogDescription>
-                Edit student information and settings.
+                {t('students.dialog.updateDescription')}
               </DialogDescription>
             </DialogHeader>
             <Form {...updateForm}>
@@ -1092,7 +1093,7 @@ export default function StudentsPage() {
                     name="assignedTeacherId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Assigned Teacher</FormLabel>
+                        <FormLabel>{t('students.form.assignedTeacher')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -1100,7 +1101,7 @@ export default function StudentsPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="unassigned">No Teacher Assigned</SelectItem>
+                            <SelectItem value="unassigned">{t('students.form.noTeacher')}</SelectItem>
                             {(teachers || []).map((teacher: any) => (
                               <SelectItem key={teacher.id} value={teacher.id.toString()}>
                                 {teacher.name} - {teacher.instruments || 'All Instruments'}
@@ -1222,7 +1223,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={updateStudentMutation.isPending}>
-                    {updateStudentMutation.isPending ? "Updating..." : "Update Student"}
+  {updateStudentMutation.isPending ? t('students.form.updating') : t('students.form.updateButton')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1234,9 +1235,9 @@ export default function StudentsPage() {
         <Dialog open={isAssignSongDialogOpen} onOpenChange={setIsAssignSongDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Assign Song</DialogTitle>
+              <DialogTitle>{t('students.assignSong.title')}</DialogTitle>
               <DialogDescription>
-                Assign a song to {selectedStudent?.name} for practice.
+                {selectedStudent?.name}
               </DialogDescription>
             </DialogHeader>
             <Form {...assignSongForm}>
@@ -1273,7 +1274,7 @@ export default function StudentsPage() {
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Any specific instructions or notes about this assignment" 
+                          placeholder={t('students.assignSong.notesPlaceholder')}
                           {...field} 
                         />
                       </FormControl>
@@ -1283,7 +1284,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={assignSongMutation.isPending}>
-                    {assignSongMutation.isPending ? "Assigning..." : "Assign Song"}
+                    {assignSongMutation.isPending ? t('students.assignSong.assigning') : t('students.assignSong.button')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1295,9 +1296,9 @@ export default function StudentsPage() {
         <Dialog open={isAssignLessonDialogOpen} onOpenChange={setIsAssignLessonDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Assign Lesson</DialogTitle>
+              <DialogTitle>{t('students.assignLesson.title')}</DialogTitle>
               <DialogDescription>
-                Assign a lesson to {selectedStudent?.name} for study.
+                {selectedStudent?.name}
               </DialogDescription>
             </DialogHeader>
             <Form {...assignLessonForm}>
@@ -1334,7 +1335,7 @@ export default function StudentsPage() {
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Any specific instructions or notes about this assignment" 
+                          placeholder={t('students.assignSong.notesPlaceholder')}
                           {...field} 
                         />
                       </FormControl>
@@ -1344,7 +1345,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={assignLessonMutation.isPending}>
-                    {assignLessonMutation.isPending ? "Assigning..." : "Assign Lesson"}
+                    {assignLessonMutation.isPending ? t('students.assignLesson.assigning') : t('students.assignLesson.button')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1356,9 +1357,9 @@ export default function StudentsPage() {
         <Dialog open={isScheduleSessionDialogOpen} onOpenChange={setIsScheduleSessionDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Schedule Session</DialogTitle>
+              <DialogTitle>{t('students.scheduleSession.title')}</DialogTitle>
               <DialogDescription>
-                Schedule a lesson session with {selectedStudent?.name}.
+                {selectedStudent?.name}
               </DialogDescription>
             </DialogHeader>
             <Form {...scheduleSessionForm}>
@@ -1412,7 +1413,7 @@ export default function StudentsPage() {
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Any notes about this session" 
+                          placeholder={t('students.scheduleSession.notesPlaceholder')} 
                           {...field} 
                         />
                       </FormControl>
@@ -1422,7 +1423,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={scheduleSessionMutation.isPending}>
-                    {scheduleSessionMutation.isPending ? "Scheduling..." : "Schedule Session"}
+  {scheduleSessionMutation.isPending ? t('students.scheduleSession.scheduling') : t('students.scheduleSession.button')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1434,9 +1435,9 @@ export default function StudentsPage() {
         <Dialog open={isRecurringLessonDialogOpen} onOpenChange={setIsRecurringLessonDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Schedule Recurring Lessons</DialogTitle>
+              <DialogTitle>{t('students.recurringLesson.title')}</DialogTitle>
               <DialogDescription>
-                Set up weekly recurring lessons for {selectedStudent?.name}
+                {selectedStudent?.name}
               </DialogDescription>
             </DialogHeader>
             <Form {...recurringLessonForm}>
@@ -1494,10 +1495,10 @@ export default function StudentsPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="45">45 minutes</SelectItem>
-                            <SelectItem value="60">60 minutes</SelectItem>
-                            <SelectItem value="90">90 minutes</SelectItem>
+                            <SelectItem value="30">{t('students.recurringLesson.min30')}</SelectItem>
+                            <SelectItem value="45">{t('students.recurringLesson.min45')}</SelectItem>
+                            <SelectItem value="60">{t('students.recurringLesson.min60')}</SelectItem>
+                            <SelectItem value="90">{t('students.recurringLesson.min90')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1533,7 +1534,7 @@ export default function StudentsPage() {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={createRecurringLessonMutation.isPending}>
-                    {createRecurringLessonMutation.isPending ? "Creating..." : "Create Recurring Lesson"}
+  {createRecurringLessonMutation.isPending ? t('students.recurringLesson.creating') : t('students.recurringLesson.button')}
                   </Button>
                 </DialogFooter>
               </form>

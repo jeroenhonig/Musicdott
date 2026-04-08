@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Search, Edit, Trash2, Users, Mail, Music } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import { RequireSchoolOwner } from "@/components/rbac/require-role";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,7 @@ export default function TeachersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { user, currentSchool, canManageSchool } = useAuth();
 
   const createForm = useForm<TeacherFormValues>({
@@ -111,13 +113,13 @@ export default function TeachersPage() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: "Teacher created",
-        description: "The teacher account has been created successfully.",
+        title: t('teachers.toast.created'),
+        description: t('teachers.toast.createdDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to create teacher",
+        title: t('teachers.toast.createFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -135,13 +137,13 @@ export default function TeachersPage() {
       setIsUpdateDialogOpen(false);
       setSelectedTeacher(null);
       toast({
-        title: "Teacher updated",
-        description: "The teacher information has been updated successfully.",
+        title: t('teachers.toast.updated'),
+        description: t('teachers.toast.updatedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update teacher",
+        title: t('teachers.toast.updateFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -159,13 +161,13 @@ export default function TeachersPage() {
       setIsDeleteDialogOpen(false);
       setSelectedTeacher(null);
       toast({
-        title: "Teacher deleted",
-        description: "The teacher has been removed from your school.",
+        title: t('teachers.toast.deleted'),
+        description: t('teachers.toast.deletedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete teacher",
+        title: t('teachers.toast.deleteFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -212,14 +214,14 @@ export default function TeachersPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Teachers</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('teachers.title')}</h1>
               <p className="text-muted-foreground">
-                Manage the teachers in your music school
+                {t('teachers.subtitle')}
               </p>
             </div>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Teacher
+              {t('teachers.addTeacher')}
             </Button>
           </div>
 
@@ -227,7 +229,7 @@ export default function TeachersPage() {
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search teachers..."
+              placeholder={t('teachers.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -236,21 +238,21 @@ export default function TeachersPage() {
 
           {/* Teachers Grid */}
           {isLoading ? (
-            <div className="text-center py-8">Loading teachers...</div>
+            <div className="text-center py-8">{t('teachers.loading')}</div>
           ) : filteredTeachers.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
                 <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No teachers found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('teachers.noTeachersFound')}</h3>
                 <p className="text-muted-foreground mb-4">
                   {searchTerm
-                    ? "No teachers match your search criteria."
-                    : "Get started by adding your first teacher."}
+                    ? t('teachers.noTeachersSearch')
+                    : t('teachers.noTeachersEmpty')}
                 </p>
                 {!searchTerm && (
                   <Button onClick={() => setIsCreateDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Teacher
+                    {t('teachers.addTeacher')}
                   </Button>
                 )}
               </CardContent>
@@ -301,7 +303,7 @@ export default function TeachersPage() {
                     <div className="mt-3 flex items-center gap-2">
                       <Badge variant="secondary">
                         <Users className="h-3 w-3 mr-1" />
-                        Teacher
+                        {t('teachers.roleBadge')}
                       </Badge>
                     </div>
                   </CardContent>
@@ -314,9 +316,9 @@ export default function TeachersPage() {
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Add New Teacher</DialogTitle>
+                <DialogTitle>{t('teachers.dialog.addTitle')}</DialogTitle>
                 <DialogDescription>
-                  Create a new teacher account for your music school.
+                  {t('teachers.dialog.addDescription')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...createForm}>
@@ -327,7 +329,7 @@ export default function TeachersPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('teachers.form.fullName')}</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} />
                           </FormControl>
@@ -340,7 +342,7 @@ export default function TeachersPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('teachers.form.email')}</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="john@example.com" {...field} />
                           </FormControl>
@@ -356,7 +358,7 @@ export default function TeachersPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>{t('teachers.form.username')}</FormLabel>
                           <FormControl>
                             <Input placeholder="johndoe" {...field} />
                           </FormControl>
@@ -369,7 +371,7 @@ export default function TeachersPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('teachers.form.password')}</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="********" {...field} />
                           </FormControl>
@@ -384,12 +386,12 @@ export default function TeachersPage() {
                     name="instruments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instruments</FormLabel>
+                        <FormLabel>{t('teachers.form.instruments')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Piano, Guitar, Drums" {...field} />
+                          <Input placeholder={t('teachers.form.instrumentsPlaceholder')} {...field} />
                         </FormControl>
                         <FormDescription>
-                          List the instruments this teacher specializes in
+                          {t('teachers.form.instrumentsDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -401,10 +403,10 @@ export default function TeachersPage() {
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bio</FormLabel>
+                        <FormLabel>{t('teachers.form.bio')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Brief description of the teacher's background and experience..."
+                            placeholder={t('teachers.form.bioPlaceholder')}
                             rows={3}
                             {...field}
                           />
@@ -420,10 +422,10 @@ export default function TeachersPage() {
                       variant="outline"
                       onClick={() => setIsCreateDialogOpen(false)}
                     >
-                      Cancel
+                      {t('teachers.form.cancel')}
                     </Button>
                     <Button type="submit" disabled={createTeacherMutation.isPending}>
-                      {createTeacherMutation.isPending ? "Creating..." : "Create Teacher"}
+                      {createTeacherMutation.isPending ? t('teachers.form.creating') : t('teachers.form.createButton')}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -435,9 +437,9 @@ export default function TeachersPage() {
           <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Edit Teacher</DialogTitle>
+                <DialogTitle>{t('teachers.dialog.editTitle')}</DialogTitle>
                 <DialogDescription>
-                  Update the teacher's information.
+                  {t('teachers.dialog.editDescription')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...updateForm}>
@@ -448,7 +450,7 @@ export default function TeachersPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('teachers.form.fullName')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -461,7 +463,7 @@ export default function TeachersPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('teachers.form.email')}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} />
                           </FormControl>
@@ -476,7 +478,7 @@ export default function TeachersPage() {
                     name="instruments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instruments</FormLabel>
+                        <FormLabel>{t('teachers.form.instruments')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -490,7 +492,7 @@ export default function TeachersPage() {
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bio</FormLabel>
+                        <FormLabel>{t('teachers.form.bio')}</FormLabel>
                         <FormControl>
                           <Textarea rows={3} {...field} />
                         </FormControl>
@@ -505,10 +507,10 @@ export default function TeachersPage() {
                       variant="outline"
                       onClick={() => setIsUpdateDialogOpen(false)}
                     >
-                      Cancel
+                      {t('teachers.form.cancel')}
                     </Button>
                     <Button type="submit" disabled={updateTeacherMutation.isPending}>
-                      {updateTeacherMutation.isPending ? "Saving..." : "Save Changes"}
+                      {updateTeacherMutation.isPending ? t('teachers.form.saving') : t('teachers.form.saveChanges')}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -520,19 +522,18 @@ export default function TeachersPage() {
           <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Teacher</AlertDialogTitle>
+                <AlertDialogTitle>{t('teachers.dialog.deleteTitle')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete {selectedTeacher?.name}? This action cannot be
-                  undone. Students assigned to this teacher will need to be reassigned.
+                  {t('teachers.dialog.deleteDescription', { name: selectedTeacher?.name ?? '' })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('teachers.form.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => selectedTeacher && deleteTeacherMutation.mutate(selectedTeacher.id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  {deleteTeacherMutation.isPending ? "Deleting..." : "Delete"}
+                  {deleteTeacherMutation.isPending ? t('teachers.form.deleting') : t('teachers.form.deleteButton')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -12,6 +12,7 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import { useTeachMode } from "@/hooks/use-teach-mode";
 import { parseContentBlocks } from "@/utils/content-block-parser";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ export default function TeachPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const lessonId = parseInt(id ?? "0", 10);
 
   const [previewBlock, setPreviewBlock] = useState<ContentBlockContract | null>(null);
@@ -161,7 +163,7 @@ export default function TeachPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">
-        Laden…
+        {t('teach.loading')}
       </div>
     );
   }
@@ -169,7 +171,7 @@ export default function TeachPage() {
   if (!lesson) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">
-        Les niet gevonden.
+        {t('teach.lessonNotFound')}
       </div>
     );
   }
@@ -185,7 +187,7 @@ export default function TeachPage() {
             onClick={() => navigate("/lessons")}
             className="text-gray-400 hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Terug
+            <ArrowLeft className="h-4 w-4 mr-1" /> {t('teach.back')}
           </Button>
           <Separator orientation="vertical" className="h-5 bg-gray-700" />
           <div>
@@ -205,7 +207,7 @@ export default function TeachPage() {
               }`}
             >
               <Hand className="h-3 w-3 mr-1" />
-              Klaar! ({studentReactionCount})
+              {t('teach.reactionReady')} ({studentReactionCount})
             </Badge>
           )}
 
@@ -216,10 +218,10 @@ export default function TeachPage() {
                 className={displayCount > 0 ? "bg-green-600" : "bg-gray-600"}
               >
                 <Tv2 className="h-3 w-3 mr-1" />
-                {displayCount > 0 ? "Leerling verbonden" : "Wachten op leerling…"}
+                {displayCount > 0 ? t('teach.studentConnected') : t('teach.waitingForStudent')}
               </Badge>
               <Button variant="destructive" size="sm" onClick={closeSession}>
-                <MonitorOff className="h-4 w-4 mr-1" /> Sluit scherm
+                <MonitorOff className="h-4 w-4 mr-1" /> {t('teach.closeScreen')}
               </Button>
             </>
           ) : (
@@ -228,7 +230,7 @@ export default function TeachPage() {
               onClick={() => openSession(lessonId)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <Monitor className="h-4 w-4 mr-1" /> Open leerlingscherm
+              <Monitor className="h-4 w-4 mr-1" /> {t('teach.openStudentScreen')}
             </Button>
           )}
         </div>
@@ -242,10 +244,10 @@ export default function TeachPage() {
 
             {/* Content blocks */}
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
-              Lesinhoud — {contentBlocks.length} blokken
+              {t('teach.lessonContent')} — {contentBlocks.length} {t('teach.blocks')}
             </p>
             {contentBlocks.length === 0 && (
-              <p className="text-gray-500 text-sm">Geen content blokken.</p>
+              <p className="text-gray-500 text-sm">{t('teach.noContentBlocks')}</p>
             )}
             {contentBlocks.map((block, index) => (
               <div
@@ -261,7 +263,7 @@ export default function TeachPage() {
                   <div className="flex items-center gap-2 min-w-0">
                     {blockTypeIcon(block.type)}
                     <span className="text-sm truncate">
-                      {block.title || block.type || `Blok ${index + 1}`}
+                      {block.title || block.type || `${t('teach.block')} ${index + 1}`}
                     </span>
                   </div>
                   {isSessionOpen && (
@@ -288,7 +290,7 @@ export default function TeachPage() {
                 className="w-full mt-2 border-gray-700 text-gray-400 hover:text-white"
                 onClick={handleClear}
               >
-                <X className="h-3 w-3 mr-1" /> Leeg scherm
+                <X className="h-3 w-3 mr-1" /> {t('teach.clearScreen')}
               </Button>
             )}
 
@@ -301,7 +303,7 @@ export default function TeachPage() {
                 <Card className="bg-gray-900 border-gray-700">
                   <CardHeader className="py-3 px-3">
                     <CardTitle className="text-sm flex items-center gap-2 text-gray-300">
-                      <Timer className="h-4 w-4 text-orange-400" /> Timer
+                      <Timer className="h-4 w-4 text-orange-400" /> {t('teach.timer.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 pb-3 space-y-2">
@@ -315,10 +317,10 @@ export default function TeachPage() {
                         onChange={(e) => setTimerMinutes(e.target.value)}
                         className="h-7 w-20 bg-gray-800 border-gray-700 text-white text-sm"
                       />
-                      <Label className="text-gray-400 text-xs">minuten</Label>
+                      <Label className="text-gray-400 text-xs">{t('teach.timer.minutes')}</Label>
                     </div>
                     <Input
-                      placeholder="Label (optioneel)"
+                      placeholder={t('teach.labelOptional')}
                       value={timerLabel}
                       onChange={(e) => setTimerLabel(e.target.value)}
                       className="h-7 bg-gray-800 border-gray-700 text-white text-sm placeholder:text-gray-600"
@@ -328,7 +330,7 @@ export default function TeachPage() {
                       className="w-full h-7 bg-orange-600 hover:bg-orange-700 text-xs"
                       onClick={handlePushTimer}
                     >
-                      Push timer
+                      {t('teach.timer.push')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -337,12 +339,12 @@ export default function TeachPage() {
                 <Card className="bg-gray-900 border-gray-700">
                   <CardHeader className="py-3 px-3">
                     <CardTitle className="text-sm flex items-center gap-2 text-gray-300">
-                      <PauseCircle className="h-4 w-4 text-yellow-400" /> Pauze
+                      <PauseCircle className="h-4 w-4 text-yellow-400" /> {t('teach.pause.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 pb-3 space-y-2">
                     <Input
-                      placeholder="Bericht (optioneel)"
+                      placeholder={t('teach.pause.messagePlaceholder')}
                       value={pauseMessage}
                       onChange={(e) => setPauseMessage(e.target.value)}
                       className="h-7 bg-gray-800 border-gray-700 text-white text-sm placeholder:text-gray-600"
@@ -352,7 +354,7 @@ export default function TeachPage() {
                       className="w-full h-7 bg-yellow-600 hover:bg-yellow-700 text-xs"
                       onClick={handlePushPause}
                     >
-                      Push pauze
+                      {t('teach.pause.push')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -361,7 +363,7 @@ export default function TeachPage() {
                 <Card className="bg-gray-900 border-gray-700">
                   <CardHeader className="py-3 px-3">
                     <CardTitle className="text-sm flex items-center gap-2 text-gray-300">
-                      <Drum className="h-4 w-4 text-purple-400" /> Metronoom
+                      <Drum className="h-4 w-4 text-purple-400" /> {t('teach.metronome.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 pb-3 space-y-2">
@@ -378,7 +380,7 @@ export default function TeachPage() {
                         />
                       </div>
                       <div className="w-16">
-                        <Label className="text-gray-500 text-xs">Maat</Label>
+                        <Label className="text-gray-500 text-xs">{t('teach.metronome.beats')}</Label>
                         <Input
                           type="number"
                           min="2"
@@ -390,7 +392,7 @@ export default function TeachPage() {
                       </div>
                     </div>
                     <Input
-                      placeholder="Label (optioneel)"
+                      placeholder={t('teach.labelOptional')}
                       value={metronomeLabel}
                       onChange={(e) => setMetronomeLabel(e.target.value)}
                       className="h-7 bg-gray-800 border-gray-700 text-white text-sm placeholder:text-gray-600"
@@ -400,7 +402,7 @@ export default function TeachPage() {
                       className="w-full h-7 bg-purple-600 hover:bg-purple-700 text-xs"
                       onClick={handlePushMetronome}
                     >
-                      Push metronoom
+                      {t('teach.metronome.push')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -415,7 +417,7 @@ export default function TeachPage() {
             <div className="flex-1 flex items-center justify-center p-8">
               <div className="w-full max-w-4xl">
                 <p className="text-xs text-gray-500 mb-4 text-center uppercase tracking-wider">
-                  Voorbeeld leerlingscherm
+                  {t('teach.previewStudentScreen')}
                 </p>
                 <DisplayBlockRenderer
                   block={previewBlock}
@@ -432,8 +434,8 @@ export default function TeachPage() {
                 <Tv2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">
                   {isSessionOpen
-                    ? "Klik op een blok om het te pushen naar het leerlingscherm"
-                    : "Open het leerlingscherm om te beginnen"}
+                    ? t('teach.clickBlockToPush')
+                    : t('teach.openScreenToStart')}
                 </p>
               </div>
             </div>

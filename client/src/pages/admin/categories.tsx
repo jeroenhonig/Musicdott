@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, BookOpen, Target, Brain, Music, Zap, Star, Palette, Settings } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 import AppLayout from "@/components/layouts/app-layout";
 
 const availableColors = [
@@ -39,6 +40,7 @@ export default function CategoriesPage() {
   const [icon, setIcon] = useState("BookOpen");
   
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   
   // Fetch categories
@@ -61,17 +63,17 @@ export default function CategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/lesson-categories"] });
       setIsAddDialogOpen(false);
       resetForm();
-      toast({ title: "Success", description: "Category created successfully" });
+      toast({ title: t('categories.toastSuccess'), description: t('categories.toastCreateSuccess') });
     },
     onError: (error: Error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: t('categories.toastError'),
         description: error.message,
         variant: "destructive"
       });
     }
   });
-  
+
   // Update category mutation
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
@@ -87,17 +89,17 @@ export default function CategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/lesson-categories"] });
       setIsEditDialogOpen(false);
       resetForm();
-      toast({ title: "Success", description: "Category updated successfully" });
+      toast({ title: t('categories.toastSuccess'), description: t('categories.toastUpdateSuccess') });
     },
     onError: (error: Error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: t('categories.toastError'),
         description: error.message,
         variant: "destructive"
       });
     }
   });
-  
+
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -112,17 +114,17 @@ export default function CategoriesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lesson-categories"] });
-      toast({ title: "Success", description: "Category deleted successfully" });
+      toast({ title: t('categories.toastSuccess'), description: t('categories.toastDeleteSuccess') });
     },
     onError: (error: Error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: t('categories.toastError'),
         description: error.message,
         variant: "destructive"
       });
     }
   });
-  
+
   const resetForm = () => {
     setName("");
     setDescription("");
@@ -168,7 +170,7 @@ export default function CategoriesPage() {
   
   if (isLoading) {
     return (
-      <AppLayout title="Lesson Categories">
+      <AppLayout title={t('categories.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -181,50 +183,50 @@ export default function CategoriesPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Lesson Categories</h1>
+            <h1 className="text-3xl font-bold">{t('categories.title')}</h1>
             <p className="text-muted-foreground">
-              Manage lesson categories to organize your educational content
+              {t('categories.subtitle')}
             </p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Category
+                {t('categories.addButton')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
+                <DialogTitle>{t('categories.addDialogTitle')}</DialogTitle>
                 <DialogDescription>
-                  Create a new category to organize your lessons.
+                  {t('categories.addDialogDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">{t('categories.nameLabel')}</Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter category name"
+                    placeholder={t('categories.namePlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('categories.descriptionLabel')}</Label>
                   <Input
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter category description"
+                    placeholder={t('categories.descriptionPlaceholder')}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="color">Color</Label>
+                    <Label htmlFor="color">{t('categories.colorLabel')}</Label>
                     <Select value={color} onValueChange={setColor}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select color" />
+                        <SelectValue placeholder={t('categories.colorPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableColors.map((colorOption) => (
@@ -242,10 +244,10 @@ export default function CategoriesPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="icon">Icon</Label>
+                    <Label htmlFor="icon">{t('categories.iconLabel')}</Label>
                     <Select value={icon} onValueChange={setIcon}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
+                        <SelectValue placeholder={t('categories.iconPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableIcons.map((iconOption) => {
@@ -266,13 +268,13 @@ export default function CategoriesPage() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
+                  {t('categories.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={handleCreate}
                   disabled={!name.trim() || createCategoryMutation.isPending}
                 >
-                  {createCategoryMutation.isPending ? "Creating..." : "Create Category"}
+                  {createCategoryMutation.isPending ? t('categories.creating') : t('categories.createButton')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -331,36 +333,36 @@ export default function CategoriesPage() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Edit Category</DialogTitle>
+              <DialogTitle>{t('categories.editDialogTitle')}</DialogTitle>
               <DialogDescription>
-                Make changes to the category details.
+                {t('categories.editDialogDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Name *</Label>
+                <Label htmlFor="edit-name">{t('categories.nameLabel')}</Label>
                 <Input
                   id="edit-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter category name"
+                  placeholder={t('categories.namePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
+                <Label htmlFor="edit-description">{t('categories.descriptionLabel')}</Label>
                 <Input
                   id="edit-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter category description"
+                  placeholder={t('categories.descriptionPlaceholder')}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-color">Color</Label>
+                  <Label htmlFor="edit-color">{t('categories.colorLabel')}</Label>
                   <Select value={color} onValueChange={setColor}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select color" />
+                      <SelectValue placeholder={t('categories.colorPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableColors.map((colorOption) => (
@@ -378,10 +380,10 @@ export default function CategoriesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-icon">Icon</Label>
+                  <Label htmlFor="edit-icon">{t('categories.iconLabel')}</Label>
                   <Select value={icon} onValueChange={setIcon}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select icon" />
+                      <SelectValue placeholder={t('categories.iconPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableIcons.map((iconOption) => {
@@ -402,13 +404,13 @@ export default function CategoriesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
+                {t('categories.cancel')}
               </Button>
-              <Button 
+              <Button
                 onClick={handleUpdate}
                 disabled={!name.trim() || updateCategoryMutation.isPending}
               >
-                {updateCategoryMutation.isPending ? "Updating..." : "Update Category"}
+                {updateCategoryMutation.isPending ? t('categories.updating') : t('categories.updateButton')}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { 
-  useAchievementDefinitions, 
-  useStudentAchievements, 
-  useCheckAchievements 
+import {
+  useAchievementDefinitions,
+  useStudentAchievements,
+  useCheckAchievements
 } from '@/hooks/use-achievements';
 import AchievementBadge from '@/components/achievements/achievement-badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Award, Trophy, Target, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 
 interface AchievementsTabProps {
   studentId: number;
@@ -17,6 +18,7 @@ interface AchievementsTabProps {
 
 export default function AchievementsTab({ studentId }: AchievementsTabProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const { 
     data: achievementDefinitions = [], 
@@ -69,25 +71,25 @@ export default function AchievementsTab({ studentId }: AchievementsTabProps) {
   const handleCheckAchievements = async () => {
     try {
       const newAchievements = await checkAchievements.mutateAsync();
-      
+
       if (newAchievements.length > 0) {
         toast({
-          title: "New achievements unlocked!",
-          description: `Congratulations! You've earned ${newAchievements.length} new achievement${newAchievements.length > 1 ? 's' : ''}!`,
+          title: t('achievements.newUnlocked'),
+          description: `${t('achievements.keepGoing')} ${newAchievements.length} ${t('achievements.earned')}!`,
           variant: "default",
         });
         refetchAchievements();
       } else {
         toast({
-          title: "Keep going!",
-          description: "No new achievements yet. Continue practicing to unlock more rewards!",
+          title: t('achievements.keepGoing'),
+          description: t('achievements.noneYet'),
           variant: "default",
         });
       }
     } catch (error) {
       toast({
-        title: "Error checking achievements",
-        description: "Failed to check for new achievements.",
+        title: t('achievements.checkError'),
+        description: t('achievements.checkErrorDescription'),
         variant: "destructive",
       });
     }
@@ -108,21 +110,21 @@ export default function AchievementsTab({ studentId }: AchievementsTabProps) {
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center p-6 text-center">
           <Award className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No achievements available</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('achievements.noAchievementsTitle')}</h3>
           <p className="text-muted-foreground mb-4">
-            Achievements have not been set up yet.
+            {t('achievements.noAchievementsDescription')}
           </p>
         </CardContent>
       </Card>
     );
   }
-  
+
   const categoryLabels: Record<string, string> = {
-    lesson_completion: "Lesson Mastery",
-    practice_streak: "Practice Dedication", 
-    skill_progress: "Skill Development",
-    assignment_completion: "Assignment Excellence",
-    session_attendance: "Attendance Awards"
+    lesson_completion: t('achievements.categoryLessonMastery'),
+    practice_streak: t('achievements.categoryPracticeDedication'),
+    skill_progress: t('achievements.categorySkillDevelopment'),
+    assignment_completion: t('achievements.categoryAssignmentExcellence'),
+    session_attendance: t('achievements.categoryAttendanceAwards')
   };
 
   return (
@@ -133,39 +135,39 @@ export default function AchievementsTab({ studentId }: AchievementsTabProps) {
           <CardContent className="p-4 text-center">
             <Trophy className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-yellow-800">{stats.totalXP}</p>
-            <p className="text-sm text-yellow-600">Total XP</p>
+            <p className="text-sm text-yellow-600">{t('achievements.totalXp')}</p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
           <CardContent className="p-4 text-center">
             <Award className="h-8 w-8 text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-green-800">{stats.earnedCount}</p>
-            <p className="text-sm text-green-600">Earned</p>
+            <p className="text-sm text-green-600">{t('achievements.earned')}</p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
           <CardContent className="p-4 text-center">
             <Target className="h-8 w-8 text-blue-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-blue-800">{stats.totalCount}</p>
-            <p className="text-sm text-blue-600">Available</p>
+            <p className="text-sm text-blue-600">{t('achievements.available')}</p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
           <CardContent className="p-4 text-center">
             <Sparkles className="h-8 w-8 text-purple-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-purple-800">{stats.completionRate}%</p>
-            <p className="text-sm text-purple-600">Complete</p>
+            <p className="text-sm text-purple-600">{t('achievements.complete')}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Check Achievements Button */}
       <div className="flex justify-center">
-        <Button 
-          onClick={handleCheckAchievements} 
+        <Button
+          onClick={handleCheckAchievements}
           disabled={checkAchievements.isPending}
           className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-medium px-8"
         >
@@ -173,7 +175,7 @@ export default function AchievementsTab({ studentId }: AchievementsTabProps) {
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
           <Sparkles className="mr-2 h-4 w-4" />
-          Check for New Achievements
+          {t('achievements.checkForNew')}
         </Button>
       </div>
       
@@ -215,16 +217,16 @@ export default function AchievementsTab({ studentId }: AchievementsTabProps) {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
             <Award className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Start Your Achievement Journey!</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('achievements.emptyTitle')}</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Complete lessons, practice regularly, and reach milestones to unlock achievement badges and earn XP.
+              {t('achievements.emptyDescription')}
             </p>
-            <Button 
+            <Button
               onClick={handleCheckAchievements}
               className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Check for Achievements
+              {t('achievements.checkForAchievements')}
             </Button>
           </CardContent>
         </Card>

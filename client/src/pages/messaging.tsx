@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Send, Plus, User, Calendar, Reply, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import AppLayout from "@/components/layouts/app-layout";
 import { format } from "date-fns";
 
@@ -39,6 +40,7 @@ interface User {
 export default function MessagingPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isComposeDialogOpen, setIsComposeDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -72,14 +74,14 @@ export default function MessagingPage() {
       setIsComposeDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       toast({
-        title: "Message sent",
-        description: "Your message has been sent successfully.",
+        title: t('messaging.pageTitle'),
+        description: t('messaging.sentSuccess'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: t('categories.toastError'),
+        description: t('messaging.sendError'),
         variant: "destructive",
       });
     },
@@ -110,8 +112,8 @@ export default function MessagingPage() {
   const handleSendMessage = () => {
     if (!recipientId || !subject.trim() || !messageText.trim()) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all fields.",
+        title: t('messaging.missingInfo'),
+        description: t('messaging.fillAllFields'),
         variant: "destructive",
       });
       return;
@@ -131,7 +133,7 @@ export default function MessagingPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Messages">
+      <AppLayout title={t('messaging.pageTitle')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -155,12 +157,12 @@ export default function MessagingPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Messages</h1>
+            <h1 className="text-3xl font-bold">{t('messaging.pageTitle')}</h1>
             <p className="text-muted-foreground">
-              Communicate with teachers and students
+              {t('messaging.subtitle')}
               {unreadCount > 0 && (
                 <Badge className="ml-2" variant="destructive">
-                  {unreadCount} unread
+                  {unreadCount} {t('messaging.unread')}
                 </Badge>
               )}
             </p>
@@ -169,23 +171,23 @@ export default function MessagingPage() {
             <DialogTrigger asChild>
               <Button className="apple-button">
                 <Plus className="h-4 w-4 mr-2" />
-                Compose Message
+                {t('messaging.compose')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Compose New Message</DialogTitle>
+                <DialogTitle>{t('messaging.composeTitle')}</DialogTitle>
                 <DialogDescription>
-                  Send a message to a teacher or student.
+                  {t('messaging.composeDescription')}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="recipient">Recipient</Label>
+                  <Label htmlFor="recipient">{t('messaging.recipientLabel')}</Label>
                   <Select value={recipientId} onValueChange={setRecipientId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select recipient" />
+                      <SelectValue placeholder={t('messaging.recipientPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {messagingUsers.map((availableUser) => (
@@ -204,41 +206,41 @@ export default function MessagingPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input 
-                    id="subject" 
+                  <Label htmlFor="subject">{t('messaging.subjectLabel')}</Label>
+                  <Input
+                    id="subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Enter message subject" 
+                    placeholder={t('messaging.subjectPlaceholder')} 
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea 
-                    id="message" 
+                  <Label htmlFor="message">{t('messaging.messageLabel')}</Label>
+                  <Textarea
+                    id="message"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Type your message here..."
+                    placeholder={t('messaging.messagePlaceholder')}
                     className="min-h-[120px]"
                   />
                 </div>
               </div>
               
               <DialogFooter>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsComposeDialogOpen(false)}
                 >
-                  Cancel
+                  {t('messaging.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSendMessage}
                   disabled={sendMessageMutation.isPending}
                   className="apple-button"
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+                  {sendMessageMutation.isPending ? t('messaging.sending') : t('messaging.sendButton')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -252,13 +254,13 @@ export default function MessagingPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                Inbox
+                {t('messaging.inbox')}
                 {unreadCount > 0 && (
                   <Badge variant="destructive">{unreadCount}</Badge>
                 )}
               </CardTitle>
               <CardDescription>
-                Messages received from others
+                {t('messaging.inboxDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -282,7 +284,7 @@ export default function MessagingPage() {
                               {message.sender_type}
                             </Badge>
                             {!message.is_read && (
-                              <Badge variant="destructive" className="text-xs">New</Badge>
+                              <Badge variant="destructive" className="text-xs">{t('messaging.new')}</Badge>
                             )}
                           </div>
                           <p className={`text-sm mt-1 ${!message.is_read ? 'font-semibold' : 'text-gray-600'}`}>
@@ -301,7 +303,7 @@ export default function MessagingPage() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <MessageCircle className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                    <p>No messages in your inbox</p>
+                    <p>{t('messaging.noInbox')}</p>
                   </div>
                 )}
               </div>
@@ -313,10 +315,10 @@ export default function MessagingPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                Sent Messages
+                {t('messaging.sentMessages')}
               </CardTitle>
               <CardDescription>
-                Messages you have sent to others
+                {t('messaging.sentDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -331,7 +333,7 @@ export default function MessagingPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">To: {message.recipient_name}</span>
+                            <span className="font-medium">{t('messaging.to')} {message.recipient_name}</span>
                             <Badge variant="outline" className="text-xs">
                               {message.recipient_type}
                             </Badge>
@@ -352,7 +354,7 @@ export default function MessagingPage() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Send className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                    <p>No sent messages</p>
+                    <p>{t('messaging.noSent')}</p>
                   </div>
                 )}
               </div>
@@ -373,13 +375,13 @@ export default function MessagingPage() {
               <DialogDescription>
                 <div className="flex items-center gap-4 text-sm">
                   <span>
-                    <strong>From:</strong> {selectedMessage.sender_name} ({selectedMessage.sender_type})
+                    <strong>{t('messaging.from')}</strong> {selectedMessage.sender_name} ({selectedMessage.sender_type})
                   </span>
                   <span>
-                    <strong>To:</strong> {selectedMessage.recipient_name} ({selectedMessage.recipient_type})
+                    <strong>{t('messaging.to')}</strong> {selectedMessage.recipient_name} ({selectedMessage.recipient_type})
                   </span>
                   <span>
-                    <strong>Date:</strong> {format(new Date(selectedMessage.created_at), "MMM d, yyyy 'at' h:mm a")}
+                    <strong>{t('messaging.date')}</strong> {format(new Date(selectedMessage.created_at), "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
               </DialogDescription>
@@ -392,11 +394,11 @@ export default function MessagingPage() {
             </div>
             
             <DialogFooter>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => setIsViewDialogOpen(false)}
               >
-                Close
+                {t('messaging.close')}
               </Button>
               {selectedMessage.recipient_id === user?.id && (
                 <Button 
@@ -409,7 +411,7 @@ export default function MessagingPage() {
                   className="apple-button"
                 >
                   <Reply className="h-4 w-4 mr-2" />
-                  Reply
+                  {t('messaging.reply')}
                 </Button>
               )}
             </DialogFooter>

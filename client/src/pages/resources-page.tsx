@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,7 @@ const convertToEducationalContent = (staticContent: StaticContent): EducationalC
 });
 
 export default function ResourcesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isOwner = user?.role === 'school_owner' || user?.role === 'platform_owner';
 
@@ -481,12 +483,12 @@ export default function ResourcesPage() {
     <div className="p-6 space-y-6">
       <div className="liquid-glass rounded-2xl p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Resources & Learning Hub
+          {t('resources.title')}
         </h1>
         <p className="text-gray-600">
-          {isOwner 
-            ? "Comprehensive guides and resources to help you build and grow your music school"
-            : "Professional development resources to enhance your teaching practice"
+          {isOwner
+            ? t('resources.subtitleOwner')
+            : t('resources.subtitleTeacher')
           }
         </p>
       </div>
@@ -494,9 +496,9 @@ export default function ResourcesPage() {
       <div className="liquid-glass rounded-2xl">
         <Tabs defaultValue="guides" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="guides">Guides & Articles</TabsTrigger>
-            <TabsTrigger value="videos">Video Tutorials</TabsTrigger>
-            <TabsTrigger value="tools">Templates & Tools</TabsTrigger>
+            <TabsTrigger value="guides">{t('resources.tab.guides')}</TabsTrigger>
+            <TabsTrigger value="videos">{t('resources.tab.videos')}</TabsTrigger>
+            <TabsTrigger value="tools">{t('resources.tab.tools')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="guides" className="p-6">
@@ -504,7 +506,7 @@ export default function ResourcesPage() {
             {/* API Content from CMS */}
             {safeGuides.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Platform Resources</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">{t('resources.guides.platformResources')}</h3>
                 <div className="grid gap-4">
                   {safeGuides.filter(guide => {
                     if (isOwner) return true;
@@ -518,12 +520,12 @@ export default function ResourcesPage() {
                               <Badge variant="secondary">{guide.category}</Badge>
                               <Badge variant="outline">{guide.difficulty}</Badge>
                               {guide.targetAudience === "owners" && (
-                                <Badge variant="default">For Owners</Badge>
+                                <Badge variant="default">{t('resources.guides.forOwners')}</Badge>
                               )}
                               {guide.contentBlocks && guide.contentBlocks.length > 0 && (
                                 <Badge variant="outline" className="bg-red-50 text-red-700">
                                   <Video className="h-3 w-3 mr-1" />
-                                  Videos
+                                  {t('resources.guides.videos')}
                                 </Badge>
                               )}
                             </div>
@@ -545,7 +547,7 @@ export default function ResourcesPage() {
                             triggerElement={
                               <Button className="flex items-center gap-2">
                                 <BookOpen size={16} />
-                                Read Guide
+                                {t('resources.guides.readGuide')}
                               </Button>
                             }
                           />
@@ -566,10 +568,10 @@ export default function ResourcesPage() {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-2 text-yellow-800">
                   <ExternalLink size={16} />
-                  <span className="font-medium">Platform Resources Unavailable</span>
+                  <span className="font-medium">{t('resources.guides.unavailableTitle')}</span>
                 </div>
                 <p className="text-yellow-700 text-sm mt-1">
-                  We're unable to load platform resources at the moment. You can still access our comprehensive guide library below.
+                  {t('resources.guides.unavailableDesc')}
                 </p>
               </div>
             )}
@@ -577,7 +579,7 @@ export default function ResourcesPage() {
             {/* Static Content */}
             {staticGuides.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Additional Resources</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">{t('resources.guides.additionalResources')}</h3>
                 <div className="grid gap-4">
                   {staticGuides.filter(guide => {
                     if (isOwner) return true;
@@ -591,7 +593,7 @@ export default function ResourcesPage() {
                               <Badge variant="secondary">{guide.category}</Badge>
                               <Badge variant="outline">{guide.difficulty}</Badge>
                               {guide.targetAudience === "owners" && (
-                                <Badge variant="default">For Owners</Badge>
+                                <Badge variant="default">{t('resources.guides.forOwners')}</Badge>
                               )}
                             </div>
                             <CardTitle className="text-xl mb-2">{guide.title}</CardTitle>
@@ -612,7 +614,7 @@ export default function ResourcesPage() {
                             triggerElement={
                               <Button className="flex items-center gap-2">
                                 <BookOpen size={16} />
-                                Read Guide
+                                {t('resources.guides.readGuide')}
                               </Button>
                             }
                           />
@@ -650,7 +652,7 @@ export default function ResourcesPage() {
                 <CardContent>
                   <Button className="w-full flex items-center gap-2">
                     <PlayCircle size={16} />
-                    Watch Tutorial
+                    {t('resources.videos.watchTutorial')}
                   </Button>
                 </CardContent>
               </Card>
@@ -680,13 +682,13 @@ export default function ResourcesPage() {
                     <Link href={tool.url}>
                       <Button className="flex items-center gap-2 w-full">
                         <ExternalLink size={16} />
-                        Open Tool
+                        {t('resources.tools.openTool')}
                       </Button>
                     </Link>
                   ) : (
                     <Button className="flex items-center gap-2">
                       <Download size={16} />
-                      Download
+                      {t('resources.tools.download')}
                     </Button>
                   )}
                 </CardContent>
@@ -703,15 +705,15 @@ export default function ResourcesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Need Personal Help?
+                {t('resources.help.title')}
               </h3>
               <p className="text-gray-600">
-                Schedule a 30-minute consultation with our education specialists
+                {t('resources.help.description')}
               </p>
             </div>
             <Button className="flex items-center gap-2">
               <ExternalLink size={16} />
-              Book Consultation
+              {t('resources.help.button')}
             </Button>
           </div>
         </CardContent>

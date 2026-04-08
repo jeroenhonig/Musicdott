@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 import EnhancedSearch from "@/components/dashboard/enhanced-search";
 import LessonContentViewer from "@/components/lessons/lesson-content-viewer";
 import SongContentViewer from "@/components/songs/song-content-viewer";
@@ -14,6 +15,7 @@ import { X, Music, User, Clock, Play } from "lucide-react";
 import type { Lesson, Song } from "@shared/schema";
 
 export default function SearchPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -59,9 +61,9 @@ export default function SearchPage() {
     <AppLayout>
       <div className="p-6 max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Songs</h1>
+          <h1 className="text-2xl font-bold mb-2">{t('search.title')}</h1>
           <p className="text-gray-600">
-            Search and browse songs by artist, title, or genre
+            {t('search.subtitle')}
           </p>
         </div>
 
@@ -77,7 +79,7 @@ export default function SearchPage() {
           <div className="mt-12">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Music className="h-5 w-5" />
-              Recently Imported Songs
+              {t('search.recentSongs')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recentSongs.map((song) => (
@@ -175,7 +177,7 @@ export default function SearchPage() {
                     {selectedSong?.title}
                   </DialogTitle>
                   {selectedSong?.composer && (
-                    <p className="text-gray-600 mt-1">by {selectedSong.composer}</p>
+                    <p className="text-gray-600 mt-1">{t('studentPortal.songView.byArtist')} {selectedSong.composer}</p>
                   )}
                 </div>
                 <Button

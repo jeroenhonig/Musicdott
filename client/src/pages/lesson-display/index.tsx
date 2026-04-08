@@ -22,9 +22,11 @@ import type {
   MetronomeDisplayState,
   PauseDisplayState,
 } from "@shared/display-events";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LessonDisplayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const { t } = useTranslation();
 
   const {
     isLoading,
@@ -54,8 +56,8 @@ export default function LessonDisplayPage() {
       <DisplayShell>
         <div className="flex flex-col items-center justify-center text-center">
           <Tv2 className="h-16 w-16 text-gray-600 mb-6" />
-          <h1 className="text-3xl font-bold text-gray-300 mb-2">Les afgerond</h1>
-          <p className="text-gray-500">De docent heeft het scherm gesloten.</p>
+          <h1 className="text-3xl font-bold text-gray-300 mb-2">{t('display.sessionEnded')}</h1>
+          <p className="text-gray-500">{t('display.sessionEndedDescription')}</p>
         </div>
       </DisplayShell>
     );
@@ -67,7 +69,7 @@ export default function LessonDisplayPage() {
       <DisplayShell>
         <div className="flex flex-col items-center justify-center text-center">
           <div className="w-8 h-8 border-2 border-gray-500 border-t-white rounded-full animate-spin mb-6" />
-          <p className="text-gray-400">Verbinden met lesscherm…</p>
+          <p className="text-gray-400">{t('display.connecting')}</p>
           {lesson && (
             <p className="text-gray-500 text-sm mt-2">{lesson.title}</p>
           )}
@@ -99,7 +101,7 @@ export default function LessonDisplayPage() {
             /* idle — waiting for teacher */
             <div className="flex flex-col items-center justify-center text-center">
               <Tv2 className="h-16 w-16 text-gray-700 mb-6" />
-              <p className="text-gray-500 text-xl">Wachten op de docent…</p>
+              <p className="text-gray-500 text-xl">{t('display.waitingForTeacher')}</p>
             </div>
           )}
         </div>
@@ -119,7 +121,7 @@ export default function LessonDisplayPage() {
             }`}
           >
             <Hand className="h-5 w-5 mr-2" />
-            {reactionSent ? "Verzonden!" : "Klaar"}
+            {reactionSent ? t('display.reactionSent') : t('display.reactionButton')}
           </Button>
         </div>
       )}
