@@ -6296,6 +6296,1173 @@ export const translations: Translations = {
     en: 'Book Consultation',
     nl: 'Consultatie boeken'
   }
+,
+
+  // Groove Converter page
+  'grooveConverter.title': {
+    en: 'GrooveScribe Auto-Embed Tool',
+    nl: 'GrooveScribe Auto-Insluit Tool'
+  },
+  'grooveConverter.subtitle': {
+    en: 'Convert GrooveScribe links and patterns to safe, embeddable iframes',
+    nl: 'Converteer GrooveScribe-links en patronen naar veilige, insluitbare iframes'
+  },
+  'grooveConverter.howItWorks': {
+    en: 'How It Works',
+    nl: 'Hoe het werkt'
+  },
+  'grooveConverter.autoPaste.title': {
+    en: 'Automatic Paste Detection',
+    nl: 'Automatische plakdetectie'
+  },
+  'grooveConverter.autoPaste.description': {
+    en: 'Paste GrooveScribe links anywhere in MusicDott and they auto-convert to interactive embeds',
+    nl: 'Plak GrooveScribe-links overal in MusicDott en ze worden automatisch omgezet naar interactieve insluitingen'
+  },
+  'grooveConverter.safeUrl.title': {
+    en: 'Safe URL Encoding',
+    nl: 'Veilige URL-codering'
+  },
+  'grooveConverter.safeUrl.description': {
+    en: 'Automatically encodes pipes (|) and special characters to prevent iframe breaks',
+    nl: 'Codeert automatisch pijpen (|) en speciale tekens om iframe-problemen te voorkomen'
+  },
+  'grooveConverter.multiFormat.title': {
+    en: 'Multi-Format Support',
+    nl: 'Ondersteuning voor meerdere formaten'
+  },
+  'grooveConverter.multiFormat.description': {
+    en: "Supports full URLs, query strings, and bare parameters from multiple GrooveScribe hosts",
+    nl: "Ondersteunt volledige URL's, querystrings en losse parameters van meerdere GrooveScribe-hosts"
+  },
+  'grooveConverter.responsive.title': {
+    en: 'Responsive Design',
+    nl: 'Responsief ontwerp'
+  },
+  'grooveConverter.responsive.description': {
+    en: 'Generated embeds work perfectly on desktop, tablet, and mobile devices',
+    nl: 'Gegenereerde insluitingen werken perfect op desktop, tablet en mobiele apparaten'
+  },
+
+  // Groove Demo page
+  'grooveDemo.loading': {
+    en: 'Loading lessons...',
+    nl: 'Lessen laden...'
+  },
+  'grooveDemo.backToLessons': {
+    en: 'Back to Lessons',
+    nl: 'Terug naar lessen'
+  },
+  'grooveDemo.livePatterns': {
+    en: 'Live GrooveScribe Patterns',
+    nl: 'Live GrooveScribe Patronen'
+  },
+  'grooveDemo.lessonLabel': {
+    en: 'Lesson',
+    nl: 'Les'
+  },
+  'grooveDemo.categoryLabel': {
+    en: 'Category',
+    nl: 'Categorie'
+  },
+  'grooveDemo.uncategorized': {
+    en: 'Uncategorized',
+    nl: 'Zonder categorie'
+  },
+  'grooveDemo.levelLabel': {
+    en: 'Level',
+    nl: 'Niveau'
+  },
+  'grooveDemo.patternsLabel': {
+    en: 'Patterns',
+    nl: 'Patronen'
+  },
+  'grooveDemo.patternLabel': {
+    en: 'Pattern',
+    nl: 'Patroon'
+  },
+  'grooveDemo.groovePattern': {
+    en: 'Groove Pattern',
+    nl: 'Groove Patroon'
+  },
+  'grooveDemo.statistics': {
+    en: 'Stored Lesson Statistics',
+    nl: 'Opgeslagen Lesstatistieken'
+  },
+  'grooveDemo.totalLessons': {
+    en: 'Total Lessons',
+    nl: 'Totaal Lessen'
+  },
+  'grooveDemo.withGrooveScribe': {
+    en: 'With GrooveScribe',
+    nl: 'Met GrooveScribe'
+  },
+  'grooveDemo.patternsInCurrent': {
+    en: 'Patterns in Current',
+    nl: 'Patronen in Huidig'
+  },
+
+  // Groove Patterns page
+  'groovePatterns.title': {
+    en: 'Groove Pattern Library',
+    nl: 'Groove Patroonbibliotheek'
+  },
+  'groovePatterns.subtitle': {
+    en: 'Create, browse, and share interactive drum patterns with GrooveScribe',
+    nl: 'Maak interactieve drumpatronen aan en deel ze via GrooveScribe'
+  },
+  'groovePatterns.createPattern': {
+    en: 'Create Pattern',
+    nl: 'Patroon Aanmaken'
+  },
+  'groovePatterns.searchPlaceholder': {
+    en: 'Search patterns...',
+    nl: 'Patronen zoeken...'
+  },
+  'groovePatterns.allDifficulties': {
+    en: 'All Difficulties',
+    nl: 'Alle moeilijkheden'
+  },
+  'groovePatterns.allCategories': {
+    en: 'All Categories',
+    nl: 'Alle categorieën'
+  },
+  'groovePatterns.totalPatterns': {
+    en: 'Total Patterns',
+    nl: 'Totaal Patronen'
+  },
+  'groovePatterns.uniqueTags': {
+    en: 'Unique Tags',
+    nl: 'Unieke Tags'
+  },
+  'groovePatterns.beginner': {
+    en: 'Beginner',
+    nl: 'Beginner'
+  },
+  'groovePatterns.intermediate': {
+    en: 'Intermediate',
+    nl: 'Gemiddeld'
+  },
+  'groovePatterns.advanced': {
+    en: 'Advanced',
+    nl: 'Gevorderd'
+  },
+  'groovePatterns.filteredResults': {
+    en: 'Filtered Results',
+    nl: 'Gefilterde resultaten'
+  },
+  'groovePatterns.noPatternsAvailable': {
+    en: 'No Patterns Available',
+    nl: 'Geen patronen beschikbaar'
+  },
+  'groovePatterns.noPatternsFound': {
+    en: 'No Patterns Found',
+    nl: 'Geen patronen gevonden'
+  },
+  'groovePatterns.getStarted': {
+    en: 'Get started by creating your first groove pattern',
+    nl: 'Begin met het aanmaken van je eerste groove patroon'
+  },
+  'groovePatterns.adjustSearch': {
+    en: 'Try adjusting your search terms or create a new pattern',
+    nl: 'Pas je zoektermen aan of maak een nieuw patroon aan'
+  },
+  'groovePatterns.createFirstPattern': {
+    en: 'Create Your First Pattern',
+    nl: 'Maak je eerste patroon aan'
+  },
+  'groovePatterns.errorLoading': {
+    en: 'Error Loading Patterns',
+    nl: 'Fout bij laden patronen'
+  },
+  'groovePatterns.tryAgain': {
+    en: 'Try Again',
+    nl: 'Probeer opnieuw'
+  },
+  'groovePatterns.patternCreated': {
+    en: 'Pattern Created',
+    nl: 'Patroon aangemaakt'
+  },
+  'groovePatterns.patternCreatedDescription': {
+    en: 'New groove pattern created successfully',
+    nl: 'Nieuw groove patroon succesvol aangemaakt'
+  },
+  'groovePatterns.createFailed': {
+    en: 'Create Failed',
+    nl: 'Aanmaken mislukt'
+  },
+  'groovePatterns.createFailedDescription': {
+    en: 'Could not create the groove pattern',
+    nl: 'Kon het groove patroon niet aanmaken'
+  },
+  'groovePatterns.patternUpdated': {
+    en: 'Pattern Updated',
+    nl: 'Patroon bijgewerkt'
+  },
+  'groovePatterns.patternUpdatedDescription': {
+    en: 'Groove pattern updated successfully',
+    nl: 'Groove patroon succesvol bijgewerkt'
+  },
+  'groovePatterns.updateFailed': {
+    en: 'Update Failed',
+    nl: 'Bijwerken mislukt'
+  },
+  'groovePatterns.updateFailedDescription': {
+    en: 'Could not update the groove pattern',
+    nl: 'Kon het groove patroon niet bijwerken'
+  },
+  'groovePatterns.patternDeleted': {
+    en: 'Pattern Deleted',
+    nl: 'Patroon verwijderd'
+  },
+  'groovePatterns.patternDeletedDescription': {
+    en: 'Groove pattern deleted successfully',
+    nl: 'Groove patroon succesvol verwijderd'
+  },
+  'groovePatterns.deleteFailed': {
+    en: 'Delete Failed',
+    nl: 'Verwijderen mislukt'
+  },
+  'groovePatterns.deleteFailedDescription': {
+    en: 'Could not delete the groove pattern',
+    nl: 'Kon het groove patroon niet verwijderen'
+  },
+  'groovePatterns.deleteConfirm': {
+    en: 'Are you sure you want to delete this groove pattern?',
+    nl: 'Weet je zeker dat je dit groove patroon wilt verwijderen?'
+  },
+
+  // Rewards page
+  'rewards.title': {
+    en: 'Rewards Store',
+    nl: 'Beloningswinkel'
+  },
+  'rewards.subtitle': {
+    en: 'Redeem your practice points for exclusive rewards',
+    nl: 'Wissel je oefenpunten in voor exclusieve beloningen'
+  },
+
+  // School Branding page
+  'branding.pageTitle': {
+    en: 'School Branding',
+    nl: 'Schoolhuisstijl'
+  },
+  'branding.pageSubtitle': {
+    en: "Customize your school's appearance and branding",
+    nl: "Pas het uiterlijk en de huisstijl van je school aan"
+  },
+  'branding.enabled': {
+    en: 'Enabled',
+    nl: 'Ingeschakeld'
+  },
+  'branding.disabled': {
+    en: 'Disabled',
+    nl: 'Uitgeschakeld'
+  },
+  'branding.customBranding': {
+    en: 'Custom Branding',
+    nl: 'Aangepaste huisstijl'
+  },
+  'branding.customBrandingDescription': {
+    en: "Enable custom branding to personalize your school's appearance",
+    nl: "Schakel aangepaste huisstijl in om het uiterlijk van je school te personaliseren"
+  },
+  'branding.tabLogo': {
+    en: 'Logo',
+    nl: 'Logo'
+  },
+  'branding.tabColors': {
+    en: 'Colors',
+    nl: 'Kleuren'
+  },
+  'branding.tabTypography': {
+    en: 'Typography',
+    nl: 'Typografie'
+  },
+  'branding.tabAdvanced': {
+    en: 'Advanced',
+    nl: 'Geavanceerd'
+  },
+  'branding.schoolLogo': {
+    en: 'School Logo',
+    nl: 'Schoollogo'
+  },
+  'branding.schoolLogoDescription': {
+    en: "Upload and manage your school's logo",
+    nl: "Upload en beheer het logo van je school"
+  },
+  'branding.currentLogo': {
+    en: 'Current Logo',
+    nl: 'Huidig logo'
+  },
+  'branding.removeLogo': {
+    en: 'Remove',
+    nl: 'Verwijderen'
+  },
+  'branding.replaceLogo': {
+    en: 'Replace Logo',
+    nl: 'Logo vervangen'
+  },
+  'branding.uploadLogo': {
+    en: 'Upload Logo',
+    nl: 'Logo uploaden'
+  },
+  'branding.upload': {
+    en: 'Upload',
+    nl: 'Uploaden'
+  },
+  'branding.preview': {
+    en: 'Preview',
+    nl: 'Voorbeeld'
+  },
+  'branding.exitPreview': {
+    en: 'Exit Preview',
+    nl: 'Voorbeeld verlaten'
+  },
+  'branding.logoFormats': {
+    en: 'Supported formats: JPEG, PNG, GIF, WebP',
+    nl: 'Ondersteunde formaten: JPEG, PNG, GIF, WebP'
+  },
+  'branding.logoMaxSize': {
+    en: 'Maximum file size: 5MB',
+    nl: 'Maximale bestandsgrootte: 5MB'
+  },
+  'branding.logoDimensions': {
+    en: 'Recommended dimensions: 200x200px (square) or 300x100px (horizontal)',
+    nl: 'Aanbevolen afmetingen: 200x200px (vierkant) of 300x100px (horizontaal)'
+  },
+  'branding.colorScheme': {
+    en: 'Color Scheme',
+    nl: 'Kleurenschema'
+  },
+  'branding.colorSchemeDescription': {
+    en: "Choose colors that represent your school's brand",
+    nl: "Kies kleuren die het merk van je school vertegenwoordigen"
+  },
+  'branding.primaryColor': {
+    en: 'Primary Color',
+    nl: 'Primaire kleur'
+  },
+  'branding.secondaryColor': {
+    en: 'Secondary Color',
+    nl: 'Secundaire kleur'
+  },
+  'branding.accentColor': {
+    en: 'Accent Color',
+    nl: 'Accentkleur'
+  },
+  'branding.typography': {
+    en: 'Typography',
+    nl: 'Typografie'
+  },
+  'branding.typographyDescription': {
+    en: 'Customize fonts and text appearance',
+    nl: 'Pas lettertypen en tekstopmaak aan'
+  },
+  'branding.fontFamily': {
+    en: 'Font Family',
+    nl: 'Lettertypefamilie'
+  },
+  'branding.fontHint': {
+    en: "Choose a font that matches your school's personality",
+    nl: "Kies een lettertype dat past bij de persoonlijkheid van je school"
+  },
+  'branding.backgroundImage': {
+    en: 'Background Image URL',
+    nl: 'Achtergrondafbeelding URL'
+  },
+  'branding.backgroundImageHint': {
+    en: 'Optional: Add a subtle background image for your school',
+    nl: 'Optioneel: Voeg een subtiele achtergrondafbeelding toe voor je school'
+  },
+  'branding.customCss': {
+    en: 'Custom CSS',
+    nl: 'Aangepaste CSS'
+  },
+  'branding.customCssDescription': {
+    en: 'Add custom CSS for advanced styling (use carefully)',
+    nl: 'Voeg aangepaste CSS toe voor geavanceerde opmaak (gebruik voorzichtig)'
+  },
+  'branding.advancedFeatureTitle': {
+    en: 'Advanced Feature',
+    nl: 'Geavanceerde functie'
+  },
+  'branding.advancedFeatureDescription': {
+    en: 'Custom CSS allows powerful customization but can break your site if used incorrectly. Test changes carefully and use CSS variables like var(--primary) when possible.',
+    nl: 'Aangepaste CSS biedt krachtige aanpassing, maar kan je site beschadigen als het verkeerd wordt gebruikt. Test wijzigingen zorgvuldig en gebruik CSS-variabelen zoals var(--primary) waar mogelijk.'
+  },
+  'branding.resetToDefaults': {
+    en: 'Reset to Defaults',
+    nl: 'Terugzetten naar standaard'
+  },
+  'branding.saveChanges': {
+    en: 'Save Changes',
+    nl: 'Wijzigingen opslaan'
+  },
+  'branding.accessDenied': {
+    en: 'Access denied. Only school owners can manage branding settings.',
+    nl: 'Toegang geweigerd. Alleen schooleigenaren kunnen huisstijlinstellingen beheren.'
+  },
+  'branding.loadError': {
+    en: 'Failed to load branding settings. Please try again.',
+    nl: 'Laden van huisstijlinstellingen mislukt. Probeer het opnieuw.'
+  },
+  'branding.toastUpdatedTitle': {
+    en: 'Branding Updated',
+    nl: 'Huisstijl bijgewerkt'
+  },
+  'branding.toastUpdatedDescription': {
+    en: 'Your school branding settings have been saved successfully.',
+    nl: 'De huisstijlinstellingen van je school zijn succesvol opgeslagen.'
+  },
+  'branding.toastUpdateFailedTitle': {
+    en: 'Update Failed',
+    nl: 'Bijwerken mislukt'
+  },
+  'branding.toastResetTitle': {
+    en: 'Branding Reset',
+    nl: 'Huisstijl hersteld'
+  },
+  'branding.toastResetDescription': {
+    en: 'Your school branding has been reset to default settings.',
+    nl: 'De huisstijl van je school is hersteld naar de standaardinstellingen.'
+  },
+  'branding.toastResetFailedTitle': {
+    en: 'Reset Failed',
+    nl: 'Herstel mislukt'
+  },
+  'branding.toastLogoUploadedTitle': {
+    en: 'Logo Uploaded',
+    nl: 'Logo geupload'
+  },
+  'branding.toastLogoUploadedDescription': {
+    en: 'Your school logo has been updated successfully.',
+    nl: 'Het logo van je school is succesvol bijgewerkt.'
+  },
+  'branding.toastUploadFailedTitle': {
+    en: 'Upload Failed',
+    nl: 'Upload mislukt'
+  },
+  'branding.toastLogoRemovedTitle': {
+    en: 'Logo Removed',
+    nl: 'Logo verwijderd'
+  },
+  'branding.toastLogoRemovedDescription': {
+    en: 'Your school logo has been removed successfully.',
+    nl: 'Het logo van je school is succesvol verwijderd.'
+  },
+  'branding.toastDeleteFailedTitle': {
+    en: 'Delete Failed',
+    nl: 'Verwijderen mislukt'
+  },
+  'branding.toastInvalidFileTitle': {
+    en: 'Invalid File Type',
+    nl: 'Ongeldig bestandstype'
+  },
+  'branding.toastInvalidFileDescription': {
+    en: 'Please select a JPEG, PNG, GIF, or WebP image file.',
+    nl: 'Selecteer een JPEG-, PNG-, GIF- of WebP-afbeeldingsbestand.'
+  },
+  'branding.toastFileTooLargeTitle': {
+    en: 'File Too Large',
+    nl: 'Bestand te groot'
+  },
+  'branding.toastFileTooLargeDescription': {
+    en: 'Please select an image smaller than 5MB.',
+    nl: 'Selecteer een afbeelding kleiner dan 5MB.'
+  },
+
+  // Lesson display page (student screen)
+  'display.sessionEnded': {
+    en: 'Lesson finished',
+    nl: 'Les afgerond'
+  },
+  'display.sessionEndedDescription': {
+    en: 'The teacher has closed the screen.',
+    nl: 'De docent heeft het scherm gesloten.'
+  },
+  'display.connecting': {
+    en: 'Connecting to lesson screen...',
+    nl: 'Verbinden met lesscherm...'
+  },
+  'display.waitingForTeacher': {
+    en: 'Waiting for the teacher...',
+    nl: 'Wachten op de docent...'
+  },
+  'display.reactionSent': {
+    en: 'Sent!',
+    nl: 'Verzonden!'
+  },
+  'display.reactionButton': {
+    en: 'Done',
+    nl: 'Klaar'
+  },
+
+  // Achievements tab
+  'achievements.noAchievementsTitle': {
+    en: 'No achievements available',
+    nl: 'Geen prestaties beschikbaar'
+  },
+  'achievements.noAchievementsDescription': {
+    en: 'Achievements have not been set up yet.',
+    nl: 'Er zijn nog geen prestaties ingesteld.'
+  },
+  'achievements.totalXp': {
+    en: 'Total XP',
+    nl: 'Totaal XP'
+  },
+  'achievements.earned': {
+    en: 'Earned',
+    nl: 'Behaald'
+  },
+  'achievements.available': {
+    en: 'Available',
+    nl: 'Beschikbaar'
+  },
+  'achievements.complete': {
+    en: 'Complete',
+    nl: 'Compleet'
+  },
+  'achievements.checkForNew': {
+    en: 'Check for New Achievements',
+    nl: 'Controleren op nieuwe prestaties'
+  },
+  'achievements.categoryLessonMastery': {
+    en: 'Lesson Mastery',
+    nl: 'Lesbeheersing'
+  },
+  'achievements.categoryPracticeDedication': {
+    en: 'Practice Dedication',
+    nl: 'Oefentoewijding'
+  },
+  'achievements.categorySkillDevelopment': {
+    en: 'Skill Development',
+    nl: 'Vaardigheidsontwikkeling'
+  },
+  'achievements.categoryAssignmentExcellence': {
+    en: 'Assignment Excellence',
+    nl: 'Opdrachtuitstekendheid'
+  },
+  'achievements.categoryAttendanceAwards': {
+    en: 'Attendance Awards',
+    nl: 'Aanwezigheidsprijzen'
+  },
+  'achievements.emptyTitle': {
+    en: 'Start Your Achievement Journey!',
+    nl: 'Begin je prestatiereis!'
+  },
+  'achievements.emptyDescription': {
+    en: 'Complete lessons, practice regularly, and reach milestones to unlock achievement badges and earn XP.',
+    nl: 'Voltooi lessen, oefen regelmatig en bereik mijlpalen om prestatiebadges te ontgrendelen en XP te verdienen.'
+  },
+  'achievements.checkForAchievements': {
+    en: 'Check for Achievements',
+    nl: 'Controleren op prestaties'
+  },
+  'achievements.newUnlocked': {
+    en: 'New achievements unlocked!',
+    nl: 'Nieuwe prestaties ontgrendeld!'
+  },
+  'achievements.keepGoing': {
+    en: 'Keep going!',
+    nl: 'Ga zo door!'
+  },
+  'achievements.noneYet': {
+    en: 'No new achievements yet. Continue practicing to unlock more rewards!',
+    nl: 'Nog geen nieuwe prestaties. Blijf oefenen om meer beloningen te ontgrendelen!'
+  },
+  'achievements.checkError': {
+    en: 'Error checking achievements',
+    nl: 'Fout bij controleren prestaties'
+  },
+  'achievements.checkErrorDescription': {
+    en: 'Failed to check for new achievements.',
+    nl: 'Controleren op nieuwe prestaties mislukt.'
+  },
+
+  // Student progress page
+  'studentProgress.backToStudents': {
+    en: 'Back to Students',
+    nl: 'Terug naar studenten'
+  },
+  'studentProgress.scheduleLessons': {
+    en: 'Schedule Lessons',
+    nl: 'Lessen inplannen'
+  },
+  'studentProgress.tabOverview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'studentProgress.tabPractice': {
+    en: 'Practice Analysis',
+    nl: 'Oefeningsanalyse'
+  },
+  'studentProgress.tabSkills': {
+    en: 'Skills Mastery',
+    nl: 'Vaardigheidsniveau'
+  },
+  'studentProgress.tabAchievements': {
+    en: 'Achievements',
+    nl: 'Prestaties'
+  },
+  'studentProgress.tabSchedule': {
+    en: 'Schedule',
+    nl: 'Rooster'
+  },
+  'studentProgress.completionRate': {
+    en: 'Completion Rate',
+    nl: 'Voltooiingspercentage'
+  },
+  'studentProgress.totalPracticeTime': {
+    en: 'Total Practice Time',
+    nl: 'Totale oefentijd'
+  },
+  'studentProgress.averageSession': {
+    en: 'Average Session',
+    nl: 'Gemiddelde sessie'
+  },
+  'studentProgress.averageSessionDescription': {
+    en: 'Average time per practice session',
+    nl: 'Gemiddelde tijd per oefensessie'
+  },
+  'studentProgress.scheduledSessions': {
+    en: 'Scheduled Sessions',
+    nl: 'Geplande sessies'
+  },
+  'studentProgress.totalScheduledLessons': {
+    en: 'Total scheduled lessons',
+    nl: 'Totaal geplande lessen'
+  },
+  'studentProgress.recentActivity': {
+    en: 'Recent Activity',
+    nl: 'Recente activiteit'
+  },
+  'studentProgress.recentActivityDescription': {
+    en: 'Practice sessions and completed assignments',
+    nl: 'Oefensessies en voltooide opdrachten'
+  },
+  'studentProgress.practiceSession': {
+    en: 'Practice Session',
+    nl: 'Oefensessie'
+  },
+  'studentProgress.assignmentCompleted': {
+    en: 'Assignment Completed',
+    nl: 'Opdracht voltooid'
+  },
+  'studentProgress.assignmentStatus': {
+    en: 'Assignment Status',
+    nl: 'Opdrachtsstatus'
+  },
+  'studentProgress.completedVsPending': {
+    en: 'Completed vs. pending assignments',
+    nl: 'Voltooide vs. openstaande opdrachten'
+  },
+  'studentProgress.completed': {
+    en: 'Completed',
+    nl: 'Voltooid'
+  },
+  'studentProgress.pending': {
+    en: 'Pending',
+    nl: 'Openstaand'
+  },
+  'studentProgress.practiceTimeTrend': {
+    en: 'Practice Time Trend',
+    nl: 'Oefentijd trend'
+  },
+  'studentProgress.practiceTimeTrendDescription': {
+    en: 'Minutes of practice over the last 14 days',
+    nl: 'Minuten oefenen in de afgelopen 14 dagen'
+  },
+  'studentProgress.practiceTimeMinutes': {
+    en: 'Practice Time (minutes)',
+    nl: 'Oefentijd (minuten)'
+  },
+  'studentProgress.practiceStats': {
+    en: 'Practice Statistics',
+    nl: 'Oefeningsstatistieken'
+  },
+  'studentProgress.practiceStatsDescription': {
+    en: 'Key metrics about practice habits',
+    nl: 'Belangrijke statistieken over oefengewoonten'
+  },
+  'studentProgress.totalPracticeTimeStat': {
+    en: 'Total Practice Time:',
+    nl: 'Totale oefentijd:'
+  },
+  'studentProgress.totalPracticeSessionsStat': {
+    en: 'Total Practice Sessions:',
+    nl: 'Totaal oefensessies:'
+  },
+  'studentProgress.averageSessionLength': {
+    en: 'Average Session Length:',
+    nl: 'Gemiddelde sessielengte:'
+  },
+  'studentProgress.practiceConsistency': {
+    en: 'Practice Consistency:',
+    nl: 'Oefenconsistentie:'
+  },
+  'studentProgress.ofDays': {
+    en: 'of',
+    nl: 'van'
+  },
+  'studentProgress.days': {
+    en: 'days',
+    nl: 'dagen'
+  },
+  'studentProgress.recentPracticeSessions': {
+    en: 'Recent Practice Sessions',
+    nl: 'Recente oefensessies'
+  },
+  'studentProgress.latestSessions': {
+    en: 'Latest recorded sessions',
+    nl: 'Recentst opgenomen sessies'
+  },
+  'studentProgress.noPracticeSessions': {
+    en: 'No practice sessions recorded yet',
+    nl: 'Nog geen oefensessies opgenomen'
+  },
+  'studentProgress.skillsMasteryOverview': {
+    en: 'Skills Mastery Overview',
+    nl: 'Overzicht vaardigheidsniveau'
+  },
+  'studentProgress.progressAcrossSkills': {
+    en: 'Progress across different skill areas',
+    nl: 'Voortgang over verschillende vaardigheidsgebieden'
+  },
+  'studentProgress.mastery': {
+    en: 'Mastery',
+    nl: 'Beheersing'
+  },
+  'studentProgress.skillsBreakdown': {
+    en: 'Skills Breakdown',
+    nl: 'Vaardigheidsuitsplitsing'
+  },
+  'studentProgress.detailedProgress': {
+    en: 'Detailed progress for each skill area',
+    nl: 'Gedetailleerde voortgang per vaardigheidsgebied'
+  },
+  'studentProgress.masteryLabel': {
+    en: 'Mastery',
+    nl: 'Beheersing'
+  },
+  'studentProgress.recommendedFocus': {
+    en: 'Recommended Focus Areas',
+    nl: 'Aanbevolen aandachtsgebieden'
+  },
+  'studentProgress.suggestedImprovement': {
+    en: 'Suggested areas for improvement',
+    nl: 'Voorgestelde verbetergebieden'
+  },
+  'studentProgress.viewLessons': {
+    en: 'View Lessons',
+    nl: 'Lessen bekijken'
+  },
+  'studentProgress.achievementsGallery': {
+    en: 'Achievements Gallery',
+    nl: 'Prestatiegalerij'
+  },
+  'studentProgress.badgesEarned': {
+    en: 'Badges and milestones earned',
+    nl: 'Verdiende badges en mijlpalen'
+  },
+  'studentProgress.noAchievementsTitle': {
+    en: 'No Achievements Yet',
+    nl: 'Nog geen prestaties'
+  },
+  'studentProgress.noAchievementsDescription': {
+    en: 'Complete assignments and maintain practice streaks to earn achievements.',
+    nl: 'Voltooi opdrachten en onderhoud oefenstreken om prestaties te verdienen.'
+  },
+  'studentProgress.achievementStatus': {
+    en: 'Achievement Status',
+    nl: 'Prestatiestatus'
+  },
+  'studentProgress.overallAchievementProgress': {
+    en: 'Overall achievement progress',
+    nl: 'Algehele voortgang prestaties'
+  },
+  'studentProgress.totalAchievements': {
+    en: 'Total Achievements',
+    nl: 'Totaal prestaties'
+  },
+  'studentProgress.unlocksRecognition': {
+    en: 'Earning achievements unlocks special recognition',
+    nl: 'Het behalen van prestaties ontgrendelt speciale erkenning'
+  },
+  'studentProgress.achievementTypes': {
+    en: 'Achievement Types',
+    nl: 'Prestatietypen'
+  },
+  'studentProgress.recentAchievements': {
+    en: 'Recent Achievements',
+    nl: 'Recente prestaties'
+  },
+  'studentProgress.latestMilestones': {
+    en: 'Latest milestones earned',
+    nl: 'Recentst behaalde mijlpalen'
+  },
+  'studentProgress.noAchievementsEarned': {
+    en: 'No achievements earned yet',
+    nl: 'Nog geen prestaties behaald'
+  },
+  'studentProgress.badgeNew': {
+    en: 'New',
+    nl: 'Nieuw'
+  },
+  'studentProgress.lessonScheduling': {
+    en: 'Lesson Scheduling',
+    nl: 'Lesplanning'
+  },
+  'studentProgress.manageSchedules': {
+    en: 'Manage recurring lesson schedules and upcoming sessions',
+    nl: 'Beheer terugkerende lesroosters en aankomende sessies'
+  },
+  'studentProgress.studentNotFoundTitle': {
+    en: 'Student Not Found',
+    nl: 'Student niet gevonden'
+  },
+  'studentProgress.studentNotFoundDescription': {
+    en: 'Unable to load student information for scheduling.',
+    nl: 'Kan studentinformatie voor planning niet laden.'
+  },
+  'studentProgress.errorTitle': {
+    en: 'Error Loading Student',
+    nl: 'Fout bij laden student'
+  },
+  'studentProgress.errorDescription': {
+    en: 'There was a problem loading the student information.',
+    nl: 'Er was een probleem bij het laden van de studentinformatie.'
+  },
+  'studentProgress.level': {
+    en: 'level',
+    nl: 'niveau'
+  },
+  'studentProgress.songAssignment': {
+    en: 'Song assignment',
+    nl: 'Liedjes opdracht'
+  },
+  'studentProgress.lessonAssignment': {
+    en: 'Lesson assignment',
+    nl: 'Les opdracht'
+  },
+  'studentProgress.ofLessons': {
+    en: 'of',
+    nl: 'van'
+  },
+  'studentProgress.lessonsCompleted': {
+    en: 'lessons completed',
+    nl: 'lessen voltooid'
+  },
+  'studentProgress.needsFocusDescription': {
+    en: 'This area needs more focus. Consider assigning more lessons in this skill.',
+    nl: 'Dit gebied heeft meer aandacht nodig. Overweeg meer lessen toe te wijzen aan deze vaardigheid.'
+  },
+  'studentProgress.achievementTypeHeader': {
+    en: 'Achievements',
+    nl: 'Prestaties'
+  },
+  'studentProgress.masteryPercent': {
+    en: 'Mastery',
+    nl: 'Beheersing'
+  },
+
+  // Test lesson view
+  'testLesson.title': {
+    en: 'Test Lesson View',
+    nl: 'Test Les Weergave'
+  },
+  'testLesson.description': {
+    en: 'This is a test component to verify basic functionality.',
+    nl: 'Dit is een testcomponent om basisfunctionaliteit te controleren.'
+  },
+  'testLesson.button': {
+    en: 'Test Button',
+    nl: 'Testknop'
+  },
+
+  // Admin Categories page
+  'categories.pageTitle': {
+    en: 'Lesson Categories',
+    nl: 'Lescategorieen'
+  },
+  'categories.subtitle': {
+    en: 'Manage lesson categories to organize your educational content',
+    nl: 'Beheer lescategorieen om je educatieve inhoud te organiseren'
+  },
+  'categories.addCategory': {
+    en: 'Add Category',
+    nl: 'Categorie toevoegen'
+  },
+  'categories.addDialogTitle': {
+    en: 'Add New Category',
+    nl: 'Nieuwe categorie toevoegen'
+  },
+  'categories.addDialogDescription': {
+    en: 'Create a new category to organize your lessons.',
+    nl: 'Maak een nieuwe categorie aan om je lessen te organiseren.'
+  },
+  'categories.editDialogTitle': {
+    en: 'Edit Category',
+    nl: 'Categorie bewerken'
+  },
+  'categories.editDialogDescription': {
+    en: 'Make changes to the category details.',
+    nl: 'Breng wijzigingen aan in de categoriedetails.'
+  },
+  'categories.namePlaceholder': {
+    en: 'Enter category name',
+    nl: 'Voer categorienaam in'
+  },
+  'categories.descriptionPlaceholder': {
+    en: 'Enter category description',
+    nl: 'Voer categoriebeschrijving in'
+  },
+  'categories.selectColor': {
+    en: 'Select color',
+    nl: 'Kleur selecteren'
+  },
+  'categories.selectIcon': {
+    en: 'Select icon',
+    nl: 'Pictogram selecteren'
+  },
+  'categories.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'categories.createCategory': {
+    en: 'Create Category',
+    nl: 'Categorie aanmaken'
+  },
+  'categories.updating': {
+    en: 'Updating...',
+    nl: 'Bijwerken...'
+  },
+  'categories.updateCategory': {
+    en: 'Update Category',
+    nl: 'Categorie bijwerken'
+  },
+  'categories.toastSuccessTitle': {
+    en: 'Success',
+    nl: 'Succes'
+  },
+  'categories.toastCreated': {
+    en: 'Category created successfully',
+    nl: 'Categorie succesvol aangemaakt'
+  },
+  'categories.toastUpdated': {
+    en: 'Category updated successfully',
+    nl: 'Categorie succesvol bijgewerkt'
+  },
+  'categories.toastDeleted': {
+    en: 'Category deleted successfully',
+    nl: 'Categorie succesvol verwijderd'
+  },
+
+  // Admin Debug Panel
+  'debugPanel.title': {
+    en: 'Admin Debug Panel',
+    nl: 'Admin Debug Paneel'
+  },
+  'debugPanel.subtitle': {
+    en: 'System monitoring and development tools for MusicDott platform',
+    nl: 'Systeembewaking en ontwikkelingstools voor het MusicDott platform'
+  },
+  'debugPanel.realtimeOn': {
+    en: 'Real-time ON',
+    nl: 'Real-time AAN'
+  },
+  'debugPanel.realtimeOff': {
+    en: 'Real-time OFF',
+    nl: 'Real-time UIT'
+  },
+  'debugPanel.refresh': {
+    en: 'Refresh',
+    nl: 'Vernieuwen'
+  },
+  'debugPanel.storageStatus': {
+    en: 'Storage Status',
+    nl: 'Opslagstatus'
+  },
+  'debugPanel.connected': {
+    en: 'CONNECTED',
+    nl: 'VERBONDEN'
+  },
+  'debugPanel.fallback': {
+    en: 'FALLBACK',
+    nl: 'NOODMODUS'
+  },
+  'debugPanel.unknown': {
+    en: 'UNKNOWN',
+    nl: 'ONBEKEND'
+  },
+  'debugPanel.students': {
+    en: 'Students',
+    nl: 'Studenten'
+  },
+  'debugPanel.lessons': {
+    en: 'Lessons',
+    nl: 'Lessen'
+  },
+  'debugPanel.songs': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'debugPanel.categories': {
+    en: 'Categories',
+    nl: 'Categorieen'
+  },
+  'debugPanel.users': {
+    en: 'Users',
+    nl: 'Gebruikers'
+  },
+  'debugPanel.storageInformation': {
+    en: 'Storage Information',
+    nl: 'Opslaginformatie'
+  },
+  'debugPanel.currentUserId': {
+    en: 'Current User ID:',
+    nl: 'Huidig Gebruikers-ID:'
+  },
+  'debugPanel.storageType': {
+    en: 'Storage Type:',
+    nl: 'Opslagtype:'
+  },
+  'debugPanel.connectionStatus': {
+    en: 'Connection Status:',
+    nl: 'Verbindingsstatus:'
+  },
+  'debugPanel.disconnected': {
+    en: 'DISCONNECTED',
+    nl: 'VERBROKEN'
+  },
+  'debugPanel.performanceMetrics': {
+    en: 'Performance Metrics',
+    nl: 'Prestatiestatistieken'
+  },
+  'debugPanel.dataLoad': {
+    en: 'Data Load',
+    nl: 'Databelasting'
+  },
+  'debugPanel.items': {
+    en: 'items',
+    nl: 'items'
+  },
+  'debugPanel.systemHealth': {
+    en: 'System Health',
+    nl: 'Systeemgezondheid'
+  },
+  'debugPanel.loading': {
+    en: 'Loading debug information...',
+    nl: 'Debug-informatie laden...'
+  },
+  'debugPanel.developmentStatus': {
+    en: 'Development Status',
+    nl: 'Ontwikkelingsstatus'
+  },
+  'debugPanel.developmentStatusDescription': {
+    en: 'Current implementation status and development notes',
+    nl: 'Huidige implementatiestatus en ontwikkelingsnotities'
+  },
+  'debugPanel.completedFeatures': {
+    en: 'Completed Features',
+    nl: 'Voltooide functies'
+  },
+  'debugPanel.developmentNotes': {
+    en: 'Development Notes',
+    nl: 'Ontwikkelingsnotities'
+  },
+
+  // Avatar page
+  'avatar.title': {
+    en: 'Customize Your Avatar',
+    nl: 'Pas je avatar aan'
+  },
+  'avatar.subtitle': {
+    en: 'Create a unique avatar that represents you',
+    nl: 'Maak een unieke avatar die jou vertegenwoordigt'
+  },
+
+  // Messaging page (full inbox/sent UI)
+  'messaging.communicate': {
+    en: 'Communicate with teachers and students',
+    nl: 'Communiceer met docenten en studenten'
+  },
+  'messaging.unread': {
+    en: 'unread',
+    nl: 'ongelezen'
+  },
+  'messaging.composeMessage': {
+    en: 'Compose Message',
+    nl: 'Bericht schrijven'
+  },
+  'messaging.composeNewMessage': {
+    en: 'Compose New Message',
+    nl: 'Nieuw bericht schrijven'
+  },
+  'messaging.composeDescription': {
+    en: 'Send a message to a teacher or student.',
+    nl: 'Stuur een bericht naar een docent of student.'
+  },
+  'messaging.recipient': {
+    en: 'Recipient',
+    nl: 'Ontvanger'
+  },
+  'messaging.selectRecipient': {
+    en: 'Select recipient',
+    nl: 'Selecteer ontvanger'
+  },
+  'messaging.subjectPlaceholder': {
+    en: 'Enter message subject',
+    nl: 'Voer het berichtonderwerp in'
+  },
+  'messaging.messagePlaceholder': {
+    en: 'Type your message here...',
+    nl: 'Typ hier je bericht...'
+  },
+  'messaging.inbox': {
+    en: 'Inbox',
+    nl: 'Postvak IN'
+  },
+  'messaging.inboxDescription': {
+    en: 'Messages received from others',
+    nl: 'Ontvangen berichten van anderen'
+  },
+  'messaging.noInboxMessages': {
+    en: 'No messages in your inbox',
+    nl: 'Geen berichten in je postvak IN'
+  },
+  'messaging.sentMessages': {
+    en: 'Sent Messages',
+    nl: 'Verzonden berichten'
+  },
+  'messaging.sentDescription': {
+    en: 'Messages you have sent to others',
+    nl: 'Berichten die je naar anderen hebt gestuurd'
+  },
+  'messaging.noSentMessages': {
+    en: 'No sent messages',
+    nl: 'Geen verzonden berichten'
+  },
+  'messaging.toLabel': {
+    en: 'To:',
+    nl: 'Aan:'
+  },
+  'messaging.fromLabel': {
+    en: 'From:',
+    nl: 'Van:'
+  },
+  'messaging.dateLabel': {
+    en: 'Date:',
+    nl: 'Datum:'
+  },
+  'messaging.missingInfo': {
+    en: 'Missing information',
+    nl: 'Ontbrekende informatie'
+  },
+  'messaging.fillAllFields': {
+    en: 'Please fill in all fields.',
+    nl: 'Vul alle velden in.'
+  }
 };
 
 // Translation function

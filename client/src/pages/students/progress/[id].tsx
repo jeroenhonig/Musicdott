@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 import {
   ResponsiveContainer,
   BarChart,
@@ -61,6 +62,7 @@ export default function StudentProgressPage() {
   const studentId = parseInt(params.id as string);
   const [activeTab, setActiveTab] = useState("overview");
   const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
+  const { t } = useTranslation();
   
   // Fetch the student details
   const { 
@@ -87,10 +89,10 @@ export default function StudentProgressPage() {
   if (studentError) {
     return (
       <div className="container mx-auto p-4 text-center">
-        <h1 className="text-2xl font-bold text-red-500 mb-2">Error Loading Student</h1>
-        <p className="mb-4">There was a problem loading the student information.</p>
+        <h1 className="text-2xl font-bold text-red-500 mb-2">{t('studentProgress.errorTitle')}</h1>
+        <p className="mb-4">{t('studentProgress.errorDescription')}</p>
         <Button asChild>
-          <Link to="/students">Back to Students</Link>
+          <Link to="/students">{t('studentProgress.backToStudents')}</Link>
         </Button>
       </div>
     );
@@ -118,8 +120,8 @@ export default function StudentProgressPage() {
   // Data for the assignment pie chart
   const assignmentPieData = progressData
     ? [
-        { name: 'Completed', value: progressData.overallProgress.completedAssignments },
-        { name: 'Pending', value: progressData.overallProgress.totalAssignments - progressData.overallProgress.completedAssignments }
+        { name: t('studentProgress.completed'), value: progressData.overallProgress.completedAssignments },
+        { name: t('studentProgress.pending'), value: progressData.overallProgress.totalAssignments - progressData.overallProgress.completedAssignments }
       ]
     : [];
   
@@ -129,17 +131,17 @@ export default function StudentProgressPage() {
         <Button variant="outline" asChild className="mb-4">
           <Link to={`/students`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Students
+            {t('studentProgress.backToStudents')}
           </Link>
         </Button>
-        
+
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               {isLoadingStudent ? (
                 <Skeleton className="h-9 w-40" />
               ) : (
-                <>Student Progress: {student?.name || ''}</>
+                <>{t('studentProgress.tabOverview')}: {student?.name || ''}</>
               )}
             </h1>
             <p className="text-muted-foreground">
@@ -147,28 +149,28 @@ export default function StudentProgressPage() {
                 <Skeleton className="h-5 w-60 mt-1" />
               ) : (
                 <>
-                  {student?.instrument || ''} · 
-                  {student?.level || ''} level
+                  {student?.instrument || ''} ·
+                  {student?.level || ''} {t('studentProgress.level')}
                 </>
               )}
             </p>
           </div>
-          
+
           <div className="flex gap-3">
-            <Button 
-              className="bg-primary text-white flex items-center" 
+            <Button
+              className="bg-primary text-white flex items-center"
               onClick={() => setIsScheduleFormOpen(true)}
             >
               <CalendarPlus className="mr-2 h-4 w-4" />
-              Schedule Lessons
+              {t('studentProgress.scheduleLessons')}
             </Button>
-            
+
             {isLoading || !progressData ? (
               <Skeleton className="h-10 w-28" />
             ) : (
               <Badge className="text-lg py-2 px-3 bg-gradient-to-r from-blue-500 to-purple-500">
                 <Trophy className="mr-1 h-4 w-4" />
-                {progressData.achievements.total} Achievements
+                {progressData.achievements.total} {t('studentProgress.tabAchievements')}
               </Badge>
             )}
           </div>
@@ -187,11 +189,11 @@ export default function StudentProgressPage() {
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="practice">Practice Analysis</TabsTrigger>
-          <TabsTrigger value="skills">Skills Mastery</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsTrigger value="overview">{t('studentProgress.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="practice">{t('studentProgress.tabPractice')}</TabsTrigger>
+          <TabsTrigger value="skills">{t('studentProgress.tabSkills')}</TabsTrigger>
+          <TabsTrigger value="achievements">{t('studentProgress.tabAchievements')}</TabsTrigger>
+          <TabsTrigger value="schedule">{t('studentProgress.tabSchedule')}</TabsTrigger>
         </TabsList>
         
         {/* Overview Tab */}
@@ -214,53 +216,53 @@ export default function StudentProgressPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('studentProgress.completionRate')}</CardTitle>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{progressData.overallProgress.completionRate}%</div>
                     <Progress className="mt-2" value={progressData.overallProgress.completionRate} />
                     <p className="text-xs text-muted-foreground mt-2">
-                      {progressData.overallProgress.completedAssignments} of {progressData.overallProgress.totalAssignments} assignments completed
+                      {progressData.overallProgress.completedAssignments} {t('studentProgress.ofDays')} {progressData.overallProgress.totalAssignments} assignments
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Practice Time</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('studentProgress.totalPracticeTime')}</CardTitle>
                     <Clock className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{formatPracticeTime(progressData.overallProgress.totalPracticeTime)}</div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Across {progressData.overallProgress.totalPracticeSessions} practice sessions
+                      {progressData.overallProgress.totalPracticeSessions} {t('studentProgress.practiceSession').toLowerCase()}
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Average Session</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('studentProgress.averageSession')}</CardTitle>
                     <BarChart2 className="h-4 w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{formatPracticeTime(progressData.overallProgress.averagePracticeTimePerSession)}</div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Average time per practice session
+                      {t('studentProgress.averageSessionDescription')}
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Scheduled Sessions</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('studentProgress.scheduledSessions')}</CardTitle>
                     <Calendar className="h-4 w-4 text-amber-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{progressData.overallProgress.totalScheduledSessions}</div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Total scheduled lessons
+                      {t('studentProgress.totalScheduledLessons')}
                     </p>
                   </CardContent>
                 </Card>
@@ -269,9 +271,9 @@ export default function StudentProgressPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="col-span-1">
                   <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
+                    <CardTitle>{t('studentProgress.recentActivity')}</CardTitle>
                     <CardDescription>
-                      Practice sessions and completed assignments
+                      {t('studentProgress.recentActivityDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
