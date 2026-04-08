@@ -2647,6 +2647,198 @@ export const translations: Translations = {
     nl: 'Door een account aan te maken, ga je akkoord met onze Servicevoorwaarden en ons Privacybeleid.'
   },
 
+  // Student portal — Practice Sessions page
+  'studentPortal.practice.title': {
+    en: 'Practice Sessions',
+    nl: 'Oefensessies'
+  },
+  'studentPortal.practice.subtitle': {
+    en: 'Track your practice time and build consistency',
+    nl: 'Houd je oefentijd bij en bouw consistentie op'
+  },
+  'studentPortal.practice.liveTracking': {
+    en: 'Live tracking',
+    nl: 'Live bijhouden'
+  },
+  'studentPortal.practice.offline': {
+    en: 'Offline',
+    nl: 'Offline'
+  },
+  'studentPortal.practice.inProgress': {
+    en: 'Practice in progress',
+    nl: 'Oefensessie bezig'
+  },
+  'studentPortal.practice.started': {
+    en: 'Started:',
+    nl: 'Gestart:'
+  },
+  'studentPortal.practice.endSession': {
+    en: 'End Practice Session',
+    nl: 'Oefensessie beëindigen'
+  },
+  'studentPortal.practice.readyToPractice': {
+    en: 'Ready to practice?',
+    nl: 'Klaar om te oefenen?'
+  },
+  'studentPortal.practice.startPrompt': {
+    en: 'Start a practice session to track your progress',
+    nl: 'Start een oefensessie om je voortgang bij te houden'
+  },
+  'studentPortal.practice.startSession': {
+    en: 'Start Practice Session',
+    nl: 'Oefensessie starten'
+  },
+  'studentPortal.practice.statsTitle': {
+    en: 'Practice Stats',
+    nl: 'Oefenstatistieken'
+  },
+  'studentPortal.practice.totalPracticeTime': {
+    en: 'Total Practice Time',
+    nl: 'Totale oefentijd'
+  },
+  'studentPortal.practice.sessions': {
+    en: 'Sessions',
+    nl: 'Sessies'
+  },
+  'studentPortal.practice.avgSession': {
+    en: 'Avg Session',
+    nl: 'Gem. sessie'
+  },
+  'studentPortal.practice.recentSessions': {
+    en: 'Recent Sessions',
+    nl: 'Recente sessies'
+  },
+  'studentPortal.practice.noSessions': {
+    en: 'No practice sessions yet',
+    nl: 'Nog geen oefensessies'
+  },
+  'studentPortal.practice.activeBadge': {
+    en: 'Active',
+    nl: 'Actief'
+  },
+  'studentPortal.practice.toast.startedTitle': {
+    en: 'Practice session started',
+    nl: 'Oefensessie gestart'
+  },
+  'studentPortal.practice.toast.startedDescription': {
+    en: 'Your practice time is now being tracked.',
+    nl: 'Je oefentijd wordt nu bijgehouden.'
+  },
+  'studentPortal.practice.toast.endedTitle': {
+    en: 'Practice session ended',
+    nl: 'Oefensessie beëindigd'
+  },
+  'studentPortal.practice.toast.endedDescription': {
+    en: 'Great work! Your practice time has been recorded.',
+    nl: 'Goed gedaan! Je oefentijd is opgeslagen.'
+  },
+  'studentPortal.practice.toast.startError': {
+    en: 'Failed to start practice session',
+    nl: 'Kon oefensessie niet starten'
+  },
+  'studentPortal.practice.toast.endError': {
+    en: 'Failed to end practice session',
+    nl: 'Kon oefensessie niet beëindigen'
+  },
+
+  // Student portal — Achievements page
+  'studentPortal.achievements.title': {
+    en: 'My Achievements',
+    nl: 'Mijn prestaties'
+  },
+  'studentPortal.achievements.subtitle': {
+    en: 'Track your musical journey and celebrate your progress',
+    nl: 'Volg je muzikale reis en vier je voortgang'
+  },
+  'studentPortal.achievements.progressTitle': {
+    en: 'Achievement Progress',
+    nl: 'Prestatiesvoortgang'
+  },
+  'studentPortal.achievements.overallProgress': {
+    en: 'Overall Progress',
+    nl: 'Algehele voortgang'
+  },
+  'studentPortal.achievements.complete': {
+    en: 'Complete',
+    nl: 'Voltooid'
+  },
+  'studentPortal.achievements.earnedTitle': {
+    en: 'Earned Achievements',
+    nl: 'Behaalde prestaties'
+  },
+  'studentPortal.achievements.newBadge': {
+    en: 'New!',
+    nl: 'Nieuw!'
+  },
+  'studentPortal.achievements.earned': {
+    en: 'Earned:',
+    nl: 'Behaald:'
+  },
+  'studentPortal.achievements.completed': {
+    en: 'Completed',
+    nl: 'Voltooid'
+  },
+  'studentPortal.achievements.markSeen': {
+    en: 'Mark as Seen',
+    nl: 'Markeren als gezien'
+  },
+  'studentPortal.achievements.noneTitle': {
+    en: 'No achievements yet',
+    nl: 'Nog geen prestaties'
+  },
+  'studentPortal.achievements.noneDescription': {
+    en: 'Keep practicing to earn your first achievement!',
+    nl: 'Blijf oefenen om je eerste prestatie te behalen!'
+  },
+  'studentPortal.achievements.availableTitle': {
+    en: 'Available Achievements',
+    nl: 'Beschikbare prestaties'
+  },
+  'studentPortal.achievements.notEarned': {
+    en: 'Not earned yet',
+    nl: 'Nog niet behaald'
+  },
+
+  // Student portal — Lesson view page
+  'studentPortal.lessonView.notFoundTitle': {
+    en: 'Lesson Not Found',
+    nl: 'Les niet gevonden'
+  },
+  'studentPortal.lessonView.goBack': {
+    en: 'Go Back',
+    nl: 'Terug'
+  },
+
+  // Student portal — Song view page
+  'studentPortal.songView.notFoundTitle': {
+    en: 'Song Not Found',
+    nl: 'Nummer niet gevonden'
+  },
+  'studentPortal.songView.goBack': {
+    en: 'Go Back',
+    nl: 'Terug'
+  },
+  'studentPortal.songView.aboutTitle': {
+    en: 'About This Song',
+    nl: 'Over dit nummer'
+  },
+  'studentPortal.songView.noMaterials': {
+    en: 'No practice materials yet',
+    nl: 'Nog geen oefenmateriaal'
+  },
+  'studentPortal.songView.noMaterialsDescription': {
+    en: 'Your teacher will add practice content for this song soon.',
+    nl: 'Je docent voegt binnenkort oefeninhoud toe voor dit nummer.'
+  },
+  'studentPortal.songView.byArtist': {
+    en: 'by',
+    nl: 'door'
+  },
+  'studentPortal.songView.keyLabel': {
+    en: 'Key:',
+    nl: 'Toonaard:'
+  },
+
   // Signup page — validation messages
   'signup.validation.invalidEmail': {
     en: 'Invalid email address',
@@ -2683,6 +2875,382 @@ export const translations: Translations = {
   'signup.validation.passwordsMismatch': {
     en: "Passwords don't match",
     nl: 'Wachtwoorden komen niet overeen'
+  },
+
+  // Student Portal — My Lessons
+  'studentPortal.myLessons.title': {
+    en: 'My Lessons',
+    nl: 'Mijn Lessen'
+  },
+  'studentPortal.myLessons.subtitle': {
+    en: 'Access your assigned lessons and practice materials',
+    nl: 'Bekijk je toegewezen lessen en oefenmateriaal'
+  },
+  'studentPortal.myLessons.liveUpdates': {
+    en: 'Live updates',
+    nl: 'Live updates'
+  },
+  'studentPortal.myLessons.offline': {
+    en: 'Offline',
+    nl: 'Offline'
+  },
+  'studentPortal.myLessons.allAvailableLessons': {
+    en: 'All Available Lessons',
+    nl: 'Alle Beschikbare Lessen'
+  },
+  'studentPortal.myLessons.allAvailableSongs': {
+    en: 'All Available Songs',
+    nl: 'Alle Beschikbare Nummers'
+  },
+  'studentPortal.myLessons.available': {
+    en: 'Available',
+    nl: 'Beschikbaar'
+  },
+  'studentPortal.myLessons.startLesson': {
+    en: 'Start Lesson',
+    nl: 'Les Starten'
+  },
+  'studentPortal.myLessons.practiceSong': {
+    en: 'Practice Song',
+    nl: 'Nummer Oefenen'
+  },
+  'studentPortal.myLessons.by': {
+    en: 'by',
+    nl: 'door'
+  },
+  'studentPortal.myLessons.assignedLessons': {
+    en: 'Assigned Lessons',
+    nl: 'Toegewezen Lessen'
+  },
+  'studentPortal.myLessons.lesson': {
+    en: 'Lesson',
+    nl: 'Les'
+  },
+  'studentPortal.myLessons.due': {
+    en: 'Due:',
+    nl: 'Deadline:'
+  },
+  'studentPortal.myLessons.teacherNotes': {
+    en: "Teacher's Notes:",
+    nl: 'Opmerkingen docent:'
+  },
+  'studentPortal.myLessons.startPractice': {
+    en: 'Start Practice',
+    nl: 'Oefening Starten'
+  },
+  'studentPortal.myLessons.noLessonsTitle': {
+    en: 'No lessons assigned yet',
+    nl: 'Nog geen lessen toegewezen'
+  },
+  'studentPortal.myLessons.noLessonsDesc': {
+    en: 'Your teacher will assign lessons for you to practice.',
+    nl: 'Je docent zal lessen voor je toewijzen om te oefenen.'
+  },
+  'studentPortal.myLessons.newLessonTitle': {
+    en: 'New lesson available!',
+    nl: 'Nieuwe les beschikbaar!'
+  },
+  'studentPortal.myLessons.newLessonDesc': {
+    en: 'has been added by your teacher.',
+    nl: 'is toegevoegd door je docent.'
+  },
+  'studentPortal.myLessons.lessonUpdatedTitle': {
+    en: 'Lesson updated',
+    nl: 'Les bijgewerkt'
+  },
+  'studentPortal.myLessons.lessonUpdatedDesc': {
+    en: 'has been updated.',
+    nl: 'is bijgewerkt.'
+  },
+  'studentPortal.myLessons.newSongTitle': {
+    en: 'New song available!',
+    nl: 'Nieuw nummer beschikbaar!'
+  },
+  'studentPortal.myLessons.newSongDesc': {
+    en: 'has been added to practice.',
+    nl: 'is toegevoegd om te oefenen.'
+  },
+  'studentPortal.myLessons.songUpdatedTitle': {
+    en: 'Song updated',
+    nl: 'Nummer bijgewerkt'
+  },
+  'studentPortal.myLessons.songUpdatedDesc': {
+    en: 'has been updated.',
+    nl: 'is bijgewerkt.'
+  },
+
+  // Student Portal — My Assignments
+  'studentPortal.myAssignments.title': {
+    en: 'My Assignments',
+    nl: 'Mijn Opdrachten'
+  },
+  'studentPortal.myAssignments.subtitle': {
+    en: 'Practice songs assigned by your teacher',
+    nl: 'Oefen nummers die je docent heeft toegewezen'
+  },
+  'studentPortal.myAssignments.song': {
+    en: 'Song',
+    nl: 'Nummer'
+  },
+  'studentPortal.myAssignments.due': {
+    en: 'Due:',
+    nl: 'Deadline:'
+  },
+  'studentPortal.myAssignments.key': {
+    en: 'Key:',
+    nl: 'Toonsoort:'
+  },
+  'studentPortal.myAssignments.duration': {
+    en: 'Duration:',
+    nl: 'Duur:'
+  },
+  'studentPortal.myAssignments.practiceNotes': {
+    en: 'Practice Notes:',
+    nl: 'Oefennotities:'
+  },
+  'studentPortal.myAssignments.listen': {
+    en: 'Listen',
+    nl: 'Luisteren'
+  },
+  'studentPortal.myAssignments.practice': {
+    en: 'Practice',
+    nl: 'Oefenen'
+  },
+  'studentPortal.myAssignments.noAssignmentsTitle': {
+    en: 'No song assignments yet',
+    nl: 'Nog geen nummeropdrachten'
+  },
+  'studentPortal.myAssignments.noAssignmentsDesc': {
+    en: 'Your teacher will assign songs for you to practice.',
+    nl: 'Je docent zal nummers voor je toewijzen om te oefenen.'
+  },
+
+  // Student Portal — Ask Teacher
+  'studentPortal.askTeacher.title': {
+    en: 'Ask My Teacher',
+    nl: 'Vraag aan Mijn Docent'
+  },
+  'studentPortal.askTeacher.subtitle': {
+    en: 'Get help and feedback from your music teacher',
+    nl: 'Krijg hulp en feedback van je muziekdocent'
+  },
+  'studentPortal.askTeacher.sendNewMessage': {
+    en: 'Send a New Message',
+    nl: 'Nieuw Bericht Sturen'
+  },
+  'studentPortal.askTeacher.sendMessagePrompt': {
+    en: 'Have a question? Need help with your music? Send your teacher a message here.',
+    nl: 'Heb je een vraag? Hulp nodig bij je muziek? Stuur je docent hier een bericht.'
+  },
+  'studentPortal.askTeacher.subject': {
+    en: 'Subject',
+    nl: 'Onderwerp'
+  },
+  'studentPortal.askTeacher.subjectPlaceholder': {
+    en: "What's your question about?",
+    nl: 'Waarover gaat je vraag?'
+  },
+  'studentPortal.askTeacher.message': {
+    en: 'Message',
+    nl: 'Bericht'
+  },
+  'studentPortal.askTeacher.messagePlaceholder': {
+    en: 'Describe your question or ask for feedback...',
+    nl: 'Beschrijf je vraag of vraag om feedback...'
+  },
+  'studentPortal.askTeacher.practiceVideo': {
+    en: 'Practice Video (Optional)',
+    nl: 'Oefenvideo (Optioneel)'
+  },
+  'studentPortal.askTeacher.hideCamera': {
+    en: 'Hide Camera',
+    nl: 'Camera Verbergen'
+  },
+  'studentPortal.askTeacher.recordVideo': {
+    en: 'Record Video',
+    nl: 'Video Opnemen'
+  },
+  'studentPortal.askTeacher.videoAttached': {
+    en: 'Practice video attached',
+    nl: 'Oefenvideo bijgevoegd'
+  },
+  'studentPortal.askTeacher.removeVideo': {
+    en: 'Remove',
+    nl: 'Verwijderen'
+  },
+  'studentPortal.askTeacher.sendWithVideo': {
+    en: 'Send Message with Video',
+    nl: 'Bericht met Video Sturen'
+  },
+  'studentPortal.askTeacher.sendMessage': {
+    en: 'Send Message',
+    nl: 'Bericht Sturen'
+  },
+  'studentPortal.askTeacher.messageHistory': {
+    en: 'Message History',
+    nl: 'Berichtgeschiedenis'
+  },
+  'studentPortal.askTeacher.newResponse': {
+    en: 'New Response',
+    nl: 'Nieuw Antwoord'
+  },
+  'studentPortal.askTeacher.you': {
+    en: 'You',
+    nl: 'Jij'
+  },
+  'studentPortal.askTeacher.videoBrowserUnsupported': {
+    en: 'Your browser does not support video playback.',
+    nl: 'Je browser ondersteunt geen video afspelen.'
+  },
+  'studentPortal.askTeacher.practiceVideoLabel': {
+    en: 'Practice video',
+    nl: 'Oefenvideo'
+  },
+  'studentPortal.askTeacher.yourTeacher': {
+    en: 'Your Teacher',
+    nl: 'Jouw Docent'
+  },
+  'studentPortal.askTeacher.waitingForResponse': {
+    en: 'Waiting for response',
+    nl: 'Wachten op antwoord'
+  },
+  'studentPortal.askTeacher.teacherWillRespond': {
+    en: 'Your teacher will respond soon.',
+    nl: 'Je docent zal snel antwoorden.'
+  },
+  'studentPortal.askTeacher.continueConversation': {
+    en: 'Continue the conversation',
+    nl: 'Gesprek voortzetten'
+  },
+  'studentPortal.askTeacher.replyPlaceholder': {
+    en: 'Type your reply...',
+    nl: 'Typ je antwoord...'
+  },
+  'studentPortal.askTeacher.sendReply': {
+    en: 'Send Reply',
+    nl: 'Antwoord Sturen'
+  },
+  'studentPortal.askTeacher.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'studentPortal.askTeacher.reply': {
+    en: 'Reply',
+    nl: 'Antwoorden'
+  },
+  'studentPortal.askTeacher.noMessagesTitle': {
+    en: 'No messages yet',
+    nl: 'Nog geen berichten'
+  },
+  'studentPortal.askTeacher.noMessagesDesc': {
+    en: 'Send your first message to get help from your teacher.',
+    nl: 'Stuur je eerste bericht om hulp te krijgen van je docent.'
+  },
+  'studentPortal.askTeacher.messageSentTitle': {
+    en: 'Message sent',
+    nl: 'Bericht verstuurd'
+  },
+  'studentPortal.askTeacher.messageSentDesc': {
+    en: 'Your teacher will respond soon.',
+    nl: 'Je docent zal snel antwoorden.'
+  },
+  'studentPortal.askTeacher.errorTitle': {
+    en: 'Error',
+    nl: 'Fout'
+  },
+  'studentPortal.askTeacher.sendError': {
+    en: 'Failed to send message. Please try again.',
+    nl: 'Bericht sturen mislukt. Probeer het opnieuw.'
+  },
+  'studentPortal.askTeacher.replySentTitle': {
+    en: 'Reply sent',
+    nl: 'Antwoord verstuurd'
+  },
+  'studentPortal.askTeacher.replySentDesc': {
+    en: 'Your teacher will see your response.',
+    nl: 'Je docent zal je antwoord zien.'
+  },
+  'studentPortal.askTeacher.replyError': {
+    en: 'Failed to send reply. Please try again.',
+    nl: 'Antwoord sturen mislukt. Probeer het opnieuw.'
+  },
+  'studentPortal.askTeacher.missingInfoTitle': {
+    en: 'Missing information',
+    nl: 'Ontbrekende informatie'
+  },
+  'studentPortal.askTeacher.missingInfoDesc': {
+    en: 'Please fill in both subject and message.',
+    nl: 'Vul zowel onderwerp als bericht in.'
+  },
+  'studentPortal.askTeacher.missingReplyTitle': {
+    en: 'Missing reply',
+    nl: 'Antwoord ontbreekt'
+  },
+  'studentPortal.askTeacher.missingReplyDesc': {
+    en: 'Please enter your reply before sending.',
+    nl: 'Voer je antwoord in voordat je het verstuurt.'
+  },
+
+  // Student Portal — My Schedule
+  'studentPortal.mySchedule.title': {
+    en: 'My Schedule',
+    nl: 'Mijn Rooster'
+  },
+  'studentPortal.mySchedule.subtitle': {
+    en: 'View your upcoming lessons and practice sessions',
+    nl: 'Bekijk je komende lessen en oefensessies'
+  },
+  'studentPortal.mySchedule.upcomingLessons': {
+    en: 'Upcoming Lessons',
+    nl: 'Komende Lessen'
+  },
+  'studentPortal.mySchedule.regularSchedule': {
+    en: 'Regular Schedule',
+    nl: 'Regulier Rooster'
+  },
+  'studentPortal.mySchedule.thisWeek': {
+    en: 'This Week',
+    nl: 'Deze Week'
+  },
+  'studentPortal.mySchedule.noUpcomingLessons': {
+    en: 'No upcoming lessons scheduled',
+    nl: 'Geen komende lessen gepland'
+  },
+  'studentPortal.mySchedule.noRegularSchedule': {
+    en: 'No regular schedule set',
+    nl: 'Geen regulier rooster ingesteld'
+  },
+  'studentPortal.mySchedule.cancelLesson': {
+    en: 'Cancel Lesson',
+    nl: 'Les Annuleren'
+  },
+  'studentPortal.mySchedule.cancelConfirmTitle': {
+    en: 'Cancel Lesson',
+    nl: 'Les Annuleren'
+  },
+  'studentPortal.mySchedule.cancelConfirmDesc': {
+    en: 'Your teacher will be automatically notified of this cancellation.',
+    nl: 'Je docent wordt automatisch op de hoogte gesteld van deze annulering.'
+  },
+  'studentPortal.mySchedule.keepLesson': {
+    en: 'Keep Lesson',
+    nl: 'Les Behouden'
+  },
+  'studentPortal.mySchedule.cancelling': {
+    en: 'Cancelling...',
+    nl: 'Annuleren...'
+  },
+  'studentPortal.mySchedule.lessonCancelledTitle': {
+    en: 'Lesson cancelled',
+    nl: 'Les geannuleerd'
+  },
+  'studentPortal.mySchedule.lessonCancelledDesc': {
+    en: 'Your lesson has been cancelled and your teacher has been notified.',
+    nl: 'Je les is geannuleerd en je docent is op de hoogte gesteld.'
+  },
+  'studentPortal.mySchedule.cancelFailedTitle': {
+    en: 'Failed to cancel lesson',
+    nl: 'Les annuleren mislukt'
   }
 };
 

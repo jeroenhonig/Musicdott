@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 import { 
   Users, 
   Music, 
@@ -39,6 +40,7 @@ interface PerformanceTrend {
 }
 
 export default function SchoolDashboard() {
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useQuery<SchoolStats>({
     queryKey: ["/api/school/dashboard-stats"],
   });

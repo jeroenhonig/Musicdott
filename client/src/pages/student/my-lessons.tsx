@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { EVENT_TYPES, EVENT_ENTITIES, EVENT_ACTIONS } from "@shared/events";
 export default function MyLessonsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   // Real-time synchronization for immediate updates
   const { 
@@ -47,29 +49,29 @@ export default function MyLessonsPage() {
 
     const unsubscribeLessonUpdates = addEventListener(EVENT_TYPES.LESSON_CREATE, (event) => {
       toast({
-        title: "New lesson available!",
-        description: `"${event.data.title}" has been added by your teacher.`,
+        title: t('studentPortal.myLessons.newLessonTitle'),
+        description: `"${event.data.title}" ${t('studentPortal.myLessons.newLessonDesc')}`,
       });
     });
 
     const unsubscribeLessonChanges = addEventListener(EVENT_TYPES.LESSON_UPDATE, (event) => {
       toast({
-        title: "Lesson updated",
-        description: `"${event.data.title}" has been updated.`,
+        title: t('studentPortal.myLessons.lessonUpdatedTitle'),
+        description: `"${event.data.title}" ${t('studentPortal.myLessons.lessonUpdatedDesc')}`,
       });
     });
 
     const unsubscribeSongUpdates = addEventListener(EVENT_TYPES.SONG_CREATE, (event) => {
       toast({
-        title: "New song available!",
-        description: `"${event.data.title}" has been added to practice.`,
+        title: t('studentPortal.myLessons.newSongTitle'),
+        description: `"${event.data.title}" ${t('studentPortal.myLessons.newSongDesc')}`,
       });
     });
 
     const unsubscribeSongChanges = addEventListener(EVENT_TYPES.SONG_UPDATE, (event) => {
       toast({
-        title: "Song updated",
-        description: `"${event.data.title}" has been updated.`,
+        title: t('studentPortal.myLessons.songUpdatedTitle'),
+        description: `"${event.data.title}" ${t('studentPortal.myLessons.songUpdatedDesc')}`,
       });
     });
 
@@ -122,7 +124,7 @@ export default function MyLessonsPage() {
   
   if (isLoading || lessonsLoading || songsLoading) {
     return (
-      <Layout title="My Lessons">
+      <Layout title={t('studentPortal.myLessons.title')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -138,24 +140,24 @@ export default function MyLessonsPage() {
   }
 
   return (
-    <Layout title="My Lessons">
+    <Layout title={t('studentPortal.myLessons.title')}>
       <div className="p-6 space-y-6">
         <div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Lessons</h1>
-              <p className="text-gray-600 mt-2">Access your assigned lessons and practice materials</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.myLessons.title')}</h1>
+              <p className="text-gray-600 mt-2">{t('studentPortal.myLessons.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-2">
               {isConnected ? (
                 <div className="flex items-center space-x-1 text-green-600">
                   <Wifi className="h-4 w-4" />
-                  <span className="text-sm">Live updates</span>
+                  <span className="text-sm">{t('studentPortal.myLessons.liveUpdates')}</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-1 text-gray-400">
                   <WifiOff className="h-4 w-4" />
-                  <span className="text-sm">Offline</span>
+                  <span className="text-sm">{t('studentPortal.myLessons.offline')}</span>
                 </div>
               )}
             </div>
@@ -165,7 +167,7 @@ export default function MyLessonsPage() {
         {/* For demo account, show all lessons */}
         {isDemo && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">All Available Lessons</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('studentPortal.myLessons.allAvailableLessons')}</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {lessons.map((lesson: any) => (
                 <Card key={lesson.id} className="hover:shadow-md transition-shadow">
@@ -191,16 +193,16 @@ export default function MyLessonsPage() {
                         </Badge>
                       )}
                       <Badge variant="outline" className="bg-green-50 text-green-700">
-                        Available
+                        {t('studentPortal.myLessons.available')}
                       </Badge>
                     </div>
-                    <Button 
+                    <Button
                       className="w-full"
                       onClick={() => startLesson(lesson)}
                       data-testid={`button-start-lesson-${lesson.id}`}
                     >
                       <Play className="h-4 w-4 mr-2" />
-                      Start Lesson
+                      {t('studentPortal.myLessons.startLesson')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -212,7 +214,7 @@ export default function MyLessonsPage() {
         {/* For demo account, show all songs */}
         {isDemo && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">All Available Songs</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('studentPortal.myLessons.allAvailableSongs')}</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {songs.map((song: any) => (
                 <Card key={song.id} className="hover:shadow-md transition-shadow">
@@ -220,7 +222,7 @@ export default function MyLessonsPage() {
                     <CardTitle className="text-lg">{song.title}</CardTitle>
                     {song.artist && (
                       <CardDescription className="text-sm">
-                        by {song.artist}
+                        {t('studentPortal.myLessons.by')} {song.artist}
                       </CardDescription>
                     )}
                   </CardHeader>
@@ -238,16 +240,16 @@ export default function MyLessonsPage() {
                         </Badge>
                       )}
                       <Badge variant="outline" className="bg-green-50 text-green-700">
-                        Available
+                        {t('studentPortal.myLessons.available')}
                       </Badge>
                     </div>
-                    <Button 
+                    <Button
                       className="w-full"
                       onClick={() => startSongPractice(song)}
                       data-testid={`button-practice-song-${song.id}`}
                     >
                       <Play className="h-4 w-4 mr-2" />
-                      Practice Song
+                      {t('studentPortal.myLessons.practiceSong')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -259,7 +261,7 @@ export default function MyLessonsPage() {
         {/* Show assigned lessons for regular students or if demo has assignments */}
         {(!isDemo && assignments && assignments.length > 0) && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Assigned Lessons</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('studentPortal.myLessons.assignedLessons')}</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {assignments.map((assignment: any) => {
                 const lesson = lessons?.find((l: any) => l.id === assignment.lessonId);
@@ -270,7 +272,7 @@ export default function MyLessonsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-2">
                           <BookOpen className="h-5 w-5 text-blue-600" />
-                          <CardTitle className="text-lg">{lesson?.title || "Lesson"}</CardTitle>
+                          <CardTitle className="text-lg">{lesson?.title || t('studentPortal.myLessons.lesson')}</CardTitle>
                         </div>
                         <Badge variant={assignment.status === 'completed' ? 'default' : 'secondary'}>
                           {assignment.status || 'assigned'}
@@ -279,7 +281,7 @@ export default function MyLessonsPage() {
                       {assignment.dueDate && (
                         <CardDescription className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
-                          <span>Due: {format(new Date(assignment.dueDate), "MMM d, yyyy")}</span>
+                          <span>{t('studentPortal.myLessons.due')} {format(new Date(assignment.dueDate), "MMM d, yyyy")}</span>
                         </CardDescription>
                       )}
                     </CardHeader>
@@ -298,20 +300,20 @@ export default function MyLessonsPage() {
                       
                       {assignment.notes && (
                         <div className="p-3 bg-blue-50 rounded-lg">
-                          <h4 className="font-medium text-sm text-blue-900 mb-1">Teacher's Notes:</h4>
+                          <h4 className="font-medium text-sm text-blue-900 mb-1">{t('studentPortal.myLessons.teacherNotes')}</h4>
                           <p className="text-sm text-blue-800">{assignment.notes}</p>
                         </div>
                       )}
                       
                       <div className="flex space-x-2">
-                        <Button 
-                          className="flex-1" 
+                        <Button
+                          className="flex-1"
                           size="sm"
                           onClick={() => startLesson(lesson)}
                           data-testid={`button-start-assignment-${assignment.id}`}
                         >
                           <Play className="h-4 w-4 mr-2" />
-                          Start Practice
+                          {t('studentPortal.myLessons.startPractice')}
                         </Button>
                       </div>
                     </CardContent>
@@ -327,8 +329,8 @@ export default function MyLessonsPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No lessons assigned yet</h3>
-              <p className="text-gray-600">Your teacher will assign lessons for you to practice.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.myLessons.noLessonsTitle')}</h3>
+              <p className="text-gray-600">{t('studentPortal.myLessons.noLessonsDesc')}</p>
             </CardContent>
           </Card>
         )}

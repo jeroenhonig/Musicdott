@@ -8,10 +8,12 @@ import AppLayout from "@/components/layouts/app-layout";
 import StudentContentHeader from "@/components/student/student-content-header";
 import StudentViewSkeleton from "@/components/student/student-view-skeleton";
 import type { MetadataBadge } from "@/components/student/student-content-header";
+import { useTranslation } from "@/lib/i18n";
 
 export default function StudentSongView() {
   const { id } = useParams<{ id: string }>();
   const songId = parseInt(id || "0");
+  const { t } = useTranslation();
 
   const { data: song, isLoading } = useQuery({
     queryKey: ["/api/songs", songId],
@@ -24,13 +26,13 @@ export default function StudentSongView() {
 
   if (!song) {
     return (
-      <AppLayout title="Song Not Found">
+      <AppLayout title={t('studentPortal.songView.notFoundTitle')}>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Song Not Found</h1>
+            <h1 className="text-2xl font-bold mb-4">{t('studentPortal.songView.notFoundTitle')}</h1>
             <Button onClick={() => window.history.back()}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
+              {t('studentPortal.songView.goBack')}
             </Button>
           </div>
         </div>
@@ -43,7 +45,7 @@ export default function StudentSongView() {
     ...(song.instrument ? [{ icon: Music, label: song.instrument, variant: 'outline' as const }] : []),
     ...(song.duration ? [{ icon: Clock, label: song.duration, variant: 'outline' as const }] : []),
     ...(song.bpm ? [{ icon: Gauge, label: `${song.bpm} BPM`, variant: 'outline' as const }] : []),
-    ...(song.key ? [{ label: `Key: ${song.key}`, variant: 'outline' as const }] : []),
+    ...(song.key ? [{ label: `${t('studentPortal.songView.keyLabel')} ${song.key}`, variant: 'outline' as const }] : []),
     ...(song.genre ? [{ icon: Tag, label: song.genre, variant: 'outline' as const }] : []),
   ];
 
@@ -58,14 +60,14 @@ export default function StudentSongView() {
       <div className="space-y-6">
         <StudentContentHeader
           title={song.title}
-          subtitle={song.artist ? `by ${song.artist}` : undefined}
+          subtitle={song.artist ? `${t('studentPortal.songView.byArtist')} ${song.artist}` : undefined}
           badges={badges}
         />
 
         {song.description && (
           <Card>
             <CardHeader>
-              <CardTitle>About This Song</CardTitle>
+              <CardTitle>{t('studentPortal.songView.aboutTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700">{song.description}</p>
@@ -79,8 +81,8 @@ export default function StudentSongView() {
           ) : (
             <div className="text-center py-8">
               <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No practice materials yet</h3>
-              <p className="text-gray-600">Your teacher will add practice content for this song soon.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.songView.noMaterials')}</h3>
+              <p className="text-gray-600">{t('studentPortal.songView.noMaterialsDescription')}</p>
             </div>
           )}
         </div>

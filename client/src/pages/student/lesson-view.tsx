@@ -7,10 +7,12 @@ import AppLayout from "@/components/layouts/app-layout";
 import StudentContentHeader from "@/components/student/student-content-header";
 import StudentViewSkeleton from "@/components/student/student-view-skeleton";
 import type { MetadataBadge } from "@/components/student/student-content-header";
+import { useTranslation } from "@/lib/i18n";
 
 export default function StudentLessonView() {
   const { id } = useParams<{ id: string }>();
   const lessonId = parseInt(id || "0");
+  const { t } = useTranslation();
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ["/api/lessons", lessonId],
@@ -23,13 +25,13 @@ export default function StudentLessonView() {
 
   if (!lesson) {
     return (
-      <AppLayout title="Lesson Not Found">
+      <AppLayout title={t('studentPortal.lessonView.notFoundTitle')}>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Lesson Not Found</h1>
+            <h1 className="text-2xl font-bold mb-4">{t('studentPortal.lessonView.notFoundTitle')}</h1>
             <Button onClick={() => window.history.back()}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
+              {t('studentPortal.lessonView.goBack')}
             </Button>
           </div>
         </div>
