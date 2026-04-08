@@ -22,6 +22,30 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { useTranslateText } from '@/hooks/use-translate-text';
+
+function TeacherNotesDisplay({ notes, label }: { notes: string; label: string }) {
+  const { translatedText, isTranslating } = useTranslateText(notes);
+  const { t } = useTranslation();
+  const isTranslated = translatedText !== notes;
+
+  return (
+    <div className="mt-2">
+      <p className="text-xs font-medium mb-1">{label}</p>
+      <p className="text-sm bg-blue-50 p-2 rounded">
+        {isTranslating ? notes : translatedText}
+      </p>
+      {isTranslated && !isTranslating && (
+        <p
+          className="text-xs text-muted-foreground mt-1"
+          title={t('progress.translated')}
+        >
+          🌐 {t('progress.translated')}
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface LessonProgress {
   id: number;
@@ -224,10 +248,10 @@ export default function LessonProgressTracker() {
                       )}
 
                       {progress.teacherNotes && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium mb-1">{t('progress.teacherNotes')}</p>
-                          <p className="text-sm bg-blue-50 p-2 rounded">{progress.teacherNotes}</p>
-                        </div>
+                        <TeacherNotesDisplay
+                          notes={progress.teacherNotes}
+                          label={t('progress.teacherNotes')}
+                        />
                       )}
                     </div>
                   ))}
