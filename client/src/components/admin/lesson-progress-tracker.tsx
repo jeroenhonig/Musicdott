@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,30 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { useTranslateText } from '@/hooks/use-translate-text';
+
+function TeacherNotesDisplay({ notes, label }: { notes: string; label: string }) {
+  const { translatedText, isTranslating } = useTranslateText(notes);
+  const { t } = useTranslation();
+  const isTranslated = translatedText !== notes;
+
+  return (
+    <div className="mt-2">
+      <p className="text-xs font-medium mb-1">{label}</p>
+      <p className="text-sm bg-blue-50 p-2 rounded">
+        {isTranslating ? notes : translatedText}
+      </p>
+      {isTranslated && !isTranslating && (
+        <p
+          className="text-xs text-muted-foreground mt-1"
+          title={t('progress.translated')}
+        >
+          🌐 {t('progress.translated')}
+        </p>
+      )}
+    </div>
+  );
+}
 import { useTranslation } from "@/lib/i18n";
 
 interface LessonProgress {
@@ -212,6 +237,7 @@ export default function LessonProgressTracker() {
 
                       {progress.timeSpent > 0 && (
                         <p className="text-xs text-muted-foreground">
+                          {t('progress.timeSpent')}: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
                           {t('progress.timeSpent')} {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
                         </p>
                       )}
@@ -224,6 +250,10 @@ export default function LessonProgressTracker() {
                       )}
 
                       {progress.teacherNotes && (
+                        <TeacherNotesDisplay
+                          notes={progress.teacherNotes}
+                          label={t('progress.teacherNotes')}
+                        />
                         <div className="mt-2">
                           <p className="text-xs font-medium mb-1">{t('progress.teacherNotes')}</p>
                           <p className="text-sm bg-blue-50 p-2 rounded">{progress.teacherNotes}</p>

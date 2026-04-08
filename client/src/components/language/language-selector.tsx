@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Globe, Languages } from "lucide-react";
+import { Globe } from "lucide-react";
 
 interface LanguageSelectorProps {
   variant?: 'dropdown' | 'toggle';
@@ -30,9 +30,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           size={size}
           onClick={() => setLanguage(language === 'en' ? 'nl' : 'en')}
           className="gap-2"
+          aria-label={language === 'en' ? 'Switch to Dutch (NL)' : 'Switch to English (EN)'}
         >
-          <Languages className="w-4 h-4" />
-          {language === 'en' ? 'EN' : 'NL'}
+          <span className="text-sm">{language === 'en' ? '🇬🇧' : '🇳🇱'}</span>
+          <span className="font-medium text-xs">{language === 'en' ? 'EN' : 'NL'}</span>
         </Button>
       </div>
     );
@@ -69,7 +70,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   );
 };
 
-// Compact version for login page
+// Compact flag toggle used in navigation header areas
 export const CompactLanguageSelector: React.FC = () => {
   const { language, setLanguage } = useTranslation();
 
@@ -79,6 +80,7 @@ export const CompactLanguageSelector: React.FC = () => {
       size="sm"
       onClick={() => setLanguage(language === 'en' ? 'nl' : 'en')}
       className="gap-1 text-xs px-2 py-1 h-auto"
+      aria-label={language === 'en' ? 'Switch to Dutch (NL)' : 'Switch to English (EN)'}
     >
       <span className="text-sm">{language === 'en' ? '🇬🇧' : '🇳🇱'}</span>
       <span className="font-medium">{language === 'en' ? 'EN' : 'NL'}</span>
