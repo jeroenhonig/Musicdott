@@ -11,11 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  BookOpen, 
-  CheckCircle, 
-  Clock, 
-  PlayCircle, 
+import {
+  BookOpen,
+  CheckCircle,
+  Clock,
+  PlayCircle,
   Trophy,
   Users,
   Target,
@@ -46,6 +46,7 @@ function TeacherNotesDisplay({ notes, label }: { notes: string; label: string })
     </div>
   );
 }
+import { useTranslation } from "@/lib/i18n";
 
 interface LessonProgress {
   id: number;
@@ -237,6 +238,7 @@ export default function LessonProgressTracker() {
                       {progress.timeSpent > 0 && (
                         <p className="text-xs text-muted-foreground">
                           {t('progress.timeSpent')}: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
+                          {t('progress.timeSpent')} {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
                         </p>
                       )}
 
@@ -252,6 +254,10 @@ export default function LessonProgressTracker() {
                           notes={progress.teacherNotes}
                           label={t('progress.teacherNotes')}
                         />
+                        <div className="mt-2">
+                          <p className="text-xs font-medium mb-1">{t('progress.teacherNotes')}</p>
+                          <p className="text-sm bg-blue-50 p-2 rounded">{progress.teacherNotes}</p>
+                        </div>
                       )}
                     </div>
                   ))}

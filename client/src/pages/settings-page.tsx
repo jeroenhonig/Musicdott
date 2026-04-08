@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useTranslation } from "@/lib/i18n";
 import { securePasswordSchema } from '@shared/auth-validation';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,6 +105,7 @@ type NotificationFormValues = z.infer<typeof notificationSchema>;
 type PreferencesFormValues = z.infer<typeof preferencesSchema>;
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -193,8 +195,8 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        title: t('settings.profile.updated'),
+        description: t('settings.profile.updatedDescription'),
       });
     },
   });
@@ -207,8 +209,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
       toast({
-        title: "School settings updated",
-        description: "School information has been successfully updated.",
+        title: t('settings.school.updated'),
+        description: t('settings.school.updatedDescription'),
       });
     },
   });
@@ -221,8 +223,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/notifications'] });
       toast({
-        title: "Notification preferences updated",
-        description: "Your notification settings have been saved.",
+        title: t('settings.notifications.updated'),
+        description: t('settings.notifications.updatedDescription'),
       });
     },
   });
@@ -235,8 +237,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
       toast({
-        title: "Preferences updated",
-        description: "Your system preferences have been saved.",
+        title: t('settings.preferences.updated'),
+        description: t('settings.preferences.updatedDescription'),
       });
     },
   });
@@ -252,13 +254,13 @@ export default function SettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
       toast({
-        title: "Password changed",
-        description: "Your password has been successfully updated.",
+        title: t('settings.security.passwordChanged'),
+        description: t('settings.security.passwordChangedDescription'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to change password",
+        title: t('settings.security.passwordChangeFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -268,8 +270,8 @@ export default function SettingsPage() {
   const handlePasswordChange = () => {
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Password mismatch",
-        description: "New password and confirmation do not match.",
+        title: t('settings.security.passwordMismatch'),
+        description: t('settings.security.passwordMismatchDescription'),
         variant: "destructive",
       });
       return;
@@ -278,7 +280,7 @@ export default function SettingsPage() {
     const passwordValidation = securePasswordSchema.safeParse(newPassword);
     if (!passwordValidation.success) {
       toast({
-        title: "Weak password",
+        title: t('settings.security.weakPassword'),
         description: passwordValidation.error.issues[0]?.message || "Use a stronger password.",
         variant: "destructive",
       });
@@ -292,54 +294,54 @@ export default function SettingsPage() {
   };
 
   return (
-    <AppLayout title="Settings">
+    <AppLayout title={t('settings.title')}>
       <div className="space-y-6">
         {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-gray-600">Manage your account, school, and system preferences</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
+        <p className="text-gray-600">{t('settings.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className={`grid w-full ${canEditSchool ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            Profile
+            {t('settings.tab.profile')}
           </TabsTrigger>
           {canEditSchool && (
             <TabsTrigger value="school" className="flex items-center gap-2">
               <School className="h-4 w-4" />
-              School
+              {t('settings.tab.school')}
             </TabsTrigger>
           )}
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notifications
+            {t('settings.tab.notifications')}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Preferences
+            {t('settings.tab.preferences')}
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Security
+            {t('settings.tab.security')}
           </TabsTrigger>
           {canEditSchool && (
             <TabsTrigger value="studios" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Studio's
+              {t('settings.tab.studios')}
             </TabsTrigger>
           )}
           {canEditSchool && (
             <TabsTrigger value="vacations" className="flex items-center gap-2">
               <CalendarX className="h-4 w-4" />
-              Vakanties
+              {t('settings.tab.vacations')}
             </TabsTrigger>
           )}
           {canEditSchool && (
             <TabsTrigger value="integrations" className="flex items-center gap-2">
               <Plug className="h-4 w-4" />
-              Integraties
+              {t('settings.tab.integrations')}
             </TabsTrigger>
           )}
         </TabsList>
@@ -350,7 +352,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Personal Information
+                {t('settings.profile.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -362,7 +364,7 @@ export default function SettingsPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('settings.profile.fullName')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -375,7 +377,7 @@ export default function SettingsPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel>{t('settings.profile.emailAddress')}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} />
                           </FormControl>
@@ -390,12 +392,12 @@ export default function SettingsPage() {
                     name="instruments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instruments</FormLabel>
+                        <FormLabel>{t('settings.profile.instruments')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Piano, Guitar, Violin" {...field} />
+                          <Input placeholder={t('settings.profile.instrumentsPlaceholder')} {...field} />
                         </FormControl>
                         <FormDescription>
-                          List the instruments you teach or play
+                          {t('settings.profile.instrumentsDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -407,12 +409,12 @@ export default function SettingsPage() {
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bio</FormLabel>
+                        <FormLabel>{t('settings.profile.bio')}</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Tell us about yourself..." 
+                          <Textarea
+                            placeholder={t('settings.profile.bioPlaceholder')}
                             rows={4}
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -426,7 +428,7 @@ export default function SettingsPage() {
                     className="flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
+                    {updateProfileMutation.isPending ? t('settings.profile.saving') : t('settings.profile.saveProfile')}
                   </Button>
                 </form>
               </Form>
@@ -441,7 +443,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <School className="h-5 w-5" />
-                School Information
+                {t('settings.school.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -452,7 +454,7 @@ export default function SettingsPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>School Name</FormLabel>
+                        <FormLabel>{t('settings.school.name')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -460,14 +462,14 @@ export default function SettingsPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={schoolForm.control}
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel>{t('settings.school.address')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -480,7 +482,7 @@ export default function SettingsPage() {
                       name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
+                          <FormLabel>{t('settings.school.city')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -489,14 +491,14 @@ export default function SettingsPage() {
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={schoolForm.control}
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                          <FormLabel>{t('settings.school.phone')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -509,42 +511,42 @@ export default function SettingsPage() {
                       name="website"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Website</FormLabel>
+                          <FormLabel>{t('settings.school.website')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://..." {...field} />
+                            <Input placeholder={t('settings.school.websitePlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={schoolForm.control}
                     name="instruments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Available Instruments</FormLabel>
+                        <FormLabel>{t('settings.school.instruments')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Piano, Guitar, Violin, Drums" {...field} />
+                          <Input placeholder={t('settings.school.instrumentsPlaceholder')} {...field} />
                         </FormControl>
                         <FormDescription>
-                          List all instruments taught at your school
+                          {t('settings.school.instrumentsDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={schoolForm.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>School Description</FormLabel>
+                        <FormLabel>{t('settings.school.description')}</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Describe your music school..." 
+                          <Textarea
+                            placeholder={t('settings.school.descriptionPlaceholder')}
                             rows={4}
                             {...field} 
                           />
@@ -560,7 +562,7 @@ export default function SettingsPage() {
                     className="flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    {updateSchoolMutation.isPending ? "Saving..." : "Save School Settings"}
+                    {updateSchoolMutation.isPending ? t('settings.school.saving') : t('settings.school.save')}
                   </Button>
                 </form>
               </Form>
@@ -575,7 +577,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notification Preferences
+                {t('settings.notifications.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -588,9 +590,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Email Notifications</FormLabel>
+                            <FormLabel className="text-base">{t('settings.notifications.email')}</FormLabel>
                             <FormDescription>
-                              Receive notifications via email
+                              {t('settings.notifications.emailDescription')}
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -609,9 +611,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Lesson Reminders</FormLabel>
+                            <FormLabel className="text-base">{t('settings.notifications.lessonReminders')}</FormLabel>
                             <FormDescription>
-                              Get reminded about upcoming lessons
+                              {t('settings.notifications.lessonRemindersDescription')}
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -630,9 +632,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Assignment Deadlines</FormLabel>
+                            <FormLabel className="text-base">{t('settings.notifications.assignmentDeadlines')}</FormLabel>
                             <FormDescription>
-                              Be notified when assignments are due
+                              {t('settings.notifications.assignmentDeadlinesDescription')}
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -651,9 +653,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Achievement Alerts</FormLabel>
+                            <FormLabel className="text-base">{t('settings.notifications.achievementAlerts')}</FormLabel>
                             <FormDescription>
-                              Get notified when students earn achievements
+                              {t('settings.notifications.achievementAlertsDescription')}
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -672,9 +674,9 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Weekly Reports</FormLabel>
+                            <FormLabel className="text-base">{t('settings.notifications.weeklyReports')}</FormLabel>
                             <FormDescription>
-                              Receive weekly progress reports
+                              {t('settings.notifications.weeklyReportsDescription')}
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -694,7 +696,7 @@ export default function SettingsPage() {
                     className="flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    {updateNotificationsMutation.isPending ? "Saving..." : "Save Notification Settings"}
+                    {updateNotificationsMutation.isPending ? t('settings.notifications.saving') : t('settings.notifications.save')}
                   </Button>
                 </form>
               </Form>
@@ -708,7 +710,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                System Preferences
+                {t('settings.preferences.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -720,7 +722,7 @@ export default function SettingsPage() {
                       name="theme"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Theme</FormLabel>
+                          <FormLabel>{t('settings.preferences.theme')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -728,9 +730,9 @@ export default function SettingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="light">Light</SelectItem>
-                              <SelectItem value="dark">Dark</SelectItem>
-                              <SelectItem value="system">System</SelectItem>
+                              <SelectItem value="light">{t('settings.preferences.themeLight')}</SelectItem>
+                              <SelectItem value="dark">{t('settings.preferences.themeDark')}</SelectItem>
+                              <SelectItem value="system">{t('settings.preferences.themeSystem')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -743,7 +745,7 @@ export default function SettingsPage() {
                       name="language"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Language</FormLabel>
+                          <FormLabel>{t('settings.preferences.language')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -751,10 +753,10 @@ export default function SettingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="en">English</SelectItem>
-                              <SelectItem value="es">Spanish</SelectItem>
-                              <SelectItem value="fr">French</SelectItem>
-                              <SelectItem value="de">German</SelectItem>
+                              <SelectItem value="en">{t('settings.preferences.langEnglish')}</SelectItem>
+                              <SelectItem value="es">{t('settings.preferences.langSpanish')}</SelectItem>
+                              <SelectItem value="fr">{t('settings.preferences.langFrench')}</SelectItem>
+                              <SelectItem value="de">{t('settings.preferences.langGerman')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -769,7 +771,7 @@ export default function SettingsPage() {
                       name="dateFormat"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date Format</FormLabel>
+                          <FormLabel>{t('settings.preferences.dateFormat')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -792,7 +794,7 @@ export default function SettingsPage() {
                       name="defaultView"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Default View</FormLabel>
+                          <FormLabel>{t('settings.preferences.defaultView')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -800,10 +802,10 @@ export default function SettingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="dashboard">Dashboard</SelectItem>
-                              <SelectItem value="students">Students</SelectItem>
-                              <SelectItem value="lessons">Lessons</SelectItem>
-                              <SelectItem value="schedule">Schedule</SelectItem>
+                              <SelectItem value="dashboard">{t('settings.preferences.viewDashboard')}</SelectItem>
+                              <SelectItem value="students">{t('settings.preferences.viewStudents')}</SelectItem>
+                              <SelectItem value="lessons">{t('settings.preferences.viewLessons')}</SelectItem>
+                              <SelectItem value="schedule">{t('settings.preferences.viewSchedule')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -818,7 +820,7 @@ export default function SettingsPage() {
                     className="flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    {updatePreferencesMutation.isPending ? "Saving..." : "Save Preferences"}
+                    {updatePreferencesMutation.isPending ? t('settings.preferences.saving') : t('settings.preferences.save')}
                   </Button>
                 </form>
               </Form>
@@ -832,7 +834,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Security Settings
+                {t('settings.security.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -840,22 +842,22 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium">Change Password</h3>
-                    <p className="text-sm text-gray-600">Update your account password</p>
+                    <h3 className="text-lg font-medium">{t('settings.security.changePassword')}</h3>
+                    <p className="text-sm text-gray-600">{t('settings.security.changePasswordSubtitle')}</p>
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowPasswordChange(!showPasswordChange)}
                   >
                     {showPasswordChange ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                    {showPasswordChange ? 'Cancel' : 'Change Password'}
+                    {showPasswordChange ? t('settings.security.cancel') : t('settings.security.changePasswordBtn')}
                   </Button>
                 </div>
                 
                 {showPasswordChange && (
                   <div className="space-y-4 p-4 border rounded-lg">
                     <div>
-                      <Label htmlFor="current-password">Current Password</Label>
+                      <Label htmlFor="current-password">{t('settings.security.currentPassword')}</Label>
                       <Input
                         id="current-password"
                         type="password"
@@ -864,17 +866,17 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="new-password">New Password</Label>
+                      <Label htmlFor="new-password">{t('settings.security.newPassword')}</Label>
                       <Input
                         id="new-password"
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Use 8+ characters with upper/lowercase, a number, and a symbol"
+                        placeholder={t('settings.security.newPasswordPlaceholder')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <Label htmlFor="confirm-password">{t('settings.security.confirmPassword')}</Label>
                       <Input
                         id="confirm-password"
                         type="password"
@@ -882,11 +884,11 @@ export default function SettingsPage() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                     </div>
-                    <Button 
+                    <Button
                       onClick={handlePasswordChange}
                       disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
                     >
-                      {changePasswordMutation.isPending ? "Changing..." : "Update Password"}
+                      {changePasswordMutation.isPending ? t('settings.security.updatingPassword') : t('settings.security.updatePassword')}
                     </Button>
                   </div>
                 )}
@@ -894,25 +896,25 @@ export default function SettingsPage() {
 
               {/* Account Information */}
               <div className="space-y-4 pt-6 border-t">
-                <h3 className="text-lg font-medium">Account Information</h3>
+                <h3 className="text-lg font-medium">{t('settings.security.accountInfo')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-gray-600">Role</Label>
+                    <Label className="text-gray-600">{t('settings.security.role')}</Label>
                     <p className="font-medium">{user?.role || 'Teacher'}</p>
                   </div>
                   <div>
-                    <Label className="text-gray-600">Account Status</Label>
+                    <Label className="text-gray-600">{t('settings.security.accountStatus')}</Label>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Active
+                      {t('settings.security.accountActive')}
                     </Badge>
                   </div>
                   <div>
-                    <Label className="text-gray-600">Member Since</Label>
+                    <Label className="text-gray-600">{t('settings.security.memberSince')}</Label>
                     <p className="font-medium">January 2024</p>
                   </div>
                   <div>
-                    <Label className="text-gray-600">Last Login</Label>
-                    <p className="font-medium">Today</p>
+                    <Label className="text-gray-600">{t('settings.security.lastLogin')}</Label>
+                    <p className="font-medium">{t('settings.security.lastLoginValue')}</p>
                   </div>
                 </div>
               </div>
@@ -950,6 +952,7 @@ export default function SettingsPage() {
 // StudiosTab — manage physical rooms per school
 // ---------------------------------------------------------------------------
 function StudiosTab() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [newName, setNewName] = useState("");
   const [newLocation, setNewLocation] = useState("");
@@ -964,18 +967,18 @@ function StudiosTab() {
       queryClient.invalidateQueries({ queryKey: ["/api/studios"] });
       setNewName("");
       setNewLocation("");
-      toast({ title: "Studio aangemaakt" });
+      toast({ title: t('settings.studios.created') });
     },
-    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast({ title: t('settings.studios.error'), description: err.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest("DELETE", `/api/studios/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/studios"] });
-      toast({ title: "Studio verwijderd" });
+      toast({ title: t('settings.studios.deleted') });
     },
-    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast({ title: t('settings.studios.error'), description: err.message, variant: "destructive" }),
   });
 
   return (
@@ -983,14 +986,14 @@ function StudiosTab() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
-          Studio's &amp; Lokalen
+          {t('settings.studios.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Laden…</p>
+          <p className="text-sm text-muted-foreground">{t('settings.studios.loading')}</p>
         ) : studiosList.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nog geen studio's toegevoegd.</p>
+          <p className="text-sm text-muted-foreground">{t('settings.studios.empty')}</p>
         ) : (
           <div className="space-y-2">
             {studiosList.map(studio => (
@@ -1013,16 +1016,16 @@ function StudiosTab() {
         )}
 
         <div className="border-t pt-4 space-y-2">
-          <p className="text-sm font-medium">Nieuwe studio toevoegen</p>
+          <p className="text-sm font-medium">{t('settings.studios.addNew')}</p>
           <div className="flex gap-2">
             <Input
-              placeholder="Naam (bijv. Studio 11)"
+              placeholder={t('settings.studios.namePlaceholder')}
               value={newName}
               onChange={e => setNewName(e.target.value)}
               className="flex-1"
             />
             <Input
-              placeholder="Locatie (optioneel)"
+              placeholder={t('settings.studios.locationPlaceholder')}
               value={newLocation}
               onChange={e => setNewLocation(e.target.value)}
               className="flex-1"
@@ -1032,7 +1035,7 @@ function StudiosTab() {
               disabled={!newName.trim() || createMutation.isPending}
             >
               <Plus className="h-4 w-4 mr-1" />
-              Toevoegen
+              {t('settings.studios.addButton')}
             </Button>
           </div>
         </div>
@@ -1045,6 +1048,7 @@ function StudiosTab() {
 // VacationsTab — manage vacation periods that block lessons in the agenda
 // ---------------------------------------------------------------------------
 function VacationsTab() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [newTitle, setNewTitle] = useState("");
   const [newStart, setNewStart] = useState("");
@@ -1066,18 +1070,18 @@ function VacationsTab() {
       setNewTitle("");
       setNewStart("");
       setNewEnd("");
-      toast({ title: "Vakantie opgeslagen" });
+      toast({ title: t('settings.vacations.saved') });
     },
-    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast({ title: t('settings.vacations.error'), description: err.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest("DELETE", `/api/school/vacations/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/school/vacations"] });
-      toast({ title: "Vakantie verwijderd" });
+      toast({ title: t('settings.vacations.deleted') });
     },
-    onError: (err: Error) => toast({ title: "Fout", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast({ title: t('settings.vacations.error'), description: err.message, variant: "destructive" }),
   });
 
   return (
@@ -1085,17 +1089,17 @@ function VacationsTab() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarX className="h-5 w-5" />
-          Vakanties &amp; Vrije dagen
+          {t('settings.vacations.title')}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Vakantieperiodes worden automatisch uitgesloten in de agenda — er worden geen lessen gepland op die dagen.
+          {t('settings.vacations.subtitle')}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Laden…</p>
+          <p className="text-sm text-muted-foreground">{t('settings.vacations.loading')}</p>
         ) : vacationsList.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nog geen vakanties ingesteld.</p>
+          <p className="text-sm text-muted-foreground">{t('settings.vacations.empty')}</p>
         ) : (
           <div className="space-y-2">
             {vacationsList.map(v => (
@@ -1104,7 +1108,7 @@ function VacationsTab() {
                   <p className="font-medium text-sm">{v.title}</p>
                   <p className="text-xs text-muted-foreground">
                     {v.startDate} → {v.endDate}
-                    {v.isBlackout && <span className="ml-2 text-red-500">(vrije dag)</span>}
+                    {v.isBlackout && <span className="ml-2 text-red-500">{t('settings.vacations.blackout')}</span>}
                   </p>
                 </div>
                 <Button
@@ -1121,10 +1125,10 @@ function VacationsTab() {
         )}
 
         <div className="border-t pt-4 space-y-2">
-          <p className="text-sm font-medium">Nieuwe vakantieperiode toevoegen</p>
+          <p className="text-sm font-medium">{t('settings.vacations.addNew')}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <Input
-              placeholder="Naam (bijv. Meivakantie)"
+              placeholder={t('settings.vacations.namePlaceholder')}
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
             />
@@ -1144,7 +1148,7 @@ function VacationsTab() {
             disabled={!newTitle.trim() || !newStart || !newEnd || createMutation.isPending}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Vakantie toevoegen
+            {t('settings.vacations.addButton')}
           </Button>
         </div>
       </CardContent>

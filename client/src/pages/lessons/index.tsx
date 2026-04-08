@@ -14,6 +14,7 @@ import { Eye, Edit, Trash2, Plus, Search, Play, Music, Clock, User, BookOpen, X,
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layouts/app-layout";
+import { useTranslation } from "@/lib/i18n";
 
 // Import lesson components directly
 import ContentBlockManager, { ContentBlock } from "@/components/lessons/content-block-manager";
@@ -59,6 +60,7 @@ export default function LessonsPage() {
   const [editContentBlocks, setEditContentBlocks] = useState<ContentBlock[]>([]);
   
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   // Handle opening the lesson view dialog
   const handleViewLesson = (lesson: Lesson) => {
@@ -121,10 +123,10 @@ export default function LessonsPage() {
       setAddLevel("");
       setAddCategoryId("");
       setAddContentBlocks([]);
-      toast({ title: "Success", description: "Lesson created successfully" });
+      toast({ title: t('common.success'), description: t('lessons.createdSuccess') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -136,10 +138,10 @@ export default function LessonsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
-      toast({ title: "Success", description: "Lesson deleted successfully" });
+      toast({ title: t('common.success'), description: t('lessons.deletedSuccess') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -152,10 +154,10 @@ export default function LessonsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
       setIsEditDialogOpen(false);
-      toast({ title: "Success", description: "Lesson updated successfully" });
+      toast({ title: t('common.success'), description: t('lessons.updatedSuccess') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -171,16 +173,16 @@ export default function LessonsPage() {
       setSelectedStudentId("");
       setDueDate("");
       setNotes("");
-      toast({ title: "Success", description: "Lesson assigned successfully" });
+      toast({ title: t('common.success'), description: t('lessons.assignedSuccess') });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     },
   });
 
   const handleAssignLesson = (lesson: Lesson) => {
     if (!selectedStudentId) {
-      toast({ title: "Error", description: "Please select a student", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('lessons.selectStudentError'), variant: "destructive" });
       return;
     }
 
@@ -223,7 +225,7 @@ export default function LessonsPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Lessons">
+      <AppLayout title={t('lessons.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -232,15 +234,15 @@ export default function LessonsPage() {
   }
 
   return (
-    <AppLayout title="Lessons">
+    <AppLayout title={t('lessons.title')}>
       <div className="max-w-full overflow-x-hidden">
         {/* Header */}
         <div className="mb-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Lessons</h1>
+              <h1 className="text-2xl font-bold">{t('lessons.title')}</h1>
               <p className="text-muted-foreground text-sm">
-                Browse lessons by category and assign them to students
+                {t('lessons.subtitle')}
               </p>
             </div>
             <div className="flex gap-2">
@@ -248,14 +250,14 @@ export default function LessonsPage() {
                 <DialogTrigger asChild>
                   <Button variant="outline" className="gap-2">
                     <Settings className="h-4 w-4" />
-                    Manage Categories
+                    {t('lessons.manageCategories')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Manage Lesson Categories</DialogTitle>
+                    <DialogTitle>{t('lessons.manageLessonCategories')}</DialogTitle>
                     <DialogDescription>
-                      Create and organize categories for your lessons
+                      {t('lessons.manageCategoriesDescription')}
                     </DialogDescription>
                   </DialogHeader>
                   <LessonCategoriesManager />
@@ -273,20 +275,20 @@ export default function LessonsPage() {
                 variant={viewMode === 'categories' ? 'default' : 'outline'}
                 onClick={() => setViewMode('categories')}
               >
-                Categories
+                {t('lessons.viewCategories')}
               </Button>
               <Button
                 variant={viewMode === 'lessons' ? 'default' : 'outline'}
                 onClick={() => setViewMode('lessons')}
               >
-                All Lessons
+                {t('lessons.viewAll')}
               </Button>
               <Button
                 variant={viewMode === 'preview' ? 'default' : 'outline'}
                 onClick={() => setViewMode('preview')}
               >
                 <Play className="h-4 w-4 mr-2" />
-                Preview
+                {t('lessons.viewPreview')}
               </Button>
             </div>
             <div className="flex gap-2">
@@ -294,61 +296,61 @@ export default function LessonsPage() {
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Lesson
+                {t('lessons.addLesson')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Lesson</DialogTitle>
+                <DialogTitle>{t('lessons.addNewLesson')}</DialogTitle>
                 <DialogDescription>
-                  Create a new lesson with content and resources for your students.
+                  {t('lessons.addNewLessonDescription')}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="add-title">Title *</Label>
-                  <Input 
-                    id="add-title" 
+                  <Label htmlFor="add-title">{t('lessons.form.titleLabel')}</Label>
+                  <Input
+                    id="add-title"
                     value={addTitle}
                     onChange={(e) => setAddTitle(e.target.value)}
-                    placeholder="Enter lesson title" 
+                    placeholder={t('lessons.form.titlePlaceholder')}
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="add-type">Content Type</Label>
-                    <Select 
+                    <Label htmlFor="add-type">{t('lessons.form.contentTypeLabel')}</Label>
+                    <Select
                       value={addContentType}
                       onValueChange={setAddContentType}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select content type" />
+                        <SelectValue placeholder={t('lessons.form.contentTypePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="technique">Technique</SelectItem>
-                        <SelectItem value="theory">Theory</SelectItem>
-                        <SelectItem value="song">Song</SelectItem>
+                        <SelectItem value="standard">{t('lessons.form.contentTypeStandard')}</SelectItem>
+                        <SelectItem value="technique">{t('lessons.form.contentTypeTechnique')}</SelectItem>
+                        <SelectItem value="theory">{t('lessons.form.contentTypeTheory')}</SelectItem>
+                        <SelectItem value="song">{t('lessons.form.contentTypeSong')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="add-level">Skill Level</Label>
-                    <Select 
+                    <Label htmlFor="add-level">{t('lessons.form.skillLevelLabel')}</Label>
+                    <Select
                       value={addLevel}
                       onValueChange={setAddLevel}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select skill level" />
+                        <SelectValue placeholder={t('lessons.form.skillLevelPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="none">{t('lessons.form.levelNone')}</SelectItem>
+                        <SelectItem value="beginner">{t('lessons.form.levelBeginner')}</SelectItem>
+                        <SelectItem value="intermediate">{t('lessons.form.levelIntermediate')}</SelectItem>
+                        <SelectItem value="advanced">{t('lessons.form.levelAdvanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -356,16 +358,16 @@ export default function LessonsPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="add-category">Category</Label>
-                    <Select 
+                    <Label htmlFor="add-category">{t('lessons.form.categoryLabel')}</Label>
+                    <Select
                       value={addCategoryId}
                       onValueChange={setAddCategoryId}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder={t('lessons.form.categoryPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No Category</SelectItem>
+                        <SelectItem value="none">{t('lessons.form.noCategory')}</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             <div className="flex items-center gap-2">
@@ -382,23 +384,23 @@ export default function LessonsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="add-instrument">Instrument</Label>
-                    <Input 
-                      id="add-instrument" 
+                    <Label htmlFor="add-instrument">{t('lessons.form.instrumentLabel')}</Label>
+                    <Input
+                      id="add-instrument"
                       value={addInstrument}
                       onChange={(e) => setAddInstrument(e.target.value)}
-                      placeholder="e.g., Piano, Guitar, Drums" 
+                      placeholder={t('lessons.form.instrumentPlaceholder')}
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="add-description">Description</Label>
-                  <Textarea 
-                    id="add-description" 
+                  <Label htmlFor="add-description">{t('lessons.form.descriptionLabel')}</Label>
+                  <Textarea
+                    id="add-description"
                     value={addDescription}
                     onChange={(e) => setAddDescription(e.target.value)}
-                    placeholder="Add notes about the lesson" 
+                    placeholder={t('lessons.form.descriptionPlaceholder')}
                     rows={3}
                   />
                 </div>
@@ -406,9 +408,9 @@ export default function LessonsPage() {
                 {/* Content Blocks Section */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium mb-4">Content & Resources</h3>
+                    <h3 className="text-lg font-medium mb-4">{t('lessons.form.contentResourcesTitle')}</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Add videos, external links, text content, and other resources for this lesson.
+                      {t('lessons.form.contentResourcesDescription')}
                     </p>
                     <ContentBlockManager
                       blocks={addContentBlocks}
@@ -428,18 +430,18 @@ export default function LessonsPage() {
                 </div>
                 
                 <DialogFooter>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => setIsAddDialogOpen(false)}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                   <Button 
                     onClick={() => {
                       if (!addTitle.trim()) {
                         toast({
-                          title: "Error",
-                          description: "Please enter a lesson title",
+                          title: t('common.error'),
+                          description: t('lessons.enterTitleError'),
                           variant: "destructive"
                         });
                         return;
@@ -459,11 +461,11 @@ export default function LessonsPage() {
                   >
                     {createLessonMutation.isPending ? (
                       <>
-                        <span className="mr-2">Creating...</span>
+                        <span className="mr-2">{t('lessons.creating')}</span>
                         <div className="animate-spin h-4 w-4 rounded-full border-2 border-t-transparent border-white" />
                       </>
                     ) : (
-                      "Create Lesson"
+                      t('lessons.createLesson')
                     )}
                   </Button>
                 </DialogFooter>
@@ -476,7 +478,7 @@ export default function LessonsPage() {
             <div className="relative max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search lessons..."
+                placeholder={t('lessons.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -493,23 +495,22 @@ export default function LessonsPage() {
               {categories.length === 0 ? (
                 <div className="text-center py-12">
                   <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">No Lesson Categories</h3>
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">{t('lessons.noCategoriesTitle')}</h3>
                   <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                    Create your first lesson category to organize your educational content. 
-                    Categories help group related lessons together.
+                    {t('lessons.noCategoriesDescription')}
                   </p>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button className="gap-2">
                         <Plus className="h-4 w-4" />
-                        Create First Category
+                        {t('lessons.createFirstCategory')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Manage Lesson Categories</DialogTitle>
+                        <DialogTitle>{t('lessons.manageLessonCategories')}</DialogTitle>
                         <DialogDescription>
-                          Create and organize categories for your lessons
+                          {t('lessons.manageCategoriesDescription')}
                         </DialogDescription>
                       </DialogHeader>
                       <LessonCategoriesManager />
@@ -546,7 +547,7 @@ export default function LessonsPage() {
                             <div className="flex-1">
                               <p className="font-medium text-sm">{lesson.title?.replace(/"/g, '')}</p>
                               <p className="text-xs text-muted-foreground truncate">
-                                {lesson.description?.replace(/"/g, '') || "No description"}
+                                {lesson.description?.replace(/"/g, '') || t('lessons.noDescription')}
                               </p>
                             </div>
                             <div className="flex gap-1">
@@ -555,7 +556,7 @@ export default function LessonsPage() {
                                 size="sm"
                                 onClick={() => handleViewLesson(lesson)}
                               >
-                                View
+                                {t('lessons.view')}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -580,7 +581,7 @@ export default function LessonsPage() {
                                 setViewMode('lessons');
                               }}
                             >
-                              View all {categoryLessons.length} lessons
+                              {t('lessons.viewAllCount')} {categoryLessons.length} {t('lessons.countLessons')}
                             </Button>
                           </div>
                         )}
@@ -594,13 +595,13 @@ export default function LessonsPage() {
                               setViewMode('lessons');
                             }}
                           >
-                            View Lessons ({categoryLessons.length})
+                            {t('lessons.viewLessonsCount')} ({categoryLessons.length})
                           </Button>
                         </div>
                       </>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-sm text-muted-foreground">No lessons assigned yet</p>
+                        <p className="text-sm text-muted-foreground">{t('lessons.noLessonsAssigned')}</p>
                         <Button
                           variant="outline"
                           size="sm"
@@ -611,7 +612,7 @@ export default function LessonsPage() {
                           }}
                         >
                           <Plus className="h-3 w-3 mr-1" />
-                          Add Lesson
+                          {t('lessons.addLesson')}
                         </Button>
                       </div>
                     )}
@@ -637,7 +638,7 @@ export default function LessonsPage() {
                     setViewMode('categories');
                   }}
                 >
-                  ← Back to Categories
+                  {t('lessons.backToCategories')}
                 </Button>
                 <div className="flex items-center gap-2">
                   <div 
@@ -654,20 +655,20 @@ export default function LessonsPage() {
             {filteredLessons.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">No Lessons Found</h3>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">{t('lessons.noLessonsFoundTitle')}</h3>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  {(lessons?.length || 0) === 0 
-                    ? "Create your first lesson to start building your educational content library."
-                    : "No lessons match your current filters. Try adjusting your search or category selection."
+                  {(lessons?.length || 0) === 0
+                    ? t('lessons.noLessonsEmpty')
+                    : t('lessons.noLessonsFiltered')
                   }
                 </p>
                 {(lessons?.length || 0) === 0 && (
-                  <Button 
+                  <Button
                     className="gap-2"
                     onClick={() => setIsAddDialogOpen(true)}
                   >
                     <Plus className="h-4 w-4" />
-                    Create First Lesson
+                    {t('lessons.createFirstLesson')}
                   </Button>
                 )}
               </div>
@@ -719,7 +720,7 @@ export default function LessonsPage() {
                         onClick={() => handleViewLesson(lesson)}
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        View
+                        {t('lessons.view')}
                       </Button>
                       {(user?.role === "teacher" || user?.role === "school_owner") && (
                         <Button
@@ -778,7 +779,7 @@ export default function LessonsPage() {
                     setViewMode('categories');
                   }}
                 >
-                  ← Back to Categories
+                  {t('lessons.backToCategories')}
                 </Button>
                 <div className="flex items-center gap-2">
                   <div 
@@ -808,14 +809,14 @@ export default function LessonsPage() {
           <Card>
             <CardContent className="text-center py-8">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">No lessons found</h3>
+              <h3 className="text-lg font-medium mb-2">{t('lessons.noLessonsFound')}</h3>
               <p className="text-gray-500 mb-4">
-                {searchTerm ? "No lessons match your search." : "Get started by creating your first lesson."}
+                {searchTerm ? t('lessons.noLessonsSearch') : t('lessons.getStarted')}
               </p>
               {!searchTerm && (
                 <Button onClick={() => setIsAddDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Lesson
+                  {t('lessons.addLesson')}
                 </Button>
               )}
             </CardContent>
@@ -878,56 +879,56 @@ export default function LessonsPage() {
           {selectedLesson && (
             <>
               <DialogHeader>
-                <DialogTitle>Edit Lesson</DialogTitle>
+                <DialogTitle>{t('lessons.editLesson')}</DialogTitle>
                 <DialogDescription>
-                  Make changes to this lesson and click save when you're done.
+                  {t('lessons.editLessonDescription')}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-title">Title *</Label>
-                  <Input 
-                    id="edit-title" 
+                  <Label htmlFor="edit-title">{t('lessons.form.titleLabel')}</Label>
+                  <Input
+                    id="edit-title"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Enter lesson title" 
+                    placeholder={t('lessons.form.titlePlaceholder')}
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-type">Content Type</Label>
-                    <Select 
+                    <Label htmlFor="edit-type">{t('lessons.form.contentTypeLabel')}</Label>
+                    <Select
                       value={editContentType}
                       onValueChange={setEditContentType}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select content type" />
+                        <SelectValue placeholder={t('lessons.form.contentTypePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="technique">Technique</SelectItem>
-                        <SelectItem value="theory">Theory</SelectItem>
-                        <SelectItem value="song">Song</SelectItem>
+                        <SelectItem value="standard">{t('lessons.form.contentTypeStandard')}</SelectItem>
+                        <SelectItem value="technique">{t('lessons.form.contentTypeTechnique')}</SelectItem>
+                        <SelectItem value="theory">{t('lessons.form.contentTypeTheory')}</SelectItem>
+                        <SelectItem value="song">{t('lessons.form.contentTypeSong')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="edit-level">Skill Level</Label>
-                    <Select 
+                    <Label htmlFor="edit-level">{t('lessons.form.skillLevelLabel')}</Label>
+                    <Select
                       value={editLevel}
                       onValueChange={setEditLevel}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select skill level" />
+                        <SelectValue placeholder={t('lessons.form.skillLevelPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="none">{t('lessons.form.levelNone')}</SelectItem>
+                        <SelectItem value="beginner">{t('lessons.form.levelBeginner')}</SelectItem>
+                        <SelectItem value="intermediate">{t('lessons.form.levelIntermediate')}</SelectItem>
+                        <SelectItem value="advanced">{t('lessons.form.levelAdvanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -935,16 +936,16 @@ export default function LessonsPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-category">Category</Label>
-                    <Select 
+                    <Label htmlFor="edit-category">{t('lessons.form.categoryLabel')}</Label>
+                    <Select
                       value={editCategoryId}
                       onValueChange={setEditCategoryId}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder={t('lessons.form.categoryPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No Category</SelectItem>
+                        <SelectItem value="none">{t('lessons.form.noCategory')}</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             <div className="flex items-center gap-2">
@@ -961,23 +962,23 @@ export default function LessonsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="edit-instrument">Instrument</Label>
-                    <Input 
-                      id="edit-instrument" 
+                    <Label htmlFor="edit-instrument">{t('lessons.form.instrumentLabel')}</Label>
+                    <Input
+                      id="edit-instrument"
                       value={editInstrument}
                       onChange={(e) => setEditInstrument(e.target.value)}
-                      placeholder="E.g., Guitar, Piano, Drums" 
+                      placeholder={t('lessons.form.editInstrumentPlaceholder')}
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Textarea 
-                    id="edit-description" 
+                  <Label htmlFor="edit-description">{t('lessons.form.descriptionLabel')}</Label>
+                  <Textarea
+                    id="edit-description"
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    placeholder="Add notes about the lesson" 
+                    placeholder={t('lessons.form.descriptionPlaceholder')}
                     rows={3}
                   />
                 </div>
@@ -985,9 +986,9 @@ export default function LessonsPage() {
                 {/* Content Blocks Section */}
                 <div className="space-y-4">
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-medium mb-4">Content & Resources</h3>
+                    <h3 className="text-lg font-medium mb-4">{t('lessons.form.contentResourcesTitle')}</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Add videos, external links, text content, and other resources for this lesson.
+                      {t('lessons.form.contentResourcesDescription')}
                     </p>
                     <ContentBlockManager
                       blocks={editContentBlocks}
@@ -998,11 +999,11 @@ export default function LessonsPage() {
                 </div>
                 
                 <DialogFooter>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => setIsEditDialogOpen(false)}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                   <Button 
                     onClick={() => {
@@ -1021,7 +1022,7 @@ export default function LessonsPage() {
                     }}
                     disabled={updateLessonMutation.isPending}
                   >
-                    {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
+                    {updateLessonMutation.isPending ? t('lessons.saving') : t('lessons.saveChanges')}
                   </Button>
                 </DialogFooter>
               </div>
@@ -1036,18 +1037,18 @@ export default function LessonsPage() {
           {selectedLesson && (
             <>
               <DialogHeader>
-                <DialogTitle>Assign Lesson to Student</DialogTitle>
+                <DialogTitle>{t('lessons.assignToStudent')}</DialogTitle>
                 <DialogDescription>
-                  Assign "{selectedLesson.title}" to a student with optional due date and notes.
+                  Assign "{selectedLesson.title}" to a student {t('lessons.assignDescription')}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="student-select">Select Student</Label>
+                  <Label htmlFor="student-select">{t('lessons.assignSelectStudentLabel')}</Label>
                   <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a student" />
+                      <SelectValue placeholder={t('lessons.assignChooseStudent')} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((student) => (
@@ -1060,7 +1061,7 @@ export default function LessonsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="due-date">Due Date (Optional)</Label>
+                  <Label htmlFor="due-date">{t('lessons.assignDueDateLabel')}</Label>
                   <Input
                     id="due-date"
                     type="date"
@@ -1070,22 +1071,22 @@ export default function LessonsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="assignment-notes">Notes (Optional)</Label>
+                  <Label htmlFor="assignment-notes">{t('lessons.assignNotesLabel')}</Label>
                   <Textarea
                     id="assignment-notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add any specific instructions or notes for this assignment"
+                    placeholder={t('lessons.assignNotesPlaceholder')}
                   />
                 </div>
               </div>
               
               <DialogFooter>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsAssignDialogOpen(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button 
                   onClick={() => handleAssignLesson(selectedLesson)}
@@ -1093,11 +1094,11 @@ export default function LessonsPage() {
                 >
                   {assignMutation.isPending ? (
                     <>
-                      <span className="mr-2">Assigning...</span>
+                      <span className="mr-2">{t('lessons.assigning')}</span>
                       <div className="animate-spin h-4 w-4 rounded-full border-2 border-t-transparent border-white" />
                     </>
                   ) : (
-                    "Assign Lesson"
+                    t('lessons.assignLesson')
                   )}
                 </Button>
               </DialogFooter>

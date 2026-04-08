@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,6 +71,7 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function SignupPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<SignupForm>({
@@ -119,15 +121,15 @@ export default function SignupPage() {
       });
 
       toast({
-        title: "Registration Successful!",
-        description: "Welcome to MusicDott! You can now log in to your account.",
+        title: t('signup.toast.successTitle'),
+        description: t('signup.toast.successDescription'),
       });
 
       navigate("/auth");
     } catch (error: any) {
       toast({
-        title: "Registration Failed",
-        description: error.message || "An error occurred during registration",
+        title: t('signup.toast.errorTitle'),
+        description: error.message || t('signup.toast.errorDescription'),
         variant: "destructive",
       });
     } finally {
@@ -146,10 +148,10 @@ export default function SignupPage() {
             className="h-12 mx-auto mb-4"
           />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Join MusicDott
+            {t('signup.pageTitle')}
           </h1>
           <p className="text-gray-600">
-            Start managing your music school with the most comprehensive platform for music education
+            {t('signup.pageSubtitle')}
           </p>
         </div>
 
@@ -157,10 +159,10 @@ export default function SignupPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <School className="h-5 w-5" />
-              Create Your Music School Account
+              {t('signup.cardTitle')}
             </CardTitle>
             <CardDescription>
-              Set up your account and school profile in just a few minutes
+              {t('signup.cardDescription')}
             </CardDescription>
           </CardHeader>
           
@@ -172,7 +174,7 @@ export default function SignupPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    Account Information
+                    {t('signup.section.accountInfo')}
                   </h3>
                   
                   <div className="grid md:grid-cols-2 gap-4">
@@ -181,9 +183,9 @@ export default function SignupPage() {
                       name="ownerName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Full Name</FormLabel>
+                          <FormLabel>{t('signup.field.fullName')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Sarah Johnson" {...field} />
+                            <Input placeholder={t('signup.placeholder.fullName')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -195,16 +197,16 @@ export default function SignupPage() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Role</FormLabel>
+                          <FormLabel>{t('signup.field.role')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select your role" />
+                                <SelectValue placeholder={t('signup.placeholder.selectRole')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="school_owner">School Owner/Director</SelectItem>
-                              <SelectItem value="teacher">Independent Teacher</SelectItem>
+                              <SelectItem value="school_owner">{t('signup.role.schoolOwner')}</SelectItem>
+                              <SelectItem value="teacher">{t('signup.role.teacher')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -219,9 +221,9 @@ export default function SignupPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>{t('signup.field.username')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="musicschool2025" {...field} />
+                            <Input placeholder={t('signup.placeholder.username')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -233,9 +235,9 @@ export default function SignupPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel>{t('signup.field.emailAddress')}</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="hello@musicschool.com" {...field} />
+                            <Input type="email" placeholder={t('signup.placeholder.email')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -249,9 +251,9 @@ export default function SignupPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('signup.field.password')}</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Minimum 8 characters" {...field} />
+                            <Input type="password" placeholder={t('signup.placeholder.password')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -263,9 +265,9 @@ export default function SignupPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
+                          <FormLabel>{t('signup.field.confirmPassword')}</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Repeat your password" {...field} />
+                            <Input type="password" placeholder={t('signup.placeholder.confirmPassword')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -278,7 +280,7 @@ export default function SignupPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Building className="h-4 w-4" />
-                    School Information
+                    {t('signup.section.schoolInfo')}
                   </h3>
                   
                   <FormField
@@ -286,9 +288,9 @@ export default function SignupPage() {
                     name="schoolName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>School/Studio Name</FormLabel>
+                        <FormLabel>{t('signup.field.schoolName')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Harmony Music Academy" {...field} />
+                          <Input placeholder={t('signup.placeholder.schoolName')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -301,9 +303,9 @@ export default function SignupPage() {
                       name="schoolAddress"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address (Optional)</FormLabel>
+                          <FormLabel>{t('signup.field.address')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="123 Music Street, City, State" {...field} />
+                            <Input placeholder={t('signup.placeholder.address')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -315,9 +317,9 @@ export default function SignupPage() {
                       name="schoolPhone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone (Optional)</FormLabel>
+                          <FormLabel>{t('signup.field.phone')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="+1 (555) 123-4567" {...field} />
+                            <Input placeholder={t('signup.placeholder.phone')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -330,9 +332,9 @@ export default function SignupPage() {
                     name="schoolWebsite"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Website (Optional)</FormLabel>
+                        <FormLabel>{t('signup.field.website')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://www.yourmusicschool.com" {...field} />
+                          <Input placeholder={t('signup.placeholder.website')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -344,7 +346,7 @@ export default function SignupPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Teaching Information
+                    {t('signup.section.teachingInfo')}
                   </h3>
                   
                   <div className="grid md:grid-cols-2 gap-4">
@@ -353,9 +355,9 @@ export default function SignupPage() {
                       name="primaryInstruments"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Primary Instruments</FormLabel>
+                          <FormLabel>{t('signup.field.primaryInstruments')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Piano, Guitar, Violin" {...field} />
+                            <Input placeholder={t('signup.placeholder.instruments')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -367,19 +369,19 @@ export default function SignupPage() {
                       name="yearsTeaching"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Years Teaching</FormLabel>
+                          <FormLabel>{t('signup.field.yearsTeaching')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select experience" />
+                                <SelectValue placeholder={t('signup.placeholder.selectExperience')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="0-1">Less than 1 year</SelectItem>
-                              <SelectItem value="1-3">1-3 years</SelectItem>
-                              <SelectItem value="3-5">3-5 years</SelectItem>
-                              <SelectItem value="5-10">5-10 years</SelectItem>
-                              <SelectItem value="10+">10+ years</SelectItem>
+                              <SelectItem value="0-1">{t('signup.experience.lessThan1')}</SelectItem>
+                              <SelectItem value="1-3">{t('signup.experience.1to3')}</SelectItem>
+                              <SelectItem value="3-5">{t('signup.experience.3to5')}</SelectItem>
+                              <SelectItem value="5-10">{t('signup.experience.5to10')}</SelectItem>
+                              <SelectItem value="10+">{t('signup.experience.10plus')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -393,19 +395,19 @@ export default function SignupPage() {
                     name="studentCapacity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Expected Student Capacity</FormLabel>
+                        <FormLabel>{t('signup.field.studentCapacity')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="How many students do you plan to teach?" />
+                              <SelectValue placeholder={t('signup.placeholder.studentCapacity')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1-10">1-10 students</SelectItem>
-                            <SelectItem value="11-25">11-25 students</SelectItem>
-                            <SelectItem value="26-50">26-50 students</SelectItem>
-                            <SelectItem value="51-100">51-100 students</SelectItem>
-                            <SelectItem value="100+">100+ students</SelectItem>
+                            <SelectItem value="1-10">{t('signup.capacity.1to10')}</SelectItem>
+                            <SelectItem value="11-25">{t('signup.capacity.11to25')}</SelectItem>
+                            <SelectItem value="26-50">{t('signup.capacity.26to50')}</SelectItem>
+                            <SelectItem value="51-100">{t('signup.capacity.51to100')}</SelectItem>
+                            <SelectItem value="100+">{t('signup.capacity.100plus')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -418,10 +420,10 @@ export default function SignupPage() {
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>About You/Your School (Optional)</FormLabel>
+                        <FormLabel>{t('signup.field.bio')}</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Tell us about your teaching philosophy, specialties, or what makes your school unique..."
+                          <Textarea
+                            placeholder={t('signup.placeholder.bio')}
                             className="resize-none"
                             {...field}
                           />
@@ -438,21 +440,21 @@ export default function SignupPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
+                        {t('signup.button.creatingAccount')}
                       </>
                     ) : (
-                      "Create Account"
+                      t('signup.button.createAccount')
                     )}
                   </Button>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => navigate("/auth")}
                     className="w-full"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Login
+                    {t('signup.button.backToLogin')}
                   </Button>
                 </div>
               </form>
@@ -463,10 +465,10 @@ export default function SignupPage() {
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
           <p>
-            By creating an account, you agree to our Terms of Service and Privacy Policy.
+            {t('signup.footer.terms')}
           </p>
           <p className="mt-2">
-            🇳🇱 Proudly built in The Netherlands
+            🇳🇱 {t('footer.proudlyBuilt')}
           </p>
         </div>
       </div>

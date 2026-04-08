@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 
 interface MessageReply {
   id: number;
@@ -56,9 +57,10 @@ interface StudentMessage {
 export default function MessagesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [selectedMessage, setSelectedMessage] = useState<StudentMessage | null>(null);
   const [response, setResponse] = useState("");
-  
+
   // Compose message state
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [recipientType, setRecipientType] = useState<"student" | "teacher">("student");
@@ -90,8 +92,8 @@ export default function MessagesPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Response sent",
-        description: "Your response has been sent to the student."
+        title: t('messages.toastResponseSentTitle'),
+        description: t('messages.toastResponseSentDescription')
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teacher/messages"] });
       setSelectedMessage(null);
@@ -99,8 +101,8 @@ export default function MessagesPage() {
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send response. Please try again.",
+        title: t('common.error'),
+        description: t('messages.toastResponseErrorDescription'),
         variant: "destructive"
       });
     }
@@ -116,11 +118,11 @@ export default function MessagesPage() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ recipientType, recipientId, subject, message }: { 
-      recipientType: "student" | "teacher", 
-      recipientId: string, 
-      subject: string, 
-      message: string 
+    mutationFn: async ({ recipientType, recipientId, subject, message }: {
+      recipientType: "student" | "teacher",
+      recipientId: string,
+      subject: string,
+      message: string
     }) => {
       return await apiRequest("POST", "/api/teacher/send-message", {
         recipientType,
@@ -131,8 +133,8 @@ export default function MessagesPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Message sent",
-        description: "Your message has been sent successfully."
+        title: t('messages.toastSentTitle'),
+        description: t('messages.toastSentDescription')
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teacher/messages"] });
       setIsComposeOpen(false);
@@ -142,8 +144,8 @@ export default function MessagesPage() {
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: t('common.error'),
+        description: t('messages.toastSendErrorDescription'),
         variant: "destructive"
       });
     }
@@ -151,7 +153,7 @@ export default function MessagesPage() {
 
   const handleSendResponse = () => {
     if (!selectedMessage || !response.trim()) return;
-    
+
     console.log("Sending response to message:", selectedMessage.id);
     respondMutation.mutate({
       messageId: selectedMessage.id,
@@ -182,7 +184,7 @@ export default function MessagesPage() {
 
   const handleSendMessage = () => {
     if (!selectedRecipient || !messageSubject.trim() || !messageContent.trim()) return;
-    
+
     sendMessageMutation.mutate({
       recipientType,
       recipientId: selectedRecipient,
@@ -200,7 +202,7 @@ export default function MessagesPage() {
 
   if (isLoading) {
     return (
-      <Layout title="Student Messages">
+      <Layout title={t('messages.pageTitle')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -221,14 +223,14 @@ export default function MessagesPage() {
   const answeredMessages = Array.isArray(messages) ? messages.filter(m => m.response) : [];
 
   return (
-    <Layout title="Student Messages">
+    <Layout title={t('messages.pageTitle')}>
       <div className="p-6">
         <div className="mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Student Messages</h1>
-            <p className="text-gray-600">View and respond to questions from your students</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('messages.pageTitle')}</h1>
+            <p className="text-gray-600">{t('messages.pageSubtitle')}</p>
           </div>
-          
+
           <Dialog open={isComposeOpen} onOpenChange={(open) => {
             setIsComposeOpen(open);
             if (!open) resetComposeForm();
@@ -236,44 +238,44 @@ export default function MessagesPage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Compose Message
+                {t('messages.compose')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Send New Message</DialogTitle>
+                <DialogTitle>{t('messages.sendNewMessage')}</DialogTitle>
                 <DialogDescription>
-                  Send a message to a student or teacher
+                  {t('messages.sendNewMessageDescription')}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="recipient-type">Send to</Label>
+                  <Label htmlFor="recipient-type">{t('messages.sendTo')}</Label>
                   <Select value={recipientType} onValueChange={(value: "student" | "teacher") => {
                     setRecipientType(value);
                     setSelectedRecipient("");
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select recipient type" />
+                      <SelectValue placeholder={t('messages.selectRecipientType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="student">{t('messages.recipientStudent')}</SelectItem>
+                      <SelectItem value="teacher">{t('messages.recipientTeacher')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="recipient">
-                    {recipientType === "student" ? "Select Student" : "Select Teacher"}
+                    {recipientType === "student" ? t('messages.selectStudent') : t('messages.selectTeacher')}
                   </Label>
                   <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
                     <SelectTrigger>
-                      <SelectValue placeholder={`Choose a ${recipientType}...`} />
+                      <SelectValue placeholder={recipientType === "student" ? t('messages.selectStudent') : t('messages.selectTeacher')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {recipientType === "student" 
+                      {recipientType === "student"
                         ? (students as any[]).map((student: any) => (
                             <SelectItem key={student.id} value={student.id.toString()}>
                               {student.name}
@@ -290,20 +292,20 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
+                  <Label htmlFor="subject">{t('messages.subject')}</Label>
                   <Input
                     id="subject"
-                    placeholder="Enter message subject..."
+                    placeholder={t('messages.enterSubject')}
                     value={messageSubject}
                     onChange={(e) => setMessageSubject(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message">{t('messages.message')}</Label>
                   <Textarea
                     id="message"
-                    placeholder="Type your message here..."
+                    placeholder={t('messages.typeMessage')}
                     value={messageContent}
                     onChange={(e) => setMessageContent(e.target.value)}
                     rows={4}
@@ -313,18 +315,18 @@ export default function MessagesPage() {
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSendMessage}
                   disabled={!selectedRecipient || !messageSubject.trim() || !messageContent.trim() || sendMessageMutation.isPending}
                 >
                   {sendMessageMutation.isPending ? (
-                    <>Sending...</>
+                    <>{t('messages.sending')}</>
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      Send Message
+                      {t('messages.sendMessage')}
                     </>
                   )}
                 </Button>
@@ -335,9 +337,9 @@ export default function MessagesPage() {
 
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="all">All ({Array.isArray(messages) ? messages.length : 0})</TabsTrigger>
-            <TabsTrigger value="pending">Pending Response ({pendingMessages.length})</TabsTrigger>
-            <TabsTrigger value="answered">Answered ({answeredMessages.length})</TabsTrigger>
+            <TabsTrigger value="all">{t('messages.tabAll')} ({Array.isArray(messages) ? messages.length : 0})</TabsTrigger>
+            <TabsTrigger value="pending">{t('messages.tabPending')} ({pendingMessages.length})</TabsTrigger>
+            <TabsTrigger value="answered">{t('messages.tabAnswered')} ({answeredMessages.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -345,9 +347,9 @@ export default function MessagesPage() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('messages.noMessages')}</h3>
                   <p className="text-gray-500">
-                    When students send you messages, they'll appear here.
+                    {t('messages.noMessagesDescription')}
                   </p>
                 </CardContent>
               </Card>
@@ -359,6 +361,7 @@ export default function MessagesPage() {
                     message={message}
                     onSelect={() => handleSelectMessage(message)}
                     onRespond={() => handleSelectMessage(message)}
+                    t={t}
                   />
                 ))}
               </div>
@@ -370,9 +373,9 @@ export default function MessagesPage() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('messages.allCaughtUp')}</h3>
                   <p className="text-gray-500">
-                    No messages waiting for your response.
+                    {t('messages.noPendingMessages')}
                   </p>
                 </CardContent>
               </Card>
@@ -384,6 +387,7 @@ export default function MessagesPage() {
                     message={message}
                     onSelect={() => handleSelectMessage(message)}
                     onRespond={() => handleSelectMessage(message)}
+                    t={t}
                   />
                 ))}
               </div>
@@ -395,9 +399,9 @@ export default function MessagesPage() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No answered messages</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('messages.noAnsweredMessages')}</h3>
                   <p className="text-gray-500">
-                    Messages you've responded to will appear here.
+                    {t('messages.noAnsweredMessagesDescription')}
                   </p>
                 </CardContent>
               </Card>
@@ -409,6 +413,7 @@ export default function MessagesPage() {
                     message={message}
                     onSelect={() => setSelectedMessage(message)}
                     onRespond={() => setSelectedMessage(message)}
+                    t={t}
                   />
                 ))}
               </div>
@@ -418,7 +423,7 @@ export default function MessagesPage() {
 
         {/* Message Detail Modal/Panel */}
         {selectedMessage && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -432,9 +437,9 @@ export default function MessagesPage() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      {selectedMessage?.studentName || "Unknown Student"}
+                      {selectedMessage?.studentName || t('messages.unknownStudent')}
                     </CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">{selectedMessage?.subject || "No Subject"}</p>
+                    <p className="text-sm text-gray-500 mt-1">{selectedMessage?.subject || t('messages.noSubject')}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -449,20 +454,20 @@ export default function MessagesPage() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                     <Clock className="h-4 w-4" />
-                    {selectedMessage?.createdAt ? format(new Date(selectedMessage.createdAt), "PPp") : "Unknown date"}
+                    {selectedMessage?.createdAt ? format(new Date(selectedMessage.createdAt), "PPp") : t('messages.unknownDate')}
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-900">{selectedMessage?.message || "No message content"}</p>
+                    <p className="text-gray-900">{selectedMessage?.message || t('messages.noMessageContent')}</p>
                   </div>
                 </div>
 
                 {/* Conversation Thread */}
                 {selectedMessage?.response && (
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Your Response</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">{t('messages.yourResponse')}</h4>
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                       <Clock className="h-4 w-4" />
-                      {selectedMessage.respondedAt ? format(new Date(selectedMessage.respondedAt), "PPp") : "No response date"}
+                      {selectedMessage.respondedAt ? format(new Date(selectedMessage.respondedAt), "PPp") : t('messages.noResponseDate')}
                     </div>
                     <div className="liquid-card bg-blue-50 border-l-4 border-blue-500">
                       <p className="text-gray-900">{selectedMessage.response}</p>
@@ -473,7 +478,7 @@ export default function MessagesPage() {
                 {/* Student Replies */}
                 {selectedMessage?.replies && selectedMessage.replies.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-4">Student Replies</h4>
+                    <h4 className="font-medium text-gray-900 mb-4">{t('messages.studentReplies')}</h4>
                     <div className="space-y-3">
                       {selectedMessage.replies.map((reply) => (
                         <div key={reply.id} className="liquid-card bg-yellow-50 border-l-4 border-yellow-500">
@@ -487,7 +492,7 @@ export default function MessagesPage() {
                           {!reply.isRead && (
                             <div className="mt-2">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                New
+                                {t('messages.badgeNew')}
                               </span>
                             </div>
                           )}
@@ -499,9 +504,9 @@ export default function MessagesPage() {
 
                 {!selectedMessage?.response && (
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Send Response</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">{t('messages.sendResponse')}</h4>
                     <Textarea
-                      placeholder="Type your response to the student..."
+                      placeholder={t('messages.typeResponse')}
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
                       className="min-h-[120px] mb-4"
@@ -511,14 +516,14 @@ export default function MessagesPage() {
                         variant="outline"
                         onClick={() => setSelectedMessage(null)}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                       <Button
                         onClick={handleSendResponse}
                         disabled={!response.trim() || respondMutation.isPending}
                       >
                         <Reply className="h-4 w-4 mr-2" />
-                        {respondMutation.isPending ? "Sending..." : "Send Response"}
+                        {respondMutation.isPending ? t('messages.sending') : t('messages.sendResponse')}
                       </Button>
                     </div>
                   </div>
@@ -536,9 +541,10 @@ interface MessageCardProps {
   message: StudentMessage;
   onSelect: () => void;
   onRespond: () => void;
+  t: (key: string) => string;
 }
 
-function MessageCard({ message, onSelect, onRespond }: MessageCardProps) {
+function MessageCard({ message, onSelect, onRespond, t }: MessageCardProps) {
   return (
     <Card className={`cursor-pointer transition-colors ${!message.isRead ? 'border-blue-200 bg-blue-50' : 'hover:bg-gray-50'}`} onClick={onSelect}>
       <CardContent className="p-4">
@@ -548,10 +554,10 @@ function MessageCard({ message, onSelect, onRespond }: MessageCardProps) {
               <User className="h-4 w-4 text-gray-500" />
               <span className="font-medium text-gray-900">{message.studentName}</span>
               {!message.isRead && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">New</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">{t('messages.badgeNew')}</Badge>
               )}
               {message.response && (
-                <Badge variant="secondary" className="bg-green-100 text-green-800">Answered</Badge>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">{t('messages.badgeAnswered')}</Badge>
               )}
             </div>
             <h3 className="font-medium text-gray-900 mb-2">{message.subject}</h3>
@@ -559,7 +565,7 @@ function MessageCard({ message, onSelect, onRespond }: MessageCardProps) {
             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {message.createdAt ? format(new Date(message.createdAt), "MMM d, yyyy 'at' h:mm a") : "Unknown date"}
+                {message.createdAt ? format(new Date(message.createdAt), "MMM d, yyyy 'at' h:mm a") : t('messages.unknownDate')}
               </span>
             </div>
           </div>
@@ -567,7 +573,7 @@ function MessageCard({ message, onSelect, onRespond }: MessageCardProps) {
             {!message.response && (
               <Button size="sm" onClick={(e) => { e.stopPropagation(); onRespond(); }}>
                 <Reply className="h-3 w-3 mr-1" />
-                Respond
+                {t('messages.respond')}
               </Button>
             )}
           </div>

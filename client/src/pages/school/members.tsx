@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import Layout from "@/components/layouts/app-layout";
@@ -90,6 +91,7 @@ const getRoleBadgeVariant = (role: string) => {
 export default function SchoolMembers() {
   const { currentSchool, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   
   // Get school members
@@ -120,13 +122,13 @@ export default function SchoolMembers() {
       setInviteDialogOpen(false);
       form.reset();
       toast({
-        title: "Invitation sent!",
-        description: "The member has been invited to join your school."
+        title: t('schoolMembers.toast.inviteSentTitle'),
+        description: t('schoolMembers.toast.inviteSentDescription')
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Invitation failed",
+        title: t('schoolMembers.toast.inviteFailedTitle'),
         description: error.message,
         variant: "destructive"
       });
@@ -151,13 +153,13 @@ export default function SchoolMembers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/school/members'] });
       toast({
-        title: "Member removed",
-        description: "The member has been removed from your school."
+        title: t('schoolMembers.toast.removedTitle'),
+        description: t('schoolMembers.toast.removedDescription')
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to remove member",
+        title: t('schoolMembers.toast.removeFailedTitle'),
         description: error.message,
         variant: "destructive"
       });
@@ -179,7 +181,7 @@ export default function SchoolMembers() {
   };
 
   const handleRemoveMember = (memberId: number, memberName: string) => {
-    if (window.confirm(`Are you sure you want to remove ${memberName} from your school?`)) {
+    if (window.confirm(t('schoolMembers.confirmRemove', { name: memberName }))) {
       removeMemberMutation.mutate(memberId);
     }
   };
@@ -194,9 +196,9 @@ export default function SchoolMembers() {
 
   if (!currentSchool) {
     return (
-      <Layout title="Manage Members">
+      <Layout title={t('schoolMembers.title')}>
         <div className="text-center py-8">
-          <p>No school selected. Please select a school first.</p>
+          <p>{t('schoolMembers.noSchoolSelected')}</p>
         </div>
       </Layout>
     );
@@ -204,26 +206,26 @@ export default function SchoolMembers() {
 
   return (
     <RequireSchoolOwner>
-      <Layout title="Manage Members">
+      <Layout title={t('schoolMembers.title')}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">School Members</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('schoolMembers.title')}</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage teachers and staff for {currentSchool.name}
+                {t('schoolMembers.subtitle', { school: currentSchool.name })}
               </p>
             </div>
             <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-invite-member">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Invite Member
+                  {t('schoolMembers.inviteMember')}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invite New Member</DialogTitle>
+                  <DialogTitle>{t('schoolMembers.dialog.inviteTitle')}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -233,7 +235,7 @@ export default function SchoolMembers() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>{t('schoolMembers.form.firstName')}</FormLabel>
                             <FormControl>
                               <Input {...field} data-testid="input-first-name" />
                             </FormControl>
@@ -246,7 +248,7 @@ export default function SchoolMembers() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel>{t('schoolMembers.form.lastName')}</FormLabel>
                             <FormControl>
                               <Input {...field} data-testid="input-last-name" />
                             </FormControl>
@@ -260,7 +262,7 @@ export default function SchoolMembers() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('schoolMembers.form.email')}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} data-testid="input-email" />
                           </FormControl>
@@ -273,16 +275,16 @@ export default function SchoolMembers() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Role</FormLabel>
+                          <FormLabel>{t('schoolMembers.form.role')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-role">
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder={t('schoolMembers.form.selectRole')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="teacher">Teacher</SelectItem>
-                              <SelectItem value="school_owner">School Owner</SelectItem>
+                              <SelectItem value="teacher">{t('schoolMembers.role.teacher')}</SelectItem>
+                              <SelectItem value="school_owner">{t('schoolMembers.role.schoolOwner')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -295,14 +297,14 @@ export default function SchoolMembers() {
                         variant="outline"
                         onClick={() => setInviteDialogOpen(false)}
                       >
-                        Cancel
+                        {t('schoolMembers.form.cancel')}
                       </Button>
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={inviteMemberMutation.isPending}
                         data-testid="button-send-invitation"
                       >
-                        {inviteMemberMutation.isPending ? "Sending..." : "Send Invitation"}
+                        {inviteMemberMutation.isPending ? t('schoolMembers.form.sending') : t('schoolMembers.form.sendInvitation')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -314,7 +316,7 @@ export default function SchoolMembers() {
           {/* Members List */}
           <Card>
             <CardHeader>
-              <CardTitle>Team Members</CardTitle>
+              <CardTitle>{t('schoolMembers.teamMembers')}</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -333,19 +335,19 @@ export default function SchoolMembers() {
                 <div className="text-center py-8">
                   <UserCog className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                   <p className="text-sm text-muted-foreground">
-                    No team members yet. Invite teachers and staff to join your school.
+                    {t('schoolMembers.noMembers')}
                   </p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Member</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead>Last Active</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('schoolMembers.table.member')}</TableHead>
+                      <TableHead>{t('schoolMembers.table.role')}</TableHead>
+                      <TableHead>{t('schoolMembers.table.status')}</TableHead>
+                      <TableHead>{t('schoolMembers.table.joined')}</TableHead>
+                      <TableHead>{t('schoolMembers.table.lastActive')}</TableHead>
+                      <TableHead className="text-right">{t('schoolMembers.table.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -379,14 +381,14 @@ export default function SchoolMembers() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={member.isActive ? "default" : "secondary"}>
-                            {member.isActive ? "Active" : "Inactive"}
+                            {member.isActive ? t('schoolMembers.status.active') : t('schoolMembers.status.inactive')}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(member.joinedAt)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {member.lastActive ? formatDate(member.lastActive) : "Never"}
+                          {member.lastActive ? formatDate(member.lastActive) : t('schoolMembers.never')}
                         </TableCell>
                         <TableCell className="text-right">
                           {member.id !== user?.id && (
@@ -407,7 +409,7 @@ export default function SchoolMembers() {
                                   data-testid={`button-remove-member-${member.id}`}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove from school
+                                  {t('schoolMembers.removeFromSchool')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -425,7 +427,7 @@ export default function SchoolMembers() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('schoolMembers.stats.totalMembers')}</CardTitle>
                 <UserCog className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -435,7 +437,7 @@ export default function SchoolMembers() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('schoolMembers.stats.activeMembers')}</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -447,7 +449,7 @@ export default function SchoolMembers() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Teachers</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('schoolMembers.stats.teachers')}</CardTitle>
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

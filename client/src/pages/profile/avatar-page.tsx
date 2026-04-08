@@ -3,12 +3,14 @@
  */
 
 import { AvatarCustomizer } from "@/components/avatar/avatar-customizer";
+import { useTranslation } from "@/lib/i18n";
 import { useLocation } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
 export default function AvatarPage() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
   const handleSave = () => {
@@ -24,9 +26,9 @@ export default function AvatarPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Customize Your Avatar</h1>
+          <h1 className="text-2xl font-bold">{t('avatar.title')}</h1>
           <p className="text-muted-foreground">
-            Create a unique avatar that represents you
+            {t('avatar.subtitle')}
           </p>
         </div>
       </div>

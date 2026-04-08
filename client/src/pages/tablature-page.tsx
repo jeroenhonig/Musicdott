@@ -6,11 +6,13 @@ import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/lib/i18n";
 
 export default function TablaturePage() {
   const [file, setFile] = useState<ArrayBuffer | undefined>();
   const [texContent, setTexContent] = useState<string>("");
   const [activeTab, setActiveTab] = useState("upload");
+  const { t } = useTranslation();
 
   const sampleTex = `\\title "Simple Tab Example"
 \\tempo 120
@@ -31,10 +33,10 @@ export default function TablaturePage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Guitar className="h-6 w-6" />
-            Tablature Viewer
+            {t('tools.tablature.title')}
           </h1>
           <p className="text-muted-foreground">
-            View and play guitar tablature with built-in MIDI playback
+            {t('tools.tablature.subtitle')}
           </p>
         </div>
       </div>
@@ -43,11 +45,11 @@ export default function TablaturePage() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="upload" data-testid="tab-upload">
             <Music className="h-4 w-4 mr-2" />
-            Upload File
+            {t('tools.tablature.tabUpload')}
           </TabsTrigger>
           <TabsTrigger value="write" data-testid="tab-write">
             <Guitar className="h-4 w-4 mr-2" />
-            Write AlphaTex
+            {t('tools.tablature.tabWrite')}
           </TabsTrigger>
         </TabsList>
 
@@ -63,9 +65,9 @@ export default function TablaturePage() {
         <TabsContent value="write" className="mt-6 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>AlphaTex Editor</CardTitle>
+              <CardTitle>{t('tools.tablature.editorTitle')}</CardTitle>
               <CardDescription>
-                Write tablature using AlphaTex markup language
+                {t('tools.tablature.editorDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -82,7 +84,7 @@ export default function TablaturePage() {
                   variant="outline"
                   data-testid="button-load-sample"
                 >
-                  Load Sample
+                  {t('tools.tablature.loadSample')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -94,7 +96,7 @@ export default function TablaturePage() {
                   disabled={!texContent.trim()}
                   data-testid="button-preview"
                 >
-                  Preview
+                  {t('tools.tablature.preview')}
                 </Button>
               </div>
             </CardContent>
@@ -111,7 +113,7 @@ export default function TablaturePage() {
       </Tabs>
 
       <div className="bg-muted/50 rounded-lg p-4">
-        <h3 className="font-semibold mb-2">Supported Formats</h3>
+        <h3 className="font-semibold mb-2">{t('tools.tablature.supportedFormats')}</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• Guitar Pro 3-7 (.gp, .gp3, .gp4, .gp5, .gpx)</li>
           <li>• MusicXML (.xml, .musicxml)</li>

@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   BarChart3,
   TrendingUp,
   Users,
@@ -40,6 +40,7 @@ import { format } from "date-fns";
 import AppLayout from "@/components/layouts/app-layout";
 import { RequireTeacher } from "@/components/rbac/require-role";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 
 interface ReportData {
   totalStudents: number;
@@ -95,10 +96,11 @@ interface PerformanceMetrics {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState('30');
   const [reportType, setReportType] = useState('overview');
   const [refreshKey, setRefreshKey] = useState(0);
-  
+
   // SECURITY: Get user auth context to prevent unauthorized queries
   const { user, isTeacher, isSchoolOwner, isPlatformOwner } = useAuth();
   
@@ -141,8 +143,15 @@ export default function AnalyticsPage() {
 
   const generateCSVReport = (data: ReportData | undefined) => {
     if (!data) return '';
-    
-    const headers = ['Student Name', 'Completed Lessons', 'Total Assignments', 'Completed Assignments', 'XP Earned', 'Last Activity'];
+
+    const headers = [
+      t('analytics.csv.colStudentName'),
+      t('analytics.csv.colCompletedLessons'),
+      t('analytics.csv.colTotalAssignments'),
+      t('analytics.csv.colCompletedAssignments'),
+      t('analytics.csv.colXpEarned'),
+      t('analytics.csv.colLastActivity'),
+    ];
     const rows = data.studentProgress.map(student => [
       student.studentName,
       student.completedLessons.toString(),
@@ -170,19 +179,19 @@ export default function AnalyticsPage() {
   };
 
   const getPerformanceStatus = (successRate: number) => {
-    if (successRate >= 95) return { label: 'Excellent', color: 'bg-green-500' };
-    if (successRate >= 85) return { label: 'Good', color: 'bg-blue-500' };
-    if (successRate >= 70) return { label: 'Fair', color: 'bg-yellow-500' };
-    return { label: 'Poor', color: 'bg-red-500' };
+    if (successRate >= 95) return { label: t('analytics.perf.statusExcellent'), color: 'bg-green-500' };
+    if (successRate >= 85) return { label: t('analytics.perf.statusGood'), color: 'bg-blue-500' };
+    if (successRate >= 70) return { label: t('analytics.perf.statusFair'), color: 'bg-yellow-500' };
+    return { label: t('analytics.perf.statusPoor'), color: 'bg-red-500' };
   };
 
   if (isLoading) {
     return (
-      <AppLayout title="Analytics & Performance">
+      <AppLayout title={t('analytics.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <BarChart3 className="h-8 w-8 animate-pulse mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-500">Loading analytics...</p>
+            <p className="text-gray-500">{t('analytics.loading')}</p>
           </div>
         </div>
       </AppLayout>
@@ -190,17 +199,17 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <AppLayout title="Analytics & Performance">
-      <RequireTeacher fallback={<div className="p-6"><div className="text-center text-red-500">Access denied. Teacher privileges required.</div></div>}>
+    <AppLayout title={t('analytics.title')}>
+      <RequireTeacher fallback={<div className="p-6"><div className="text-center text-red-500">{t('analytics.accessDenied')}</div></div>}>
         <div className="space-y-6" data-testid="analytics-container">
         {/* Header */}
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
           <div>
             <h1 className="text-3xl font-bold tracking-tight" data-testid="analytics-title">
-              Analytics & Performance
+              {t('analytics.title')}
             </h1>
             <p className="text-gray-600" data-testid="analytics-subtitle">
-              Comprehensive insights into student progress and system performance
+              {t('analytics.subtitle')}
             </p>
           </div>
           
@@ -210,10 +219,10 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">Last 7 days</SelectItem>
-                <SelectItem value="30">Last 30 days</SelectItem>
-                <SelectItem value="90">Last 3 months</SelectItem>
-                <SelectItem value="365">Last year</SelectItem>
+                <SelectItem value="7">{t('analytics.dateRange.last7')}</SelectItem>
+                <SelectItem value="30">{t('analytics.dateRange.last30')}</SelectItem>
+                <SelectItem value="90">{t('analytics.dateRange.last3months')}</SelectItem>
+                <SelectItem value="365">{t('analytics.dateRange.lastYear')}</SelectItem>
               </SelectContent>
             </Select>
             
@@ -222,21 +231,21 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="overview">Overview</SelectItem>
-                <SelectItem value="students">Student Progress</SelectItem>
-                <SelectItem value="lessons">Lesson Analytics</SelectItem>
-                <SelectItem value="performance">Performance</SelectItem>
+                <SelectItem value="overview">{t('analytics.reportType.overview')}</SelectItem>
+                <SelectItem value="students">{t('analytics.reportType.students')}</SelectItem>
+                <SelectItem value="lessons">{t('analytics.reportType.lessons')}</SelectItem>
+                <SelectItem value="performance">{t('analytics.reportType.performance')}</SelectItem>
               </SelectContent>
             </Select>
             
             <Button onClick={handleRefresh} variant="outline" data-testid="button-refresh">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t('analytics.button.refresh')}
             </Button>
-            
+
             <Button onClick={handleExportReport} variant="outline" data-testid="button-export">
               <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              {t('analytics.button.exportCsv')}
             </Button>
           </div>
         </div>
@@ -244,10 +253,10 @@ export default function AnalyticsPage() {
         {/* Unified Tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-            <TabsTrigger value="students" data-testid="tab-students">Students</TabsTrigger>
-            <TabsTrigger value="performance" data-testid="tab-performance">Performance</TabsTrigger>
-            <TabsTrigger value="realtime" data-testid="tab-realtime">Real-time</TabsTrigger>
+            <TabsTrigger value="overview" data-testid="tab-overview">{t('analytics.tab.overview')}</TabsTrigger>
+            <TabsTrigger value="students" data-testid="tab-students">{t('analytics.tab.students')}</TabsTrigger>
+            <TabsTrigger value="performance" data-testid="tab-performance">{t('analytics.tab.performance')}</TabsTrigger>
+            <TabsTrigger value="realtime" data-testid="tab-realtime">{t('analytics.tab.realtime')}</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -258,14 +267,14 @@ export default function AnalyticsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Students</p>
+                      <p className="text-sm font-medium text-gray-600">{t('analytics.metric.totalStudents')}</p>
                       <p className="text-2xl font-bold">{reportData?.totalStudents || 0}</p>
                     </div>
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
                   <div className="mt-4 flex items-center text-sm">
                     <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                    <span className="text-green-600">Active students</span>
+                    <span className="text-green-600">{t('analytics.metric.activeStudents')}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -274,14 +283,14 @@ export default function AnalyticsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Active Lessons</p>
+                      <p className="text-sm font-medium text-gray-600">{t('analytics.metric.activeLessons')}</p>
                       <p className="text-2xl font-bold">{reportData?.activeLessons || 0}</p>
                     </div>
                     <BookOpen className="h-8 w-8 text-green-600" />
                   </div>
                   <div className="mt-4 flex items-center text-sm">
                     <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                    <span className="text-green-600">Available content</span>
+                    <span className="text-green-600">{t('analytics.metric.availableContent')}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -290,14 +299,14 @@ export default function AnalyticsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Completed Assignments</p>
+                      <p className="text-sm font-medium text-gray-600">{t('analytics.metric.completedAssignments')}</p>
                       <p className="text-2xl font-bold">{reportData?.completedAssignments || 0}</p>
                     </div>
                     <Trophy className="h-8 w-8 text-yellow-600" />
                   </div>
                   <div className="mt-4 flex items-center text-sm">
                     <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                    <span className="text-green-600">Student achievements</span>
+                    <span className="text-green-600">{t('analytics.metric.studentAchievements')}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -306,14 +315,14 @@ export default function AnalyticsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Upcoming Sessions</p>
+                      <p className="text-sm font-medium text-gray-600">{t('analytics.metric.upcomingSessions')}</p>
                       <p className="text-2xl font-bold">{reportData?.upcomingSessions || 0}</p>
                     </div>
                     <Calendar className="h-8 w-8 text-purple-600" />
                   </div>
                   <div className="mt-4 flex items-center text-sm">
                     <Clock className="h-4 w-4 text-blue-500 mr-1" />
-                    <span className="text-blue-600">Next 7 days</span>
+                    <span className="text-blue-600">{t('analytics.metric.next7days')}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -325,7 +334,7 @@ export default function AnalyticsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Music className="h-5 w-5" />
-                    Popular Lessons
+                    {t('analytics.popularLessons.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -335,7 +344,7 @@ export default function AnalyticsPage() {
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-testid={`popular-lesson-${index}`}>
                           <div className="flex-1">
                             <p className="font-medium">{lesson.lessonTitle}</p>
-                            <p className="text-sm text-gray-600">{lesson.completions} completions</p>
+                            <p className="text-sm text-gray-600">{lesson.completions} {t('analytics.popularLessons.completions')}</p>
                           </div>
                           {lesson.avgRating && typeof lesson.avgRating === 'number' && (
                             <Badge variant="secondary">
@@ -348,7 +357,7 @@ export default function AnalyticsPage() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>No lesson data available</p>
+                      <p>{t('analytics.popularLessons.empty')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -358,7 +367,7 @@ export default function AnalyticsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Upcoming Deadlines
+                    {t('analytics.upcomingDeadlines.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -369,7 +378,7 @@ export default function AnalyticsPage() {
                           <div className="flex-1">
                             <p className="font-medium">{deadline.studentName}</p>
                             <p className="text-sm text-gray-600">{deadline.assignmentTitle}</p>
-                            <p className="text-xs text-gray-500">Due: {format(new Date(deadline.dueDate), 'MMM dd, yyyy')}</p>
+                            <p className="text-xs text-gray-500">{t('analytics.upcomingDeadlines.due')} {format(new Date(deadline.dueDate), 'MMM dd, yyyy')}</p>
                           </div>
                           <Badge variant={deadline.status === 'overdue' ? 'destructive' : 'secondary'}>
                             {deadline.status}
@@ -380,7 +389,7 @@ export default function AnalyticsPage() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>No upcoming deadlines</p>
+                      <p>{t('analytics.upcomingDeadlines.empty')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -394,7 +403,7 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Student Progress Overview
+                  {t('analytics.studentProgress.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -403,12 +412,12 @@ export default function AnalyticsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Student Name</TableHead>
-                          <TableHead>Completed Lessons</TableHead>
-                          <TableHead>Assignments</TableHead>
-                          <TableHead>XP Earned</TableHead>
-                          <TableHead>Last Activity</TableHead>
-                          <TableHead>Progress</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colStudent')}</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colCompletedLessons')}</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colAssignments')}</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colXp')}</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colLastActivity')}</TableHead>
+                          <TableHead>{t('analytics.studentProgress.colProgress')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -431,7 +440,7 @@ export default function AnalyticsPage() {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {student.lastActivity !== 'Never' ? format(new Date(student.lastActivity), 'MMM dd, yyyy') : 'Never'}
+                                {student.lastActivity !== 'Never' ? format(new Date(student.lastActivity), 'MMM dd, yyyy') : t('analytics.studentProgress.never')}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
@@ -453,7 +462,7 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No student data available for the selected period</p>
+                    <p>{t('analytics.studentProgress.empty')}</p>
                   </div>
                 )}
               </CardContent>
@@ -468,31 +477,31 @@ export default function AnalyticsPage() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Card data-testid="perf-total-lessons">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Lessons</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t('analytics.perf.totalLessons')}</CardTitle>
                       <BookOpen className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">{performanceData.totalLessons || 0}</div>
-                      <p className="text-xs text-muted-foreground">All time lesson count</p>
+                      <p className="text-xs text-muted-foreground">{t('analytics.perf.totalLessonsDesc')}</p>
                     </CardContent>
                   </Card>
 
                   <Card data-testid="perf-creation-time">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Average Creation Time</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t('analytics.perf.avgCreationTime')}</CardTitle>
                       <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
                         {performanceData.averageCreationTime ? `${(performanceData.averageCreationTime / 1000).toFixed(1)}s` : '0s'}
                       </div>
-                      <p className="text-xs text-muted-foreground">Per lesson creation</p>
+                      <p className="text-xs text-muted-foreground">{t('analytics.perf.perLessonCreation')}</p>
                     </CardContent>
                   </Card>
 
                   <Card data-testid="perf-success-rate">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t('analytics.perf.successRate')}</CardTitle>
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -508,12 +517,12 @@ export default function AnalyticsPage() {
 
                   <Card data-testid="perf-active-users">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                      <CardTitle className="text-sm font-medium">{t('analytics.perf.activeUsers')}</CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">{performanceData.userEngagement?.activeUsers || 0}</div>
-                      <p className="text-xs text-muted-foreground">Creating lessons this week</p>
+                      <p className="text-xs text-muted-foreground">{t('analytics.perf.creatingLessonsThisWeek')}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -523,7 +532,7 @@ export default function AnalyticsPage() {
                   <Alert variant="destructive" data-testid="perf-alert-slow">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Performance Alert:</strong> Average lesson creation time is {(performanceData.averageCreationTime / 1000).toFixed(1)}s. Consider optimizing content blocks.
+                      <strong>{t('analytics.perf.alertSlowTitle')}</strong> {t('analytics.perf.alertSlowDesc', { time: (performanceData.averageCreationTime / 1000).toFixed(1) })}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -532,7 +541,7 @@ export default function AnalyticsPage() {
                   <Alert variant="destructive" data-testid="perf-alert-failure">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>High Failure Rate:</strong> {performanceData.failureRate}% of lesson creations are failing. Check validation rules.
+                      <strong>{t('analytics.perf.alertFailureTitle')}</strong> {t('analytics.perf.alertFailureDesc', { rate: String(performanceData.failureRate) })}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -546,7 +555,7 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Activity className="h-5 w-5 mr-2" />
-                  Real-time Statistics
+                  {t('analytics.realtime.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -556,25 +565,25 @@ export default function AnalyticsPage() {
                       <div className="text-2xl font-bold text-green-600">
                         {realtimeStats?.activeSessions || 0}
                       </div>
-                      <p className="text-sm text-muted-foreground">Active Sessions</p>
+                      <p className="text-sm text-muted-foreground">{t('analytics.realtime.activeSessions')}</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">
                         {realtimeStats?.lessonsToday || 0}
                       </div>
-                      <p className="text-sm text-muted-foreground">Lessons Today</p>
+                      <p className="text-sm text-muted-foreground">{t('analytics.realtime.lessonsToday')}</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600">
                         {realtimeStats?.avgResponseTime || 0}ms
                       </div>
-                      <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                      <p className="text-sm text-muted-foreground">{t('analytics.realtime.avgResponseTime')}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>Real-time data not available</p>
+                    <p>{t('analytics.realtime.empty')}</p>
                   </div>
                 )}
               </CardContent>

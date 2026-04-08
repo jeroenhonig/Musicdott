@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layouts/app-layout";
 import type { SchoolBranding } from "@shared/schema";
+import { useTranslation } from "@/lib/i18n";
 
 interface BrandingFormData extends SchoolBranding {
   [key: string]: any;
@@ -26,6 +27,7 @@ export default function SchoolBranding() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { applyPreviewBranding, clearPreviewBranding, isPreviewMode } = useTheme();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<BrandingFormData>({
     primaryColor: "#3b82f6",
     secondaryColor: "#64748b",
@@ -55,14 +57,14 @@ export default function SchoolBranding() {
         queryKey: ['/api/schools', user?.schoolId, 'branding']
       });
       toast({
-        title: "Branding Updated",
-        description: "Your school branding settings have been saved successfully."
+        title: t('branding.toastUpdatedTitle'),
+        description: t('branding.toastUpdatedDescription')
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update branding settings.",
+        title: t('branding.toastUpdateFailedTitle'),
+        description: error.message || t('branding.loadError'),
         variant: "destructive"
       });
     }
@@ -78,14 +80,14 @@ export default function SchoolBranding() {
         queryKey: ['/api/schools', user?.schoolId, 'branding']
       });
       toast({
-        title: "Branding Reset",
-        description: "Your school branding has been reset to default settings."
+        title: t('branding.toastResetTitle'),
+        description: t('branding.toastResetDescription')
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Reset Failed",
-        description: error.message || "Failed to reset branding settings.",
+        title: t('branding.toastResetFailedTitle'),
+        description: error.message || t('branding.loadError'),
         variant: "destructive"
       });
     }
@@ -113,20 +115,20 @@ export default function SchoolBranding() {
       setCurrentLogo(data.logoUrl);
       setLogoFile(null);
       setLogoPreview(null);
-      
+
       queryClient.invalidateQueries({
         queryKey: ['/api/schools', user?.schoolId, 'branding']
       });
-      
+
       toast({
-        title: "Logo Uploaded",
-        description: "Your school logo has been updated successfully."
+        title: t('branding.toastLogoUploadedTitle'),
+        description: t('branding.toastLogoUploadedDescription')
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload logo.",
+        title: t('branding.toastUploadFailedTitle'),
+        description: error.message || t('branding.loadError'),
         variant: "destructive"
       });
     }
@@ -138,32 +140,32 @@ export default function SchoolBranding() {
       const response = await fetch(`/api/schools/${user?.schoolId}/branding/logo`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to delete logo');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       setCurrentLogo(null);
       setLogoFile(null);
       setLogoPreview(null);
-      
+
       queryClient.invalidateQueries({
         queryKey: ['/api/schools', user?.schoolId, 'branding']
       });
-      
+
       toast({
-        title: "Logo Removed",
-        description: "Your school logo has been removed successfully."
+        title: t('branding.toastLogoRemovedTitle'),
+        description: t('branding.toastLogoRemovedDescription')
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Delete Failed",
-        description: error.message || "Failed to remove logo.",
+        title: t('branding.toastDeleteFailedTitle'),
+        description: error.message || t('branding.loadError'),
         variant: "destructive"
       });
     }
@@ -222,8 +224,8 @@ export default function SchoolBranding() {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         toast({
-          title: "Invalid File Type",
-          description: "Please select a JPEG, PNG, GIF, or WebP image file.",
+          title: t('branding.toastInvalidFileTitle'),
+          description: t('branding.toastInvalidFileDescription'),
           variant: "destructive"
         });
         return;
@@ -232,8 +234,8 @@ export default function SchoolBranding() {
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
-          title: "File Too Large",
-          description: "Please select an image smaller than 5MB.",
+          title: t('branding.toastFileTooLargeTitle'),
+          description: t('branding.toastFileTooLargeDescription'),
           variant: "destructive"
         });
         return;
@@ -268,7 +270,7 @@ export default function SchoolBranding() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-muted-foreground">
-                Access denied. Only school owners can manage branding settings.
+                {t('branding.accessDenied')}
               </p>
             </CardContent>
           </Card>
@@ -296,7 +298,7 @@ export default function SchoolBranding() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-destructive">
-                Failed to load branding settings. Please try again.
+                {t('branding.loadError')}
               </p>
             </CardContent>
           </Card>
@@ -312,14 +314,14 @@ export default function SchoolBranding() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">School Branding</h1>
+            <h1 className="text-3xl font-bold">{t('branding.pageTitle')}</h1>
             <p className="text-muted-foreground">
-              Customize your school's appearance and branding
+              {t('branding.pageSubtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={formData.brandingEnabled ? "default" : "secondary"}>
-              {formData.brandingEnabled ? "Enabled" : "Disabled"}
+              {formData.brandingEnabled ? t('branding.enabled') : t('branding.disabled')}
             </Badge>
           </div>
         </div>
@@ -331,10 +333,10 @@ export default function SchoolBranding() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Custom Branding
+                  {t('branding.customBranding')}
                 </CardTitle>
                 <CardDescription>
-                  Enable custom branding to personalize your school's appearance
+                  {t('branding.customBrandingDescription')}
                 </CardDescription>
               </div>
               <Switch
@@ -350,10 +352,10 @@ export default function SchoolBranding() {
         {formData.brandingEnabled && (
           <Tabs defaultValue="logo" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="logo">Logo</TabsTrigger>
-              <TabsTrigger value="colors">Colors</TabsTrigger>
-              <TabsTrigger value="typography">Typography</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="logo">{t('branding.tabLogo')}</TabsTrigger>
+              <TabsTrigger value="colors">{t('branding.tabColors')}</TabsTrigger>
+              <TabsTrigger value="typography">{t('branding.tabTypography')}</TabsTrigger>
+              <TabsTrigger value="advanced">{t('branding.tabAdvanced')}</TabsTrigger>
             </TabsList>
 
             {/* Logo Tab */}
@@ -362,10 +364,10 @@ export default function SchoolBranding() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Image className="h-5 w-5" />
-                    School Logo
+                    {t('branding.schoolLogo')}
                   </CardTitle>
                   <CardDescription>
-                    Upload and manage your school's logo
+                    {t('branding.schoolLogoDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -373,7 +375,7 @@ export default function SchoolBranding() {
                   {currentLogo && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label>Current Logo</Label>
+                        <Label>{t('branding.currentLogo')}</Label>
                         <Button
                           variant="outline"
                           size="sm"
@@ -382,7 +384,7 @@ export default function SchoolBranding() {
                           data-testid="button-delete-logo"
                         >
                           <Trash2 className={`h-4 w-4 mr-2 ${deleteLogoMutation.isPending ? 'animate-spin' : ''}`} />
-                          Remove
+                          {t('branding.removeLogo')}
                         </Button>
                       </div>
                       <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/50">
@@ -399,7 +401,7 @@ export default function SchoolBranding() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="logo-upload">
-                        {currentLogo ? 'Replace Logo' : 'Upload Logo'}
+                        {currentLogo ? t('branding.replaceLogo') : t('branding.uploadLogo')}
                       </Label>
                       {logoFile && (
                         <Button
@@ -409,7 +411,7 @@ export default function SchoolBranding() {
                           data-testid="button-upload-logo"
                         >
                           <Upload className={`h-4 w-4 mr-2 ${uploadLogoMutation.isPending ? 'animate-spin' : ''}`} />
-                          Upload
+                          {t('branding.upload')}
                         </Button>
                       )}
                     </div>
@@ -425,7 +427,7 @@ export default function SchoolBranding() {
                     
                     {logoPreview && (
                       <div className="space-y-2">
-                        <Label>Preview</Label>
+                        <Label>{t('branding.preview')}</Label>
                         <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/50">
                           <img
                             src={logoPreview}
@@ -437,9 +439,9 @@ export default function SchoolBranding() {
                     )}
                     
                     <div className="text-sm text-muted-foreground">
-                      <p>Supported formats: JPEG, PNG, GIF, WebP</p>
-                      <p>Maximum file size: 5MB</p>
-                      <p>Recommended dimensions: 200x200px (square) or 300x100px (horizontal)</p>
+                      <p>{t('branding.logoFormats')}</p>
+                      <p>{t('branding.logoMaxSize')}</p>
+                      <p>{t('branding.logoDimensions')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -452,16 +454,16 @@ export default function SchoolBranding() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Palette className="h-5 w-5" />
-                    Color Scheme
+                    {t('branding.colorScheme')}
                   </CardTitle>
                   <CardDescription>
-                    Choose colors that represent your school's brand
+                    {t('branding.colorSchemeDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="primary-color">Primary Color</Label>
+                      <Label htmlFor="primary-color">{t('branding.primaryColor')}</Label>
                       <div className="flex gap-2">
                         <Input
                           id="primary-color"
@@ -481,7 +483,7 @@ export default function SchoolBranding() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="secondary-color">Secondary Color</Label>
+                      <Label htmlFor="secondary-color">{t('branding.secondaryColor')}</Label>
                       <div className="flex gap-2">
                         <Input
                           id="secondary-color"
@@ -501,7 +503,7 @@ export default function SchoolBranding() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="accent-color">Accent Color</Label>
+                      <Label htmlFor="accent-color">{t('branding.accentColor')}</Label>
                       <div className="flex gap-2">
                         <Input
                           id="accent-color"
@@ -530,15 +532,15 @@ export default function SchoolBranding() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Type className="h-5 w-5" />
-                    Typography
+                    {t('branding.typography')}
                   </CardTitle>
                   <CardDescription>
-                    Customize fonts and text appearance
+                    {t('branding.typographyDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="font-family">Font Family</Label>
+                    <Label htmlFor="font-family">{t('branding.fontFamily')}</Label>
                     <select
                       id="font-family"
                       data-testid="select-font-family"
@@ -556,12 +558,12 @@ export default function SchoolBranding() {
                       <option value="Nunito">Nunito</option>
                     </select>
                     <p className="text-sm text-muted-foreground">
-                      Choose a font that matches your school's personality
+                      {t('branding.fontHint')}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="background-image">Background Image URL</Label>
+                    <Label htmlFor="background-image">{t('branding.backgroundImage')}</Label>
                     <Input
                       id="background-image"
                       data-testid="input-background-image"
@@ -570,7 +572,7 @@ export default function SchoolBranding() {
                       placeholder="https://example.com/background.jpg"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Optional: Add a subtle background image for your school
+                      {t('branding.backgroundImageHint')}
                     </p>
                   </div>
                 </CardContent>
@@ -583,10 +585,10 @@ export default function SchoolBranding() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Code className="h-5 w-5" />
-                    Custom CSS
+                    {t('branding.customCss')}
                   </CardTitle>
                   <CardDescription>
-                    Add custom CSS for advanced styling (use carefully)
+                    {t('branding.customCssDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -604,11 +606,10 @@ export default function SchoolBranding() {
                   />
                   <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-4">
                     <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
-                      ⚠️ Advanced Feature
+                      ⚠️ {t('branding.advancedFeatureTitle')}
                     </h4>
                     <p className="text-sm text-amber-700 dark:text-amber-300">
-                      Custom CSS allows powerful customization but can break your site if used incorrectly. 
-                      Test changes carefully and use CSS variables like <code>var(--primary)</code> when possible.
+                      {t('branding.advancedFeatureDescription')}
                     </p>
                   </div>
                 </CardContent>
@@ -628,7 +629,7 @@ export default function SchoolBranding() {
             data-testid="button-reset"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${resetBrandingMutation.isPending ? 'animate-spin' : ''}`} />
-            Reset to Defaults
+            {t('branding.resetToDefaults')}
           </Button>
 
           <div className="flex gap-2">
@@ -638,7 +639,7 @@ export default function SchoolBranding() {
               data-testid="button-preview"
             >
               <Eye className="h-4 w-4 mr-2" />
-              {isPreviewMode ? "Exit Preview" : "Preview"}
+              {isPreviewMode ? t('branding.exitPreview') : t('branding.preview')}
             </Button>
             <Button
               onClick={handleSave}
@@ -646,7 +647,7 @@ export default function SchoolBranding() {
               data-testid="button-save"
             >
               <Save className={`h-4 w-4 mr-2 ${updateBrandingMutation.isPending ? 'animate-spin' : ''}`} />
-              Save Changes
+              {t('branding.saveChanges')}
             </Button>
           </div>
         </div>

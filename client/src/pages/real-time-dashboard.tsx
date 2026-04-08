@@ -8,9 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Loader2, Users, Calendar, Bell, BarChart, Music, Clock, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function RealTimeDashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("overview");
   
   // Use real-time sync hook for live updates
@@ -43,9 +45,9 @@ export default function RealTimeDashboard() {
         <>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Real-Time Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('realtimeDashboard.title')}</h1>
           <p className="text-muted-foreground">
-            Monitor student activity and manage your teaching schedule
+            {t('realtimeDashboard.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -55,19 +57,19 @@ export default function RealTimeDashboard() {
               {isConnected ? (
                 <>
                   <Wifi className="h-3 w-3" />
-                  Live
+                  {t('realtimeDashboard.statusLive')}
                 </>
               ) : (
                 <>
                   <WifiOff className="h-3 w-3" />
-                  {connectionInfo.connecting ? 'Connecting...' : 'Offline'}
+                  {connectionInfo.connecting ? t('realtimeDashboard.statusConnecting') : t('realtimeDashboard.statusOffline')}
                 </>
               )}
             </Badge>
             {connectionInfo.error && (
               <Button variant="ghost" size="sm" onClick={() => refreshCache()} className="text-xs">
                 <RefreshCw className="h-3 w-3 mr-1" />
-                Retry
+                {t('realtimeDashboard.retry')}
               </Button>
             )}
           </div>
@@ -95,9 +97,9 @@ export default function RealTimeDashboard() {
         className="space-y-6"
       >
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="practice">Practice Monitor</TabsTrigger>
-          <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
+          <TabsTrigger value="overview">{t('realtimeDashboard.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="practice">{t('realtimeDashboard.tabPractice')}</TabsTrigger>
+          <TabsTrigger value="scheduling">{t('realtimeDashboard.tabScheduling')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -105,44 +107,44 @@ export default function RealTimeDashboard() {
             <Card className="p-4 flex flex-col">
               <div className="flex items-center mb-2">
                 <Users className="h-5 w-5 mr-2 text-primary" />
-                <span className="text-sm font-medium">Students</span>
+                <span className="text-sm font-medium">{t('realtimeDashboard.cardStudents')}</span>
               </div>
               <span className="text-2xl font-bold">{statsLoading ? '...' : stats?.studentCount || 0}</span>
-              <span className="text-xs text-muted-foreground mt-1">Total enrolled students</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('realtimeDashboard.cardStudentsSubtitle')}</span>
             </Card>
             
             <Card className="p-4 flex flex-col">
               <div className="flex items-center mb-2">
                 <Music className="h-5 w-5 mr-2 text-primary" />
-                <span className="text-sm font-medium">Songs</span>
+                <span className="text-sm font-medium">{t('realtimeDashboard.cardSongs')}</span>
               </div>
               <span className="text-2xl font-bold">{statsLoading ? '...' : stats?.songCount || 0}</span>
-              <span className="text-xs text-muted-foreground mt-1">Songs in your library</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('realtimeDashboard.cardSongsSubtitle')}</span>
             </Card>
             
             <Card className="p-4 flex flex-col">
               <div className="flex items-center mb-2">
                 <Calendar className="h-5 w-5 mr-2 text-primary" />
-                <span className="text-sm font-medium">This Week's Sessions</span>
+                <span className="text-sm font-medium">{t('realtimeDashboard.cardThisWeek')}</span>
               </div>
               <span className="text-2xl font-bold">{statsLoading ? '...' : stats?.sessionCountThisWeek || 0}</span>
-              <span className="text-xs text-muted-foreground mt-1">Scheduled lessons this week</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('realtimeDashboard.cardThisWeekSubtitle')}</span>
             </Card>
             
             <Card className="p-4 flex flex-col">
               <div className="flex items-center mb-2">
                 <BarChart className="h-5 w-5 mr-2 text-primary" />
-                <span className="text-sm font-medium">Currently Active</span>
+                <span className="text-sm font-medium">{t('realtimeDashboard.cardCurrentlyActive')}</span>
               </div>
               <span className="text-2xl font-bold">{activeStudents}</span>
-              <span className="text-xs text-muted-foreground mt-1">Students online now</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('realtimeDashboard.cardCurrentlyActiveSubtitle')}</span>
               {activeStudents > 0 && (
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   className="text-xs p-0 h-auto mt-2 self-start"
                   onClick={() => setActiveTab("practice")}
                 >
-                  View activity →
+                  {t('realtimeDashboard.viewActivity')}
                 </Button>
               )}
             </Card>
@@ -152,8 +154,8 @@ export default function RealTimeDashboard() {
             <Card className="p-6">
               <CardHeader className="px-0 pt-0">
                 <CardTitle className="flex items-center justify-between">
-                  Recent Activity
-                  {isConnected && <Badge variant="outline" className="text-xs">Live</Badge>}
+                  {t('realtimeDashboard.recentActivity')}
+                  {isConnected && <Badge variant="outline" className="text-xs">{t('realtimeDashboard.liveBadge')}</Badge>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-0">
@@ -164,15 +166,15 @@ export default function RealTimeDashboard() {
                         <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                         <div className="flex-1">
                           <div className="font-medium">
-                            {event.type === 'practice.start' && '🎵 Practice session started'}
-                            {event.type === 'practice.end' && '✅ Practice session ended'}
-                            {event.type === 'student.update' && '👤 Student updated'}
-                            {event.type === 'lesson.create' && '📚 New lesson created'}
-                            {event.type === 'assignment.create' && '📝 Assignment created'}
+                            {event.type === 'practice.start' && t('realtimeDashboard.eventPracticeStart')}
+                            {event.type === 'practice.end' && t('realtimeDashboard.eventPracticeEnd')}
+                            {event.type === 'student.update' && t('realtimeDashboard.eventStudentUpdate')}
+                            {event.type === 'lesson.create' && t('realtimeDashboard.eventLessonCreate')}
+                            {event.type === 'assignment.create' && t('realtimeDashboard.eventAssignmentCreate')}
                             {!event.type.includes('.') && event.type}
                           </div>
                           <div className="text-muted-foreground text-xs">
-                            {event.data?.studentName || event.data?.lessonTitle || 'System update'}
+                            {event.data?.studentName || event.data?.lessonTitle || t('realtimeDashboard.systemUpdate')}
                             {' • '}
                             {new Date(event.meta.timestamp).toLocaleTimeString()}
                           </div>
@@ -182,9 +184,9 @@ export default function RealTimeDashboard() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    {isConnected 
-                      ? 'Waiting for real-time activity...'
-                      : 'Connect to see live activity feed'
+                    {isConnected
+                      ? t('realtimeDashboard.waitingActivity')
+                      : t('realtimeDashboard.connectActivity')
                     }
                   </p>
                 )}
@@ -193,19 +195,19 @@ export default function RealTimeDashboard() {
             
             <Card className="p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle>Upcoming Schedule</CardTitle>
+                <CardTitle>{t('realtimeDashboard.upcomingSchedule')}</CardTitle>
               </CardHeader>
               <CardContent className="px-0">
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Your upcoming teaching schedule will appear here.
+                  {t('realtimeDashboard.upcomingScheduleEmpty')}
                 </p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => setActiveTab("scheduling")}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
-                  Manage Schedule
+                  {t('realtimeDashboard.manageSchedule')}
                 </Button>
               </CardContent>
             </Card>
@@ -216,8 +218,8 @@ export default function RealTimeDashboard() {
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
               <CardTitle className="flex items-center justify-between">
-                Practice Monitor
-                {isConnected && <Badge variant="outline">Live Updates</Badge>}
+                {t('realtimeDashboard.practiceMonitor')}
+                {isConnected && <Badge variant="outline">{t('realtimeDashboard.liveUpdates')}</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
@@ -225,21 +227,21 @@ export default function RealTimeDashboard() {
                 <Card className="p-4">
                   <div className="flex items-center mb-2">
                     <Users className="h-4 w-4 mr-2 text-blue-500" />
-                    <span className="text-sm font-medium">Online Students</span>
+                    <span className="text-sm font-medium">{t('realtimeDashboard.onlineStudents')}</span>
                   </div>
                   <span className="text-xl font-bold">{activeStudents}</span>
                 </Card>
                 <Card className="p-4">
                   <div className="flex items-center mb-2">
                     <Users className="h-4 w-4 mr-2 text-green-500" />
-                    <span className="text-sm font-medium">Online Teachers</span>
+                    <span className="text-sm font-medium">{t('realtimeDashboard.onlineTeachers')}</span>
                   </div>
                   <span className="text-xl font-bold">{activeTeachers}</span>
                 </Card>
                 <Card className="p-4">
                   <div className="flex items-center mb-2">
                     <Music className="h-4 w-4 mr-2 text-purple-500" />
-                    <span className="text-sm font-medium">Recent Practice</span>
+                    <span className="text-sm font-medium">{t('realtimeDashboard.recentPractice')}</span>
                   </div>
                   <span className="text-xl font-bold">{recentPracticeEvents}</span>
                 </Card>
@@ -247,7 +249,7 @@ export default function RealTimeDashboard() {
               
               {onlineUsers.length > 0 ? (
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-sm">Currently Online:</h4>
+                  <h4 className="font-semibold text-sm">{t('realtimeDashboard.currentlyOnline')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {onlineUsers.map((user, index) => (
                       <div key={index} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
@@ -262,9 +264,9 @@ export default function RealTimeDashboard() {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-center py-8">
-                  {isConnected 
-                    ? 'No users currently online'
-                    : 'Connect to see online users'
+                  {isConnected
+                    ? t('realtimeDashboard.noUsersOnline')
+                    : t('realtimeDashboard.connectToSeeUsers')
                   }
                 </p>
               )}
@@ -275,18 +277,18 @@ export default function RealTimeDashboard() {
         <TabsContent value="scheduling">
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
-              <CardTitle>Schedule Management</CardTitle>
+              <CardTitle>{t('realtimeDashboard.scheduleManagement')}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 py-8 text-center">
               <p className="text-muted-foreground">
-                Schedule management features will be available here.
+                {t('realtimeDashboard.scheduleManagementEmpty')}
               </p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => window.location.href = "/schedule"}
               >
-                Go to Schedule Page
+                {t('realtimeDashboard.goToSchedule')}
               </Button>
             </CardContent>
           </Card>

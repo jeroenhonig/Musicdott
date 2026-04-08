@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 import AppLayout from "@/components/layouts/app-layout";
 import { VideoCapture } from "@/components/video/video-capture";
 
@@ -29,6 +30,7 @@ interface Message {
 export default function AskTeacherPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [replyToMessageId, setReplyToMessageId] = useState<number | null>(null);
@@ -53,14 +55,14 @@ export default function AskTeacherPage() {
       setShowVideoCapture(false);
       queryClient.invalidateQueries({ queryKey: ["/api/student/message-responses"] });
       toast({
-        title: "Message sent",
-        description: "Your teacher will respond soon.",
+        title: t('studentPortal.askTeacher.messageSentTitle'),
+        description: t('studentPortal.askTeacher.messageSentDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: t('studentPortal.askTeacher.errorTitle'),
+        description: t('studentPortal.askTeacher.sendError'),
         variant: "destructive",
       });
     },
@@ -75,14 +77,14 @@ export default function AskTeacherPage() {
       setReplyToMessageId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/student/message-responses"] });
       toast({
-        title: "Reply sent",
-        description: "Your teacher will see your response.",
+        title: t('studentPortal.askTeacher.replySentTitle'),
+        description: t('studentPortal.askTeacher.replySentDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send reply. Please try again.",
+        title: t('studentPortal.askTeacher.errorTitle'),
+        description: t('studentPortal.askTeacher.replyError'),
         variant: "destructive",
       });
     },
@@ -112,8 +114,8 @@ export default function AskTeacherPage() {
     e.preventDefault();
     if (!subject.trim() || !message.trim()) {
       toast({
-        title: "Missing information",
-        description: "Please fill in both subject and message.",
+        title: t('studentPortal.askTeacher.missingInfoTitle'),
+        description: t('studentPortal.askTeacher.missingInfoDesc'),
         variant: "destructive",
       });
       return;
@@ -124,8 +126,8 @@ export default function AskTeacherPage() {
   const handleReply = (messageId: number) => {
     if (!replyText.trim()) {
       toast({
-        title: "Missing reply",
-        description: "Please enter your reply before sending.",
+        title: t('studentPortal.askTeacher.missingReplyTitle'),
+        description: t('studentPortal.askTeacher.missingReplyDesc'),
         variant: "destructive",
       });
       return;
@@ -135,7 +137,7 @@ export default function AskTeacherPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Ask Teacher">
+      <AppLayout title={t('studentPortal.askTeacher.title')}>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -152,11 +154,11 @@ export default function AskTeacherPage() {
   }
 
   return (
-    <AppLayout title="Ask Teacher">
+    <AppLayout title={t('studentPortal.askTeacher.title')}>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Ask My Teacher</h1>
-          <p className="text-gray-600 mt-2">Get help and feedback from your music teacher</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.askTeacher.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('studentPortal.askTeacher.subtitle')}</p>
         </div>
 
         {/* Send Message Form */}
@@ -164,29 +166,29 @@ export default function AskTeacherPage() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5 text-blue-600" />
-              <span>Send a New Message</span>
+              <span>{t('studentPortal.askTeacher.sendNewMessage')}</span>
             </CardTitle>
-            <p className="text-sm text-gray-600">Have a question? Need help with your music? Send your teacher a message here.</p>
+            <p className="text-sm text-gray-600">{t('studentPortal.askTeacher.sendMessagePrompt')}</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="subject">Subject</Label>
+                <Label htmlFor="subject">{t('studentPortal.askTeacher.subject')}</Label>
                 <Input
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="What's your question about?"
+                  placeholder={t('studentPortal.askTeacher.subjectPlaceholder')}
                   className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="message">{t('studentPortal.askTeacher.message')}</Label>
                 <Textarea
                   id="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe your question or ask for feedback..."
+                  placeholder={t('studentPortal.askTeacher.messagePlaceholder')}
                   rows={4}
                   className="mt-1"
                 />
@@ -195,7 +197,7 @@ export default function AskTeacherPage() {
               {/* Video Attachment */}
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-3">
-                  <Label className="text-sm font-medium">Practice Video (Optional)</Label>
+                  <Label className="text-sm font-medium">{t('studentPortal.askTeacher.practiceVideo')}</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -203,7 +205,7 @@ export default function AskTeacherPage() {
                     onClick={() => setShowVideoCapture(!showVideoCapture)}
                   >
                     <Video className="h-4 w-4 mr-2" />
-                    {showVideoCapture ? 'Hide Camera' : 'Record Video'}
+                    {showVideoCapture ? t('studentPortal.askTeacher.hideCamera') : t('studentPortal.askTeacher.recordVideo')}
                   </Button>
                 </div>
                 
@@ -225,7 +227,7 @@ export default function AskTeacherPage() {
                       <div className="flex items-center gap-2">
                         <Video className="h-4 w-4 text-green-600" />
                         <span className="text-sm font-medium text-green-800">
-                          Practice video attached
+                          {t('studentPortal.askTeacher.videoAttached')}
                         </span>
                       </div>
                       <Button
@@ -235,7 +237,7 @@ export default function AskTeacherPage() {
                         onClick={() => setAttachedVideoId(null)}
                         className="text-red-600 hover:text-red-700"
                       >
-                        Remove
+                        {t('studentPortal.askTeacher.removeVideo')}
                       </Button>
                     </div>
                   </div>
@@ -248,7 +250,7 @@ export default function AskTeacherPage() {
                 className="w-full sm:w-auto"
               >
                 <Send className="h-4 w-4 mr-2" />
-                {attachedVideoId ? 'Send Message with Video' : 'Send Message'}
+                {attachedVideoId ? t('studentPortal.askTeacher.sendWithVideo') : t('studentPortal.askTeacher.sendMessage')}
               </Button>
             </form>
           </CardContent>
@@ -256,7 +258,7 @@ export default function AskTeacherPage() {
 
         {/* Message History */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Message History</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('studentPortal.askTeacher.messageHistory')}</h2>
           {Array.isArray(messages) && messages.length > 0 ? (
             <div className="space-y-4">
               {messages.map((msg: any) => (
@@ -267,7 +269,7 @@ export default function AskTeacherPage() {
                         <CardTitle className="text-lg">{msg.subject}</CardTitle>
                         {msg.response && !msg.responseRead && (
                           <Badge variant="destructive" className="text-xs">
-                            New Response
+                            {t('studentPortal.askTeacher.newResponse')}
                           </Badge>
                         )}
                       </div>
@@ -282,7 +284,7 @@ export default function AskTeacherPage() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="flex items-center space-x-2 mb-2">
                         <User className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-blue-900">You</span>
+                        <span className="font-medium text-blue-900">{t('studentPortal.askTeacher.you')}</span>
                       </div>
                       <p className="text-blue-800">{msg.message}</p>
                       
@@ -296,9 +298,9 @@ export default function AskTeacherPage() {
                           >
                             <source src={msg.videoUrl} type="video/webm" />
                             <source src={msg.videoUrl} type="video/mp4" />
-                            Your browser does not support video playback.
+                            {t('studentPortal.askTeacher.videoBrowserUnsupported')}
                           </video>
-                          <p className="text-xs text-blue-600 mt-1">Practice video</p>
+                          <p className="text-xs text-blue-600 mt-1">{t('studentPortal.askTeacher.practiceVideoLabel')}</p>
                         </div>
                       )}
                     </div>
@@ -309,7 +311,7 @@ export default function AskTeacherPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-green-900">Your Teacher</span>
+                            <span className="font-medium text-green-900">{t('studentPortal.askTeacher.yourTeacher')}</span>
                           </div>
                           {msg.respondedAt && (
                             <span className="text-sm text-green-600">
@@ -323,9 +325,9 @@ export default function AskTeacherPage() {
                       <div className="bg-yellow-50 p-4 rounded-lg">
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4 text-yellow-600" />
-                          <span className="font-medium text-yellow-900">Waiting for response</span>
+                          <span className="font-medium text-yellow-900">{t('studentPortal.askTeacher.waitingForResponse')}</span>
                         </div>
-                        <p className="text-yellow-800 text-sm mt-1">Your teacher will respond soon.</p>
+                        <p className="text-yellow-800 text-sm mt-1">{t('studentPortal.askTeacher.teacherWillRespond')}</p>
                       </div>
                     )}
 
@@ -335,13 +337,13 @@ export default function AskTeacherPage() {
                         {replyToMessageId === msg.id ? (
                           <div className="space-y-3">
                             <Label htmlFor={`reply-${msg.id}`} className="text-sm font-medium text-gray-700">
-                              Continue the conversation
+                              {t('studentPortal.askTeacher.continueConversation')}
                             </Label>
                             <Textarea
                               id={`reply-${msg.id}`}
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
-                              placeholder="Type your reply..."
+                              placeholder={t('studentPortal.askTeacher.replyPlaceholder')}
                               rows={3}
                               className="resize-none"
                             />
@@ -352,7 +354,7 @@ export default function AskTeacherPage() {
                                 disabled={sendReplyMutation.isPending}
                               >
                                 <Send className="h-3 w-3 mr-1" />
-                                Send Reply
+                                {t('studentPortal.askTeacher.sendReply')}
                               </Button>
                               <Button
                                 size="sm"
@@ -362,7 +364,7 @@ export default function AskTeacherPage() {
                                   setReplyText("");
                                 }}
                               >
-                                Cancel
+                                {t('studentPortal.askTeacher.cancel')}
                               </Button>
                             </div>
                           </div>
@@ -374,7 +376,7 @@ export default function AskTeacherPage() {
                             className="text-blue-600 hover:text-blue-700"
                           >
                             <Reply className="h-3 w-3 mr-1" />
-                            Reply
+                            {t('studentPortal.askTeacher.reply')}
                           </Button>
                         )}
                       </div>
@@ -387,8 +389,8 @@ export default function AskTeacherPage() {
             <Card>
               <CardContent className="p-8 text-center">
                 <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
-                <p className="text-gray-600">Send your first message to get help from your teacher.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('studentPortal.askTeacher.noMessagesTitle')}</h3>
+                <p className="text-gray-600">{t('studentPortal.askTeacher.noMessagesDesc')}</p>
               </CardContent>
             </Card>
           )}

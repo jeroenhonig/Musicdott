@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import AppLayout from "@/components/layouts/app-layout";
 import { GrooveBuilder } from "@/components/groovescribe/groove-builder";
 import { GrooveScribeBlock } from "@/components/content-blocks/groovescribe-block";
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Filter,
   Music,
   Folder,
@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useTranslation } from "@/lib/i18n";
 
 interface GroovePattern {
   id: string;
@@ -46,9 +47,10 @@ export default function GroovePatternsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingPattern, setEditingPattern] = useState<GroovePattern | null>(null);
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Fetch groove patterns
   const { data: apiResponse, isLoading, error, refetch } = useQuery({
@@ -89,16 +91,16 @@ export default function GroovePatternsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/groove-patterns'] });
       toast({
-        title: "Pattern Created",
-        description: "New groove pattern created successfully",
+        title: t('groovePatterns.patternCreated'),
+        description: t('groovePatterns.patternCreatedDescription'),
       });
       setShowBuilder(false);
       setEditingPattern(null);
     },
     onError: (error) => {
       toast({
-        title: "Create Failed",
-        description: "Could not create the groove pattern",
+        title: t('groovePatterns.createFailed'),
+        description: t('groovePatterns.createFailedDescription'),
         variant: "destructive"
       });
     }
@@ -113,16 +115,16 @@ export default function GroovePatternsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/groove-patterns'] });
       toast({
-        title: "Pattern Updated",
-        description: "Groove pattern updated successfully",
+        title: t('groovePatterns.patternUpdated'),
+        description: t('groovePatterns.patternUpdatedDescription'),
       });
       setShowBuilder(false);
       setEditingPattern(null);
     },
     onError: (error) => {
       toast({
-        title: "Update Failed",
-        description: "Could not update the groove pattern",
+        title: t('groovePatterns.updateFailed'),
+        description: t('groovePatterns.updateFailedDescription'),
         variant: "destructive"
       });
     }
@@ -137,14 +139,14 @@ export default function GroovePatternsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/groove-patterns'] });
       toast({
-        title: "Pattern Deleted",
-        description: "Groove pattern deleted successfully",
+        title: t('groovePatterns.patternDeleted'),
+        description: t('groovePatterns.patternDeletedDescription'),
       });
     },
     onError: (error) => {
       toast({
-        title: "Delete Failed",
-        description: "Could not delete the groove pattern",
+        title: t('groovePatterns.deleteFailed'),
+        description: t('groovePatterns.deleteFailedDescription'),
         variant: "destructive"
       });
     }
@@ -163,7 +165,7 @@ export default function GroovePatternsPage() {
   };
 
   const handleDeletePattern = async (patternId: string) => {
-    if (confirm('Are you sure you want to delete this groove pattern?')) {
+    if (confirm(t('groovePatterns.deleteConfirm'))) {
       deletePatternMutation.mutate(patternId);
     }
   };
@@ -216,15 +218,15 @@ export default function GroovePatternsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Groove Pattern Library</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('groovePatterns.title')}</h1>
             <p className="text-gray-600 mt-1">
-              Create, browse, and share interactive drum patterns with GrooveScribe
+              {t('groovePatterns.subtitle')}
             </p>
           </div>
-          
+
           <Button onClick={handleCreatePattern}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Pattern
+            {t('groovePatterns.createPattern')}
           </Button>
         </div>
 
@@ -237,14 +239,14 @@ export default function GroovePatternsPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search patterns..."
+                    placeholder={t('groovePatterns.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
                   />
                 </div>
               </div>
-              
+
               {/* Difficulty Filter */}
               <div>
                 <select
@@ -252,13 +254,13 @@ export default function GroovePatternsPage() {
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
                   className="w-full px-3 py-2 border rounded-md"
                 >
-                  <option value="all">All Difficulties</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="all">{t('groovePatterns.allDifficulties')}</option>
+                  <option value="beginner">{t('groovePatterns.beginner')}</option>
+                  <option value="intermediate">{t('groovePatterns.intermediate')}</option>
+                  <option value="advanced">{t('groovePatterns.advanced')}</option>
                 </select>
               </div>
-              
+
               {/* Category Filter */}
               <div>
                 <select
@@ -266,7 +268,7 @@ export default function GroovePatternsPage() {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-3 py-2 border rounded-md"
                 >
-                  <option value="all">All Categories</option>
+                  <option value="all">{t('groovePatterns.allCategories')}</option>
                   <option value="rock">Rock</option>
                   <option value="jazz">Jazz</option>
                   <option value="latin">Latin</option>
@@ -283,31 +285,31 @@ export default function GroovePatternsPage() {
             <CardContent className="pt-6 text-center">
               <Music className="h-8 w-8 mx-auto mb-2 text-blue-600" />
               <div className="text-2xl font-bold">{patterns.length}</div>
-              <div className="text-sm text-gray-600">Total Patterns</div>
+              <div className="text-sm text-gray-600">{t('groovePatterns.totalPatterns')}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6 text-center">
               <Folder className="h-8 w-8 mx-auto mb-2 text-green-600" />
               <div className="text-2xl font-bold">{new Set(patterns.flatMap(p => p.tags)).size}</div>
-              <div className="text-sm text-gray-600">Unique Tags</div>
+              <div className="text-sm text-gray-600">{t('groovePatterns.uniqueTags')}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6 text-center">
               <Tag className="h-8 w-8 mx-auto mb-2 text-orange-600" />
               <div className="text-2xl font-bold">{patterns.filter(p => p.difficulty === 'beginner').length}</div>
-              <div className="text-sm text-gray-600">Beginner</div>
+              <div className="text-sm text-gray-600">{t('groovePatterns.beginner')}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6 text-center">
               <Filter className="h-8 w-8 mx-auto mb-2 text-purple-600" />
               <div className="text-2xl font-bold">{filteredPatterns.length}</div>
-              <div className="text-sm text-gray-600">Filtered Results</div>
+              <div className="text-sm text-gray-600">{t('groovePatterns.filteredResults')}</div>
             </CardContent>
           </Card>
         </div>
@@ -354,17 +356,17 @@ export default function GroovePatternsPage() {
             <CardContent className="pt-6 text-center py-12">
               <Music className="h-16 w-16 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                {patterns.length === 0 ? 'No Patterns Available' : 'No Patterns Found'}
+                {patterns.length === 0 ? t('groovePatterns.noPatternsAvailable') : t('groovePatterns.noPatternsFound')}
               </h3>
               <p className="text-gray-500 mb-4">
-                {patterns.length === 0 
-                  ? 'Get started by creating your first groove pattern'
-                  : 'Try adjusting your search terms or create a new pattern'
+                {patterns.length === 0
+                  ? t('groovePatterns.getStarted')
+                  : t('groovePatterns.adjustSearch')
                 }
               </p>
               <Button onClick={handleCreatePattern}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create Your First Pattern
+                {t('groovePatterns.createFirstPattern')}
               </Button>
             </CardContent>
           </Card>
@@ -374,11 +376,11 @@ export default function GroovePatternsPage() {
           <Card>
             <CardContent className="pt-6 text-center py-12">
               <div className="text-red-500 mb-4">
-                <h3 className="text-lg font-semibold mb-2">Error Loading Patterns</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('groovePatterns.errorLoading')}</h3>
                 <p className="text-sm">{error.message}</p>
               </div>
               <Button onClick={() => refetch()}>
-                Try Again
+                {t('groovePatterns.tryAgain')}
               </Button>
             </CardContent>
           </Card>

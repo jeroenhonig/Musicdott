@@ -54,13 +54,13 @@ export default function MySchedulePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/students", studentId, "sessions"] });
       toast({
-        title: "Lesson cancelled",
-        description: "Your lesson has been cancelled and your teacher has been notified.",
+        title: t('studentPortal.mySchedule.lessonCancelledTitle'),
+        description: t('studentPortal.mySchedule.lessonCancelledDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to cancel lesson",
+        title: t('studentPortal.mySchedule.cancelFailedTitle'),
         description: error.message,
         variant: "destructive",
       });
@@ -92,11 +92,11 @@ export default function MySchedulePage() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   return (
-    <AppLayout title="My Schedule">
+    <AppLayout title={t('studentPortal.mySchedule.title')}>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Schedule</h1>
-          <p className="text-gray-600 mt-2">View your upcoming lessons and practice sessions</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('studentPortal.mySchedule.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('studentPortal.mySchedule.subtitle')}</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -105,7 +105,7 @@ export default function MySchedulePage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5 text-blue-600" />
-                <span>Upcoming Lessons</span>
+                <span>{t('studentPortal.mySchedule.upcomingLessons')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -138,20 +138,19 @@ export default function MySchedulePage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Lesson</AlertDialogTitle>
+                              <AlertDialogTitle>{t('studentPortal.mySchedule.cancelConfirmTitle')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to cancel "{session.title}" scheduled for {format(new Date(session.startTime), "MMM d, h:mm a")}? 
-                                Your teacher will be automatically notified of this cancellation.
+                                Are you sure you want to cancel "{session.title}" scheduled for {format(new Date(session.startTime), "MMM d, h:mm a")}? {t('studentPortal.mySchedule.cancelConfirmDesc')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Lesson</AlertDialogCancel>
+                              <AlertDialogCancel>{t('studentPortal.mySchedule.keepLesson')}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => cancelLessonMutation.mutate(session.id)}
                                 disabled={cancelLessonMutation.isPending}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                {cancelLessonMutation.isPending ? "Cancelling..." : "Cancel Lesson"}
+                                {cancelLessonMutation.isPending ? t('studentPortal.mySchedule.cancelling') : t('studentPortal.mySchedule.cancelLesson')}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -161,7 +160,7 @@ export default function MySchedulePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No upcoming lessons scheduled</p>
+                <p className="text-gray-500 text-center py-4">{t('studentPortal.mySchedule.noUpcomingLessons')}</p>
               )}
             </CardContent>
           </Card>
@@ -171,7 +170,7 @@ export default function MySchedulePage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5 text-green-600" />
-                <span>Regular Schedule</span>
+                <span>{t('studentPortal.mySchedule.regularSchedule')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -181,7 +180,15 @@ export default function MySchedulePage() {
                     <div key={schedule.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <div>
                         <h4 className="font-medium">
-                          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.dayOfWeek]}
+                          {[
+                            t('schedule.days.sunday'),
+                            t('schedule.days.monday'),
+                            t('schedule.days.tuesday'),
+                            t('schedule.days.wednesday'),
+                            t('schedule.days.thursday'),
+                            t('schedule.days.friday'),
+                            t('schedule.days.saturday')
+                          ][schedule.dayOfWeek]}
                         </h4>
                         <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                           <span className="flex items-center space-x-1">
@@ -200,7 +207,7 @@ export default function MySchedulePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No regular schedule set</p>
+                <p className="text-gray-500 text-center py-4">{t('studentPortal.mySchedule.noRegularSchedule')}</p>
               )}
             </CardContent>
           </Card>
@@ -209,7 +216,7 @@ export default function MySchedulePage() {
         {/* Week View */}
         <Card>
           <CardHeader>
-            <CardTitle>This Week</CardTitle>
+            <CardTitle>{t('studentPortal.mySchedule.thisWeek')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-2">

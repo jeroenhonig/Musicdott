@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Database, 
+import { useTranslation } from '@/lib/i18n';
+import {
+  Database,
   Users, 
   BookOpen, 
   Music, 
@@ -46,6 +47,7 @@ interface StorageStatus {
 }
 
 export default function DebugPanel() {
+  const { t } = useTranslation();
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds default
   const [isRealTime, setIsRealTime] = useState(false);
 
@@ -87,7 +89,7 @@ export default function DebugPanel() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Activity className="w-8 h-8 animate-pulse mx-auto mb-2" />
-          <p>Loading debug information...</p>
+          <p>{t('debug.loading')}</p>
         </div>
       </div>
     );
@@ -98,9 +100,9 @@ export default function DebugPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Admin Debug Panel</h1>
+          <h1 className="text-3xl font-bold">{t('debug.title')}</h1>
           <p className="text-muted-foreground">
-            System monitoring and development tools for MusicDott platform
+            {t('debug.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -110,11 +112,11 @@ export default function DebugPanel() {
             onClick={toggleRealTime}
           >
             <Wifi className="w-4 h-4 mr-2" />
-            {isRealTime ? "Real-time ON" : "Real-time OFF"}
+            {isRealTime ? t('debug.realtimeOn') : t('debug.realtimeOff')}
           </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <Activity className="w-4 h-4 mr-2" />
-            Refresh
+            {t('debug.refresh')}
           </Button>
         </div>
       </div>
@@ -124,9 +126,9 @@ export default function DebugPanel() {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             {getStorageIcon(storageStatus)}
-            <CardTitle className="text-lg">Storage Status</CardTitle>
+            <CardTitle className="text-lg">{t('debug.storageStatus')}</CardTitle>
             <Badge className={getStorageStatusColor(storageStatus)}>
-              {storageStatus?.storageType?.toUpperCase() || 'UNKNOWN'} {storageStatus?.connected ? 'CONNECTED' : 'FALLBACK'}
+              {storageStatus?.storageType?.toUpperCase() || 'UNKNOWN'} {storageStatus?.connected ? t('debug.connected') : t('debug.fallback')}
             </Badge>
           </div>
         </CardHeader>
@@ -144,7 +146,7 @@ export default function DebugPanel() {
               <Users className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="text-2xl font-bold">{debugStats?.counts.students || 0}</p>
-                <p className="text-sm text-muted-foreground">Students</p>
+                <p className="text-sm text-muted-foreground">{t('debug.students')}</p>
               </div>
             </div>
           </CardContent>
@@ -156,7 +158,7 @@ export default function DebugPanel() {
               <BookOpen className="w-5 h-5 text-green-500" />
               <div>
                 <p className="text-2xl font-bold">{debugStats?.counts.lessons || 0}</p>
-                <p className="text-sm text-muted-foreground">Lessons</p>
+                <p className="text-sm text-muted-foreground">{t('debug.lessons')}</p>
               </div>
             </div>
           </CardContent>
@@ -168,7 +170,7 @@ export default function DebugPanel() {
               <Music className="w-5 h-5 text-purple-500" />
               <div>
                 <p className="text-2xl font-bold">{debugStats?.counts.songs || 0}</p>
-                <p className="text-sm text-muted-foreground">Songs</p>
+                <p className="text-sm text-muted-foreground">{t('debug.songs')}</p>
               </div>
             </div>
           </CardContent>
@@ -180,7 +182,7 @@ export default function DebugPanel() {
               <Layers className="w-5 h-5 text-orange-500" />
               <div>
                 <p className="text-2xl font-bold">{debugStats?.counts.categories || 0}</p>
-                <p className="text-sm text-muted-foreground">Categories</p>
+                <p className="text-sm text-muted-foreground">{t('debug.categories')}</p>
               </div>
             </div>
           </CardContent>
@@ -192,7 +194,7 @@ export default function DebugPanel() {
               <Server className="w-5 h-5 text-red-500" />
               <div>
                 <p className="text-2xl font-bold">{debugStats?.counts.users || 0}</p>
-                <p className="text-sm text-muted-foreground">Users</p>
+                <p className="text-sm text-muted-foreground">{t('debug.users')}</p>
               </div>
             </div>
           </CardContent>
@@ -205,24 +207,24 @@ export default function DebugPanel() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="w-5 h-5" />
-              Storage Information
+              {t('debug.storageInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-sm font-medium">Current User ID:</span>
+              <span className="text-sm font-medium">{t('debug.currentUserId')}</span>
               <Badge variant="outline">{debugStats?.currentUserId}</Badge>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium">Storage Type:</span>
+              <span className="text-sm font-medium">{t('debug.storageType')}</span>
               <Badge className={debugStats?.storageType === 'database' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
                 {debugStats?.storageType?.toUpperCase()}
               </Badge>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium">Connection Status:</span>
+              <span className="text-sm font-medium">{t('debug.connectionStatus')}</span>
               <Badge className={debugStats?.connected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                {debugStats?.connected ? 'CONNECTED' : 'DISCONNECTED'}
+                {debugStats?.connected ? t('debug.connected') : t('debug.disconnected')}
               </Badge>
             </div>
           </CardContent>
@@ -232,28 +234,28 @@ export default function DebugPanel() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Monitor className="w-5 h-5" />
-              Performance Metrics
+              {t('debug.performanceMetrics')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span>Data Load</span>
-                <span>{((debugStats?.counts.students || 0) + (debugStats?.counts.lessons || 0) + (debugStats?.counts.songs || 0))} items</span>
+                <span>{t('debug.dataLoad')}</span>
+                <span>{((debugStats?.counts.students || 0) + (debugStats?.counts.lessons || 0) + (debugStats?.counts.songs || 0))} {t('debug.items')}</span>
               </div>
               <Progress value={Math.min(((debugStats?.counts.students || 0) + (debugStats?.counts.lessons || 0) + (debugStats?.counts.songs || 0)) / 10, 100)} />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span>System Health</span>
+                <span>{t('debug.systemHealth')}</span>
                 <span>{storageStatus?.connected ? '100%' : '85%'}</span>
               </div>
               <Progress value={storageStatus?.connected ? 100 : 85} />
             </div>
             <div className="text-xs text-muted-foreground">
-              <p>• Memory fallback system active</p>
-              <p>• Real-time monitoring: {isRealTime ? 'ENABLED' : 'DISABLED'}</p>
-              <p>• Refresh interval: {refreshInterval / 1000}s</p>
+              <p>• {t('debug.memoryFallback')}</p>
+              <p>• {t('debug.realtimeMonitoring')} {isRealTime ? t('debug.enabled') : t('debug.disabled')}</p>
+              <p>• {t('debug.refreshInterval')} {refreshInterval / 1000}s</p>
             </div>
           </CardContent>
         </Card>
@@ -264,33 +266,33 @@ export default function DebugPanel() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            Development Status
+            {t('debug.devStatus')}
           </CardTitle>
           <CardDescription>
-            Current implementation status and development notes
+            {t('debug.devStatusDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h4 className="font-medium mb-2">✅ Completed Features</h4>
+              <h4 className="font-medium mb-2">✅ {t('debug.completedFeatures')}</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• Storage status monitoring</li>
-                <li>• Real-time debug statistics</li>
-                <li>• Memory fallback system</li>
-                <li>• Comprehensive data import</li>
-                <li>• GrooveScribe pattern rendering</li>
-                <li>• Student/lesson management</li>
+                <li>• {t('debug.feat1')}</li>
+                <li>• {t('debug.feat2')}</li>
+                <li>• {t('debug.feat3')}</li>
+                <li>• {t('debug.feat4')}</li>
+                <li>• {t('debug.feat5')}</li>
+                <li>• {t('debug.feat6')}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-2">🚧 Development Notes</h4>
+              <h4 className="font-medium mb-2">🚧 {t('debug.devNotes')}</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• Database connection pending</li>
-                <li>• Using memory storage fallback</li>
-                <li>• All data preserved in memory</li>
-                <li>• Admin monitoring fully operational</li>
-                <li>• Platform ready for production</li>
+                <li>• {t('debug.note1')}</li>
+                <li>• {t('debug.note2')}</li>
+                <li>• {t('debug.note3')}</li>
+                <li>• {t('debug.note4')}</li>
+                <li>• {t('debug.note5')}</li>
               </ul>
             </div>
           </div>
