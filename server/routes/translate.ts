@@ -5,7 +5,7 @@ import { requireAuth } from "../middleware/auth";
 const router = Router();
 
 const translateSchema = z.object({
-  text: z.string().min(1),
+  text: z.string().min(1).max(5000),
   targetLang: z.enum(["EN", "NL"]),
 });
 

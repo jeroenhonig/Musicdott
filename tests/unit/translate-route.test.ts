@@ -37,6 +37,18 @@ describe("translateText", () => {
     const result = await translateText("Hallo docent", "EN", "test-api-key");
     expect(result).toBe("Hallo docent");
   });
+
+  it("uses cache on second call and does not call fetch again", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: [{ text: "Hello teacher" }] }),
+    });
+
+    await translateText("Hallo docent", "EN", "test-api-key");
+    await translateText("Hallo docent", "EN", "test-api-key");
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("buildTranslateCache", () => {
