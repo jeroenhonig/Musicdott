@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "@/lib/i18n";
 
 export default function OwnerLogin() {
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const form = useForm<OwnerLoginData>({
     resolver: zodResolver(ownerLoginSchema),
@@ -32,7 +34,7 @@ export default function OwnerLogin() {
       await apiRequest("POST", "/api/owner/login", ownerLoginSchema.parse(data));
       setLocation("/owners-dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
+      setError(err instanceof Error ? err.message : t('ownerLogin.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -45,9 +47,9 @@ export default function OwnerLogin() {
           <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
             <Shield className="h-8 w-8 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl font-bold">Platform Administration</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('ownerLogin.title')}</CardTitle>
           <CardDescription>
-            Secure access for MusicDott platform administrators
+            {t('ownerLogin.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,12 +67,12 @@ export default function OwnerLogin() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Administrator Username</FormLabel>
+                    <FormLabel>{t('ownerLogin.usernameLabel')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="text"
-                        placeholder="Enter admin username"
+                        placeholder={t('ownerLogin.usernamePlaceholder')}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -84,12 +86,12 @@ export default function OwnerLogin() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Administrator Password</FormLabel>
+                    <FormLabel>{t('ownerLogin.passwordLabel')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="password"
-                        placeholder="Enter admin password"
+                        placeholder={t('ownerLogin.passwordPlaceholder')}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -103,15 +105,14 @@ export default function OwnerLogin() {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? "Authenticating..." : "Access Platform Dashboard"}
+                {isLoading ? t('ownerLogin.authenticating') : t('ownerLogin.accessButton')}
               </Button>
             </form>
           </Form>
 
           <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              <strong>Security Notice:</strong> This is a restricted area for platform administrators only. 
-              All access attempts are logged and monitored.
+              <strong>{t('ownerLogin.securityNotice')}</strong> {t('ownerLogin.securityMessage')}
             </p>
           </div>
         </CardContent>
