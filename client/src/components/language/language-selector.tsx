@@ -30,6 +30,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           size={size}
           onClick={() => setLanguage(language === 'en' ? 'nl' : 'en')}
           className="gap-2"
+          aria-label={language === 'en' ? 'Switch to Dutch (NL)' : 'Switch to English (EN)'}
         >
           <span className="text-sm">{language === 'en' ? '🇬🇧' : '🇳🇱'}</span>
           <span className="font-medium text-xs">{language === 'en' ? 'EN' : 'NL'}</span>
@@ -69,7 +70,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   );
 };
 
-// Compact version for login page
+// Compact flag toggle used in navigation header areas
 export const CompactLanguageSelector: React.FC = () => {
   const { language, setLanguage } = useTranslation();
 
@@ -79,6 +80,7 @@ export const CompactLanguageSelector: React.FC = () => {
       size="sm"
       onClick={() => setLanguage(language === 'en' ? 'nl' : 'en')}
       className="gap-1 text-xs px-2 py-1 h-auto"
+      aria-label={language === 'en' ? 'Switch to Dutch (NL)' : 'Switch to English (EN)'}
     >
       <span className="text-sm">{language === 'en' ? '🇬🇧' : '🇳🇱'}</span>
       <span className="font-medium">{language === 'en' ? 'EN' : 'NL'}</span>
