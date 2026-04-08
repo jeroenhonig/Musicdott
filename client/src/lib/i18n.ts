@@ -266,6 +266,300 @@ export const translations: Translations = {
     nl: 'Inhoud'
   },
 
+  // Lessons page — additional UI strings
+  'lessons.subtitle': {
+    en: 'Browse lessons by category and assign them to students',
+    nl: 'Blader door lessen per categorie en wijs ze toe aan studenten'
+  },
+  'lessons.manageCategories': {
+    en: 'Manage Categories',
+    nl: 'Categorieën beheren'
+  },
+  'lessons.manageLessonCategories': {
+    en: 'Manage Lesson Categories',
+    nl: 'Lescategorieën beheren'
+  },
+  'lessons.manageCategoriesDescription': {
+    en: 'Create and organize categories for your lessons',
+    nl: 'Maak categorieën aan en organiseer ze voor je lessen'
+  },
+  'lessons.viewCategories': {
+    en: 'Categories',
+    nl: 'Categorieën'
+  },
+  'lessons.viewAll': {
+    en: 'All Lessons',
+    nl: 'Alle lessen'
+  },
+  'lessons.viewPreview': {
+    en: 'Preview',
+    nl: 'Voorbeeld'
+  },
+  'lessons.addLesson': {
+    en: 'Add Lesson',
+    nl: 'Les toevoegen'
+  },
+  'lessons.addNewLesson': {
+    en: 'Add New Lesson',
+    nl: 'Nieuwe les toevoegen'
+  },
+  'lessons.addNewLessonDescription': {
+    en: 'Create a new lesson with content and resources for your students.',
+    nl: 'Maak een nieuwe les aan met inhoud en bronnen voor je studenten.'
+  },
+  'lessons.searchPlaceholder': {
+    en: 'Search lessons...',
+    nl: 'Lessen zoeken...'
+  },
+  'lessons.noCategoriesTitle': {
+    en: 'No Lesson Categories',
+    nl: 'Geen lescategorieën'
+  },
+  'lessons.noCategoriesDescription': {
+    en: 'Create your first lesson category to organize your educational content. Categories help group related lessons together.',
+    nl: 'Maak je eerste lescategorie aan om je educatieve inhoud te organiseren. Categorieën helpen gerelateerde lessen te groeperen.'
+  },
+  'lessons.createFirstCategory': {
+    en: 'Create First Category',
+    nl: 'Eerste categorie aanmaken'
+  },
+  'lessons.countLessons': {
+    en: 'lessons',
+    nl: 'lessen'
+  },
+  'lessons.noDescription': {
+    en: 'No description',
+    nl: 'Geen beschrijving'
+  },
+  'lessons.view': {
+    en: 'View',
+    nl: 'Bekijken'
+  },
+  'lessons.viewAllCount': {
+    en: 'View all',
+    nl: 'Bekijk alle'
+  },
+  'lessons.viewLessonsCount': {
+    en: 'View Lessons',
+    nl: 'Lessen bekijken'
+  },
+  'lessons.noLessonsAssigned': {
+    en: 'No lessons assigned yet',
+    nl: 'Nog geen lessen toegewezen'
+  },
+  'lessons.backToCategories': {
+    en: '← Back to Categories',
+    nl: '← Terug naar categorieën'
+  },
+  'lessons.noLessonsFoundTitle': {
+    en: 'No Lessons Found',
+    nl: 'Geen lessen gevonden'
+  },
+  'lessons.noLessonsEmpty': {
+    en: 'Create your first lesson to start building your educational content library.',
+    nl: 'Maak je eerste les aan om je educatieve inhoudsbibliotheek op te bouwen.'
+  },
+  'lessons.noLessonsFiltered': {
+    en: 'No lessons match your current filters. Try adjusting your search or category selection.',
+    nl: 'Geen lessen komen overeen met je huidige filters. Pas je zoekopdracht of categorie-selectie aan.'
+  },
+  'lessons.createFirstLesson': {
+    en: 'Create First Lesson',
+    nl: 'Eerste les aanmaken'
+  },
+  'lessons.noLessonsFound': {
+    en: 'No lessons found',
+    nl: 'Geen lessen gevonden'
+  },
+  'lessons.noLessonsSearch': {
+    en: 'No lessons match your search.',
+    nl: 'Geen lessen komen overeen met je zoekopdracht.'
+  },
+  'lessons.getStarted': {
+    en: 'Get started by creating your first lesson.',
+    nl: 'Ga aan de slag door je eerste les aan te maken.'
+  },
+  'lessons.form.titleLabel': {
+    en: 'Title *',
+    nl: 'Titel *'
+  },
+  'lessons.form.titlePlaceholder': {
+    en: 'Enter lesson title',
+    nl: 'Voer lestitel in'
+  },
+  'lessons.form.contentTypeLabel': {
+    en: 'Content Type',
+    nl: 'Inhoudstype'
+  },
+  'lessons.form.contentTypePlaceholder': {
+    en: 'Select content type',
+    nl: 'Selecteer inhoudstype'
+  },
+  'lessons.form.contentTypeStandard': {
+    en: 'Standard',
+    nl: 'Standaard'
+  },
+  'lessons.form.contentTypeTechnique': {
+    en: 'Technique',
+    nl: 'Techniek'
+  },
+  'lessons.form.contentTypeTheory': {
+    en: 'Theory',
+    nl: 'Theorie'
+  },
+  'lessons.form.contentTypeSong': {
+    en: 'Song',
+    nl: 'Nummer'
+  },
+  'lessons.form.skillLevelLabel': {
+    en: 'Skill Level',
+    nl: 'Vaardigheidsniveau'
+  },
+  'lessons.form.skillLevelPlaceholder': {
+    en: 'Select skill level',
+    nl: 'Selecteer vaardigheidsniveau'
+  },
+  'lessons.form.levelNone': {
+    en: 'None',
+    nl: 'Geen'
+  },
+  'lessons.form.levelBeginner': {
+    en: 'Beginner',
+    nl: 'Beginner'
+  },
+  'lessons.form.levelIntermediate': {
+    en: 'Intermediate',
+    nl: 'Gemiddeld'
+  },
+  'lessons.form.levelAdvanced': {
+    en: 'Advanced',
+    nl: 'Gevorderd'
+  },
+  'lessons.form.categoryLabel': {
+    en: 'Category',
+    nl: 'Categorie'
+  },
+  'lessons.form.categoryPlaceholder': {
+    en: 'Select category',
+    nl: 'Selecteer categorie'
+  },
+  'lessons.form.noCategory': {
+    en: 'No Category',
+    nl: 'Geen categorie'
+  },
+  'lessons.form.instrumentLabel': {
+    en: 'Instrument',
+    nl: 'Instrument'
+  },
+  'lessons.form.instrumentPlaceholder': {
+    en: 'e.g., Piano, Guitar, Drums',
+    nl: 'bijv., Piano, Gitaar, Drums'
+  },
+  'lessons.form.descriptionLabel': {
+    en: 'Description',
+    nl: 'Beschrijving'
+  },
+  'lessons.form.descriptionPlaceholder': {
+    en: 'Add notes about the lesson',
+    nl: 'Voeg opmerkingen toe over de les'
+  },
+  'lessons.form.contentResourcesTitle': {
+    en: 'Content & Resources',
+    nl: 'Inhoud & bronnen'
+  },
+  'lessons.form.contentResourcesDescription': {
+    en: 'Add videos, external links, text content, and other resources for this lesson.',
+    nl: 'Voeg video\'s, externe links, tekstinhoud en andere bronnen toe voor deze les.'
+  },
+  'lessons.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'lessons.createLesson': {
+    en: 'Create Lesson',
+    nl: 'Les aanmaken'
+  },
+  'lessons.saving': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'lessons.saveChanges': {
+    en: 'Save Changes',
+    nl: 'Wijzigingen opslaan'
+  },
+  'lessons.editLesson': {
+    en: 'Edit Lesson',
+    nl: 'Les bewerken'
+  },
+  'lessons.editLessonDescription': {
+    en: 'Make changes to this lesson and click save when you\'re done.',
+    nl: 'Breng wijzigingen aan in deze les en klik op opslaan als je klaar bent.'
+  },
+  'lessons.form.editInstrumentPlaceholder': {
+    en: 'E.g., Guitar, Piano, Drums',
+    nl: 'bijv., Gitaar, Piano, Drums'
+  },
+  'lessons.assignToStudent': {
+    en: 'Assign Lesson to Student',
+    nl: 'Les toewijzen aan student'
+  },
+  'lessons.assignDescription': {
+    en: 'with optional due date and notes.',
+    nl: 'met optionele deadline en opmerkingen.'
+  },
+  'lessons.assignSelectStudentLabel': {
+    en: 'Select Student',
+    nl: 'Student selecteren'
+  },
+  'lessons.assignChooseStudent': {
+    en: 'Choose a student',
+    nl: 'Kies een student'
+  },
+  'lessons.assignDueDateLabel': {
+    en: 'Due Date (Optional)',
+    nl: 'Deadline (optioneel)'
+  },
+  'lessons.assignNotesLabel': {
+    en: 'Notes (Optional)',
+    nl: 'Opmerkingen (optioneel)'
+  },
+  'lessons.assignNotesPlaceholder': {
+    en: 'Add any specific instructions or notes for this assignment',
+    nl: 'Voeg specifieke instructies of opmerkingen toe voor deze opdracht'
+  },
+  'lessons.assigning': {
+    en: 'Assigning...',
+    nl: 'Toewijzen...'
+  },
+  'lessons.assignLesson': {
+    en: 'Assign Lesson',
+    nl: 'Les toewijzen'
+  },
+  'lessons.createdSuccess': {
+    en: 'Lesson created successfully',
+    nl: 'Les succesvol aangemaakt'
+  },
+  'lessons.deletedSuccess': {
+    en: 'Lesson deleted successfully',
+    nl: 'Les succesvol verwijderd'
+  },
+  'lessons.updatedSuccess': {
+    en: 'Lesson updated successfully',
+    nl: 'Les succesvol bijgewerkt'
+  },
+  'lessons.assignedSuccess': {
+    en: 'Lesson assigned successfully',
+    nl: 'Les succesvol toegewezen'
+  },
+  'lessons.selectStudentError': {
+    en: 'Please select a student',
+    nl: 'Selecteer een student'
+  },
+  'lessons.enterTitleError': {
+    en: 'Please enter a lesson title',
+    nl: 'Voer een lestitel in'
+  },
+
   // Students
   'students.title': {
     en: 'Students',
@@ -424,6 +718,256 @@ export const translations: Translations = {
   'settings.account': {
     en: 'Account',
     nl: 'Account'
+  },
+
+  // Schedule — loading and error states
+  'schedule.loading': {
+    en: 'Loading schedules...',
+    nl: 'Roosters laden...'
+  },
+  'schedule.errorTitle': {
+    en: 'Error Loading Schedule',
+    nl: 'Fout bij laden rooster'
+  },
+  'schedule.errorDescription': {
+    en: 'Unable to load schedule data. Please try again.',
+    nl: 'Kan roostergegevens niet laden. Probeer het opnieuw.'
+  },
+  'schedule.refreshPage': {
+    en: 'Refresh Page',
+    nl: 'Pagina vernieuwen'
+  },
+  'schedule.weeklySchedule': {
+    en: 'Weekly Schedule',
+    nl: 'Wekelijks Rooster'
+  },
+  'schedule.noLessons': {
+    en: 'No lessons',
+    nl: 'Geen lessen'
+  },
+  'schedule.conflictsDetected': {
+    en: 'Schedule Conflicts Detected',
+    nl: 'Roosterconflicten gedetecteerd'
+  },
+  'schedule.conflictWith': {
+    en: 'Conflict with',
+    nl: 'Conflict met'
+  },
+  'schedule.unknownDay': {
+    en: 'Unknown Day',
+    nl: 'Onbekende dag'
+  },
+  'schedule.recurringSchedules': {
+    en: 'Recurring Schedules',
+    nl: 'Terugkerende roosters'
+  },
+  'schedule.individualLessons': {
+    en: 'Individual Lessons',
+    nl: 'Individuele lessen'
+  },
+  'schedule.upcomingIndividualLessons': {
+    en: 'Upcoming Individual Lessons',
+    nl: 'Komende individuele lessen'
+  },
+  'schedule.upcomingIndividualDescription': {
+    en: 'Manage individual lessons from recurring schedules. Cancel specific lessons without affecting the recurring schedule.',
+    nl: 'Beheer individuele lessen vanuit terugkerende roosters. Annuleer specifieke lessen zonder het terugkerende rooster te beïnvloeden.'
+  },
+  'schedule.loadingSessions': {
+    en: 'Loading sessions...',
+    nl: 'Sessies laden...'
+  },
+  'schedule.noUpcomingLessons': {
+    en: 'No upcoming lessons scheduled',
+    nl: 'Geen komende lessen gepland'
+  },
+  'schedule.sessionsFromRecurring': {
+    en: 'Individual lessons are generated from recurring schedules',
+    nl: 'Individuele lessen worden gegenereerd vanuit terugkerende roosters'
+  },
+  'schedule.table.student': {
+    en: 'Student',
+    nl: 'Student'
+  },
+  'schedule.table.lessonTitle': {
+    en: 'Lesson Title',
+    nl: 'Lestitel'
+  },
+  'schedule.table.date': {
+    en: 'Date',
+    nl: 'Datum'
+  },
+  'schedule.table.time': {
+    en: 'Time',
+    nl: 'Tijd'
+  },
+  'schedule.table.duration': {
+    en: 'Duration',
+    nl: 'Duur'
+  },
+  'schedule.table.notes': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'schedule.table.actions': {
+    en: 'Actions',
+    nl: 'Acties'
+  },
+  'schedule.table.noNotes': {
+    en: 'No notes',
+    nl: 'Geen opmerkingen'
+  },
+  'schedule.table.minutes': {
+    en: 'min',
+    nl: 'min'
+  },
+  'schedule.cancelLesson': {
+    en: 'Cancel Lesson',
+    nl: 'Les annuleren'
+  },
+  'schedule.cancelIndividualLesson': {
+    en: 'Cancel Individual Lesson',
+    nl: 'Individuele les annuleren'
+  },
+  'schedule.cancelLessonDescription': {
+    en: 'This will only cancel this specific lesson and will not affect the recurring schedule.',
+    nl: 'Dit annuleert alleen deze specifieke les en heeft geen invloed op het terugkerende rooster.'
+  },
+  'schedule.keepLesson': {
+    en: 'Keep Lesson',
+    nl: 'Les behouden'
+  },
+  'schedule.cancelling': {
+    en: 'Cancelling...',
+    nl: 'Annuleren...'
+  },
+  'schedule.lessonCancelled': {
+    en: 'Lesson cancelled',
+    nl: 'Les geannuleerd'
+  },
+  'schedule.lessonCancelledDescription': {
+    en: 'The individual lesson has been cancelled successfully.',
+    nl: 'De individuele les is succesvol geannuleerd.'
+  },
+  'schedule.failedToCancel': {
+    en: 'Failed to cancel lesson',
+    nl: 'Kon les niet annuleren'
+  },
+  'schedule.details': {
+    en: 'Schedule Details',
+    nl: 'Roosterdetails'
+  },
+  'schedule.recurringInfo': {
+    en: 'Recurring lesson schedule information',
+    nl: 'Informatie over terugkerend lesrooster'
+  },
+  'schedule.addRecurring': {
+    en: 'Add Recurring Schedule',
+    nl: 'Terugkerend rooster toevoegen'
+  },
+  'schedule.createRecurringDescription': {
+    en: 'Create a new recurring lesson schedule',
+    nl: 'Maak een nieuw terugkerend lesrooster aan'
+  },
+  'schedule.form.studentLabel': {
+    en: 'Student *',
+    nl: 'Student *'
+  },
+  'schedule.form.teacherLabel': {
+    en: 'Teacher *',
+    nl: 'Docent *'
+  },
+  'schedule.form.selectTeacher': {
+    en: 'Select a teacher',
+    nl: 'Selecteer een docent'
+  },
+  'schedule.form.dayOfWeek': {
+    en: 'Day of Week *',
+    nl: 'Dag van de week *'
+  },
+  'schedule.form.startTimeLabel': {
+    en: 'Start Time *',
+    nl: 'Starttijd *'
+  },
+  'schedule.form.endTimeLabel': {
+    en: 'End Time *',
+    nl: 'Eindtijd *'
+  },
+  'schedule.form.startPlaceholder': {
+    en: 'Start',
+    nl: 'Start'
+  },
+  'schedule.form.endPlaceholder': {
+    en: 'End',
+    nl: 'Einde'
+  },
+  'schedule.form.frequencyLabel': {
+    en: 'Frequency *',
+    nl: 'Frequentie *'
+  },
+  'schedule.form.selectFrequency': {
+    en: 'Select frequency',
+    nl: 'Selecteer frequentie'
+  },
+  'schedule.form.weekly': {
+    en: 'Weekly',
+    nl: 'Wekelijks'
+  },
+  'schedule.form.biweekly': {
+    en: 'Bi-weekly',
+    nl: 'Tweewekelijks'
+  },
+  'schedule.form.locationLabel': {
+    en: 'Location',
+    nl: 'Locatie'
+  },
+  'schedule.form.locationPlaceholder': {
+    en: 'e.g., Room 1, Studio A',
+    nl: 'bijv., Ruimte 1, Studio A'
+  },
+  'schedule.form.notesLabel': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'schedule.form.notesPlaceholder': {
+    en: 'Additional notes...',
+    nl: 'Aanvullende opmerkingen...'
+  },
+  'schedule.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'schedule.deleting': {
+    en: 'Deleting...',
+    nl: 'Verwijderen...'
+  },
+  'schedule.createdSuccess': {
+    en: 'Recurring schedule created successfully.',
+    nl: 'Terugkerend rooster succesvol aangemaakt.'
+  },
+  'schedule.deletedSuccess': {
+    en: 'Schedule deleted successfully.',
+    nl: 'Rooster succesvol verwijderd.'
+  },
+  'schedule.createFailed': {
+    en: 'Failed to create schedule.',
+    nl: 'Kon rooster niet aanmaken.'
+  },
+  'schedule.deleteFailed': {
+    en: 'Failed to delete schedule.',
+    nl: 'Kon rooster niet verwijderen.'
+  },
+  'schedule.conflictDetectedTitle': {
+    en: 'Schedule conflict detected',
+    nl: 'Roosterconflict gedetecteerd'
+  },
+  'schedule.subtitleManagement': {
+    en: 'Manage recurring lesson schedules and individual sessions',
+    nl: 'Beheer terugkerende lesroosters en individuele sessies'
+  },
+  'schedule.unknownStudent': {
+    en: 'Unknown Student',
+    nl: 'Onbekende student'
   },
 
   // Schedule and calendar
@@ -834,6 +1378,286 @@ export const translations: Translations = {
   'error.404Description': {
     en: 'The page you are looking for does not exist.',
     nl: 'De pagina die je zoekt bestaat niet.'
+  },
+
+  // Signup page — page header
+  'signup.pageTitle': {
+    en: 'Join MusicDott',
+    nl: 'Doe mee met MusicDott'
+  },
+  'signup.pageSubtitle': {
+    en: 'Start managing your music school with the most comprehensive platform for music education',
+    nl: 'Begin met het beheren van je muziekschool met het meest uitgebreide platform voor muziekonderwijs'
+  },
+
+  // Signup page — card header
+  'signup.cardTitle': {
+    en: 'Create Your Music School Account',
+    nl: 'Maak je muziekschoolaccount aan'
+  },
+  'signup.cardDescription': {
+    en: 'Set up your account and school profile in just a few minutes',
+    nl: 'Stel je account en schoolprofiel in slechts een paar minuten in'
+  },
+
+  // Signup page — section headings
+  'signup.section.accountInfo': {
+    en: 'Account Information',
+    nl: 'Accountgegevens'
+  },
+  'signup.section.schoolInfo': {
+    en: 'School Information',
+    nl: 'Schoolinformatie'
+  },
+  'signup.section.teachingInfo': {
+    en: 'Teaching Information',
+    nl: 'Onderwijsinformatie'
+  },
+
+  // Signup page — field labels
+  'signup.field.fullName': {
+    en: 'Your Full Name',
+    nl: 'Je volledige naam'
+  },
+  'signup.field.role': {
+    en: 'Your Role',
+    nl: 'Je rol'
+  },
+  'signup.field.username': {
+    en: 'Username',
+    nl: 'Gebruikersnaam'
+  },
+  'signup.field.emailAddress': {
+    en: 'Email Address',
+    nl: 'E-mailadres'
+  },
+  'signup.field.password': {
+    en: 'Password',
+    nl: 'Wachtwoord'
+  },
+  'signup.field.confirmPassword': {
+    en: 'Confirm Password',
+    nl: 'Wachtwoord bevestigen'
+  },
+  'signup.field.schoolName': {
+    en: 'School/Studio Name',
+    nl: 'School-/studionaam'
+  },
+  'signup.field.address': {
+    en: 'Address (Optional)',
+    nl: 'Adres (optioneel)'
+  },
+  'signup.field.phone': {
+    en: 'Phone (Optional)',
+    nl: 'Telefoon (optioneel)'
+  },
+  'signup.field.website': {
+    en: 'Website (Optional)',
+    nl: 'Website (optioneel)'
+  },
+  'signup.field.primaryInstruments': {
+    en: 'Primary Instruments',
+    nl: 'Primaire instrumenten'
+  },
+  'signup.field.yearsTeaching': {
+    en: 'Years Teaching',
+    nl: 'Jaren leservaring'
+  },
+  'signup.field.studentCapacity': {
+    en: 'Expected Student Capacity',
+    nl: 'Verwachte studentcapaciteit'
+  },
+  'signup.field.bio': {
+    en: 'About You/Your School (Optional)',
+    nl: 'Over jou/je school (optioneel)'
+  },
+
+  // Signup page — placeholders
+  'signup.placeholder.fullName': {
+    en: 'e.g. Sarah Johnson',
+    nl: 'bijv. Sarah Johnson'
+  },
+  'signup.placeholder.selectRole': {
+    en: 'Select your role',
+    nl: 'Selecteer je rol'
+  },
+  'signup.placeholder.username': {
+    en: 'musicschool2025',
+    nl: 'muziekschool2025'
+  },
+  'signup.placeholder.email': {
+    en: 'hello@musicschool.com',
+    nl: 'hallo@muziekschool.nl'
+  },
+  'signup.placeholder.password': {
+    en: 'Minimum 8 characters',
+    nl: 'Minimaal 8 tekens'
+  },
+  'signup.placeholder.confirmPassword': {
+    en: 'Repeat your password',
+    nl: 'Herhaal je wachtwoord'
+  },
+  'signup.placeholder.schoolName': {
+    en: 'e.g. Harmony Music Academy',
+    nl: 'bijv. Harmonie Muziekacademie'
+  },
+  'signup.placeholder.address': {
+    en: '123 Music Street, City, State',
+    nl: 'Muziekstraat 123, Stad'
+  },
+  'signup.placeholder.phone': {
+    en: '+1 (555) 123-4567',
+    nl: '+31 (0)20 123 4567'
+  },
+  'signup.placeholder.website': {
+    en: 'https://www.yourmusicschool.com',
+    nl: 'https://www.jemuziekschool.nl'
+  },
+  'signup.placeholder.instruments': {
+    en: 'e.g. Piano, Guitar, Violin',
+    nl: 'bijv. Piano, Gitaar, Viool'
+  },
+  'signup.placeholder.selectExperience': {
+    en: 'Select experience',
+    nl: 'Selecteer ervaring'
+  },
+  'signup.placeholder.studentCapacity': {
+    en: 'How many students do you plan to teach?',
+    nl: 'Hoeveel studenten wil je lesgeven?'
+  },
+  'signup.placeholder.bio': {
+    en: 'Tell us about your teaching philosophy, specialties, or what makes your school unique...',
+    nl: 'Vertel ons over je onderwijsfilosofie, specialiteiten of wat jouw school uniek maakt...'
+  },
+
+  // Signup page — role options
+  'signup.role.schoolOwner': {
+    en: 'School Owner/Director',
+    nl: 'Schooleigenaar/directeur'
+  },
+  'signup.role.teacher': {
+    en: 'Independent Teacher',
+    nl: 'Zelfstandig docent'
+  },
+
+  // Signup page — experience options
+  'signup.experience.lessThan1': {
+    en: 'Less than 1 year',
+    nl: 'Minder dan 1 jaar'
+  },
+  'signup.experience.1to3': {
+    en: '1-3 years',
+    nl: '1-3 jaar'
+  },
+  'signup.experience.3to5': {
+    en: '3-5 years',
+    nl: '3-5 jaar'
+  },
+  'signup.experience.5to10': {
+    en: '5-10 years',
+    nl: '5-10 jaar'
+  },
+  'signup.experience.10plus': {
+    en: '10+ years',
+    nl: '10+ jaar'
+  },
+
+  // Signup page — student capacity options
+  'signup.capacity.1to10': {
+    en: '1-10 students',
+    nl: '1-10 studenten'
+  },
+  'signup.capacity.11to25': {
+    en: '11-25 students',
+    nl: '11-25 studenten'
+  },
+  'signup.capacity.26to50': {
+    en: '26-50 students',
+    nl: '26-50 studenten'
+  },
+  'signup.capacity.51to100': {
+    en: '51-100 students',
+    nl: '51-100 studenten'
+  },
+  'signup.capacity.100plus': {
+    en: '100+ students',
+    nl: '100+ studenten'
+  },
+
+  // Signup page — buttons
+  'signup.button.createAccount': {
+    en: 'Create Account',
+    nl: 'Account aanmaken'
+  },
+  'signup.button.creatingAccount': {
+    en: 'Creating Account...',
+    nl: 'Account aanmaken...'
+  },
+  'signup.button.backToLogin': {
+    en: 'Back to Login',
+    nl: 'Terug naar inloggen'
+  },
+
+  // Signup page — toast messages
+  'signup.toast.successTitle': {
+    en: 'Registration Successful!',
+    nl: 'Registratie geslaagd!'
+  },
+  'signup.toast.successDescription': {
+    en: 'Welcome to MusicDott! You can now log in to your account.',
+    nl: 'Welkom bij MusicDott! Je kunt nu inloggen op je account.'
+  },
+  'signup.toast.errorTitle': {
+    en: 'Registration Failed',
+    nl: 'Registratie mislukt'
+  },
+  'signup.toast.errorDescription': {
+    en: 'An error occurred during registration',
+    nl: 'Er is een fout opgetreden tijdens de registratie'
+  },
+
+  // Signup page — footer
+  'signup.footer.terms': {
+    en: 'By creating an account, you agree to our Terms of Service and Privacy Policy.',
+    nl: 'Door een account aan te maken, ga je akkoord met onze Servicevoorwaarden en ons Privacybeleid.'
+  },
+
+  // Signup page — validation messages
+  'signup.validation.invalidEmail': {
+    en: 'Invalid email address',
+    nl: 'Ongeldig e-mailadres'
+  },
+  'signup.validation.schoolNameRequired': {
+    en: 'School name is required',
+    nl: 'Schoolnaam is vereist'
+  },
+  'signup.validation.ownerNameRequired': {
+    en: 'Your name is required',
+    nl: 'Je naam is vereist'
+  },
+  'signup.validation.roleRequired': {
+    en: 'Please select your role',
+    nl: 'Selecteer je rol'
+  },
+  'signup.validation.instrumentsRequired': {
+    en: 'Please specify your primary instruments',
+    nl: 'Geef je primaire instrumenten op'
+  },
+  'signup.validation.capacityRequired': {
+    en: 'Please estimate your student capacity',
+    nl: 'Geef een schatting van je studentcapaciteit'
+  },
+  'signup.validation.teachingExperienceRequired': {
+    en: 'Teaching experience is required',
+    nl: 'Leservaring is vereist'
+  },
+  'signup.validation.bioTooLong': {
+    en: 'Bio must be less than 500 characters',
+    nl: 'Bio mag maximaal 500 tekens bevatten'
+  },
+  'signup.validation.passwordsMismatch': {
+    en: "Passwords don't match",
+    nl: 'Wachtwoorden komen niet overeen'
   }
 };
 

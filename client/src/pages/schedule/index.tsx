@@ -60,6 +60,7 @@ import AppLayout from "@/components/layouts/app-layout";
 import InteractiveCalendar from "@/components/scheduling/interactive-calendar";
 import ICalImportExport from "@/components/scheduling/ical-import-export";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 
 const scheduleFormSchema = z.object({
   studentId: z.number().min(1, "Please select a student"),
@@ -99,6 +100,7 @@ interface ConflictInfo {
 export default function SchedulePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const isMountedRef = useRef(true);
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedSchedule, setSelectedSchedule] = useState<RecurringSchedule | null>(null);
@@ -132,15 +134,15 @@ export default function SchedulePage() {
   const getStudentName = (studentId: number) => {
     // Safety checks
     if (!studentId || typeof studentId !== 'number') {
-      return "Unknown Student";
+      return t('schedule.unknownStudent');
     }
-    
+
     if (!students || !Array.isArray(students)) {
-      return "Loading...";
+      return t('common.loading');
     }
     
     const student = students.find(s => s && s.id === studentId);
-    return student?.name || "Unknown Student";
+    return student?.name || t('schedule.unknownStudent');
   };
 
   // Calculate end time based on start time and duration
@@ -219,16 +221,16 @@ export default function SchedulePage() {
       setIsAddDialogOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Recurring schedule created successfully.",
+        title: t('common.success'),
+        description: t('schedule.createdSuccess'),
       });
     },
     onError: (error: Error) => {
       if (!isMountedRef.current) return;
-      
+
       toast({
-        title: "Error",
-        description: error.message || "Failed to create schedule.",
+        title: t('common.error'),
+        description: error.message || t('schedule.createFailed'),
         variant: "destructive",
       });
     },
@@ -241,20 +243,20 @@ export default function SchedulePage() {
     },
     onSuccess: () => {
       if (!isMountedRef.current) return;
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/recurring-schedules"] });
       setSelectedSchedule(null);
       toast({
-        title: "Success",
-        description: "Schedule deleted successfully.",
+        title: t('common.success'),
+        description: t('schedule.deletedSuccess'),
       });
     },
     onError: (error: Error) => {
       if (!isMountedRef.current) return;
-      
+
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete schedule.",
+        title: t('common.error'),
+        description: error.message || t('schedule.deleteFailed'),
         variant: "destructive",
       });
     },
@@ -270,15 +272,15 @@ export default function SchedulePage() {
       
       queryClient.invalidateQueries({ queryKey: ["/api/sessions"] });
       toast({
-        title: "Lesson cancelled",
-        description: "The individual lesson has been cancelled successfully.",
+        title: t('schedule.lessonCancelled'),
+        description: t('schedule.lessonCancelledDescription'),
       });
     },
     onError: (error: Error) => {
       if (!isMountedRef.current) return;
-      
+
       toast({
-        title: "Failed to cancel lesson",
+        title: t('schedule.failedToCancel'),
         description: error.message,
         variant: "destructive",
       });
@@ -346,7 +348,7 @@ export default function SchedulePage() {
     if (detectedConflicts.length > 0) {
       setConflicts(detectedConflicts);
       toast({
-        title: "Schedule conflict detected",
+        title: t('schedule.conflictDetectedTitle'),
         description: `This schedule conflicts with ${detectedConflicts.length} existing schedule(s).`,
         variant: "destructive",
       });
@@ -393,11 +395,11 @@ export default function SchedulePage() {
   
   if (isLoading) {
     return (
-      <AppLayout title="Schedule Management">
+      <AppLayout title={t('schedule.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p>Loading schedules...</p>
+            <p>{t('schedule.loading')}</p>
           </div>
         </div>
       </AppLayout>
@@ -406,16 +408,16 @@ export default function SchedulePage() {
 
   // Handle errors
   const hasError = schedulesError || studentsError || teachersError || sessionsError;
-  
+
   if (hasError) {
     return (
-      <AppLayout title="Schedule Management">
+      <AppLayout title={t('schedule.title')}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Schedule</h2>
-            <p className="text-gray-600 mb-4">Unable to load schedule data. Please try again.</p>
-            <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('schedule.errorTitle')}</h2>
+            <p className="text-gray-600 mb-4">{t('schedule.errorDescription')}</p>
+            <Button onClick={() => window.location.reload()}>{t('schedule.refreshPage')}</Button>
           </div>
         </div>
       </AppLayout>
