@@ -1,0 +1,107 @@
+const BULLETS = [
+  { icon: "▶️", text: "Push video's, bladmuziek en oefenpatronen met één klik" },
+  { icon: "⏱️", text: "Stuur een afteltimer rechtstreeks naar de leerling" },
+  { icon: "🥁", text: "Activeer de metronoom op het leerlingscherm" },
+  { icon: "✋", text: "Leerlingen sturen feedback: hand opsteken, vraag stellen" },
+  { icon: "⏸️", text: "Pauzeer en stuur een bericht naar het scherm" },
+];
+
+const MINI_BLOCKS = [
+  { icon: "🥁", name: "Patroon 1–4" },
+  { icon: "🎵", name: "Bladmuziek" },
+];
+
+export function LandingTeachMode() {
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* Text */}
+        <div>
+          <span className="inline-flex text-xs font-bold tracking-widest uppercase text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-5">
+            Unieke functie
+          </span>
+          <h2 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[#1B2B6B] leading-tight mb-5">
+            Stuur je les live<br />
+            naar het scherm<br />
+            van de leerling
+          </h2>
+          <p className="text-gray-500 leading-relaxed mb-7">
+            Met Teach Mode bepaal jij wat de leerling ziet. Druk op een blok en het
+            verschijnt direct op zijn scherm — of je nu in dezelfde kamer zit of
+            online lesgeeft.
+          </p>
+          <ul className="space-y-3">
+            {BULLETS.map((item) => (
+              <li key={item.text} className="flex items-start gap-3 text-sm text-gray-700">
+                <span className="text-base flex-shrink-0 mt-0.5">{item.icon}</span>
+                <span className="leading-relaxed">{item.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Mini Teach Mode mockup */}
+        <div>
+          <div className="bg-[#1B2B6B] rounded-2xl pt-3 px-3 shadow-[0_20px_60px_rgba(27,43,107,0.2)]">
+            <div className="flex gap-1.5 px-1 pb-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+            </div>
+            <div
+              className="bg-white rounded-t-xl overflow-hidden grid grid-cols-2"
+              style={{ minHeight: 280 }}
+            >
+              {/* Teacher mini */}
+              <div className="border-r border-gray-100 p-3">
+                <div className="text-[10px] font-bold text-[#1B2B6B] mb-3">🎹 Teach Mode</div>
+                {/* Active block */}
+                <div className="flex items-center gap-2 p-2 rounded-lg border-2 border-blue-400 bg-blue-50 mb-2">
+                  <span className="text-sm">▶️</span>
+                  <span className="text-[10px] font-semibold text-[#1B2B6B] flex-1 truncate">
+                    Intro video
+                  </span>
+                  <span className="text-[9px] font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded">
+                    ✓
+                  </span>
+                </div>
+                {MINI_BLOCKS.map((b) => (
+                  <div
+                    key={b.name}
+                    className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 mb-2"
+                  >
+                    <span className="text-sm">{b.icon}</span>
+                    <span className="text-[10px] font-semibold text-[#1B2B6B] flex-1 truncate">
+                      {b.name}
+                    </span>
+                    <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">
+                      →
+                    </span>
+                  </div>
+                ))}
+                <div className="grid grid-cols-3 gap-1 mt-3">
+                  {["⏱️ Timer", "🥁 Metro", "⏸️ Pause"].map((c) => (
+                    <div
+                      key={c}
+                      className="bg-blue-50 border border-gray-200 rounded-lg p-1.5 text-center text-[9px] font-bold text-[#1B2B6B]"
+                    >
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Student mini */}
+              <div className="bg-[#0A0A1A] flex items-center justify-center p-4">
+                <div className="w-full bg-[#1a1a2e] rounded-lg aspect-video flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
+                    <span className="text-xs ml-0.5">▶</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
