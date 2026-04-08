@@ -2335,46 +2335,6 @@ export const translations: Translations = {
     nl: 'Er is een fout opgetreden. Probeer het opnieuw.'
   },
 
-  // Lesson progress tracker
-  'progress.progress': {
-    en: 'Progress',
-    nl: 'Voortgang'
-  },
-  'progress.teacherNotes': {
-    en: 'Teacher Notes:',
-    nl: 'Docent opmerkingen:'
-  },
-  'progress.studentNotes': {
-    en: 'Student Notes:',
-    nl: 'Student opmerkingen:'
-  },
-  'progress.timeSpent': {
-    en: 'Time spent:',
-    nl: 'Bestede tijd:'
-  },
-  'progress.noData': {
-    en: 'No Progress Data',
-    nl: 'Geen Voortgangsdata'
-  },
-  'progress.noDataDescription': {
-    en: 'Progress tracking will be available once students start practicing lessons.',
-    nl: 'Voortgangsregistratie is beschikbaar zodra studenten met lessen beginnen.'
-  },
-  'progress.translated': {
-    en: 'Translated',
-    nl: 'Vertaald'
-  },
-
-  // Accessibility labels
-  'aria.toggleMenu': {
-    en: 'Toggle navigation menu',
-    nl: 'Navigatiemenu in-/uitklappen'
-  },
-  'aria.userProfile': {
-    en: 'User profile',
-    nl: 'Gebruikersprofiel'
-  },
-
   // Footer
   'footer.proudlyBuilt': {
     en: 'Proudly built in The Netherlands',
@@ -3254,10 +3214,6 @@ export const translations: Translations = {
   },
 
   // Settings page
-  'settings.title': {
-    en: 'Settings',
-    nl: 'Instellingen'
-  },
   'settings.subtitle': {
     en: 'Manage your account, school, and system preferences',
     nl: 'Beheer je account, school en systeemvoorkeuren'
@@ -7464,26 +7420,17 @@ export const translations: Translations = {
     nl: 'Vul alle velden in.'
   },
 
-  // Admin Categories
+  // Admin Categories (additional keys)
   'categories.title': { en: 'Lesson Categories', nl: 'Lescategorieën' },
-  'categories.subtitle': { en: 'Manage lesson categories to organize your educational content', nl: 'Beheer lescategorieën om je lesmateriaal te organiseren' },
   'categories.addButton': { en: 'Add Category', nl: 'Categorie toevoegen' },
-  'categories.addDialogTitle': { en: 'Add New Category', nl: 'Nieuwe categorie toevoegen' },
-  'categories.addDialogDescription': { en: 'Create a new category to organize your lessons.', nl: 'Maak een nieuwe categorie aan om je lessen te organiseren.' },
-  'categories.editDialogTitle': { en: 'Edit Category', nl: 'Categorie bewerken' },
-  'categories.editDialogDescription': { en: 'Make changes to the category details.', nl: 'Wijzig de categoriedetails.' },
   'categories.nameLabel': { en: 'Name *', nl: 'Naam *' },
-  'categories.namePlaceholder': { en: 'Enter category name', nl: 'Voer categorienaam in' },
   'categories.descriptionLabel': { en: 'Description', nl: 'Beschrijving' },
-  'categories.descriptionPlaceholder': { en: 'Enter category description', nl: 'Voer categoriebeschrijving in' },
   'categories.colorLabel': { en: 'Color', nl: 'Kleur' },
   'categories.colorPlaceholder': { en: 'Select color', nl: 'Kies kleur' },
   'categories.iconLabel': { en: 'Icon', nl: 'Icoon' },
   'categories.iconPlaceholder': { en: 'Select icon', nl: 'Kies icoon' },
   'categories.cancel': { en: 'Cancel', nl: 'Annuleren' },
-  'categories.creating': { en: 'Creating...', nl: 'Aanmaken...' },
   'categories.createButton': { en: 'Create Category', nl: 'Categorie aanmaken' },
-  'categories.updating': { en: 'Updating...', nl: 'Bijwerken...' },
   'categories.updateButton': { en: 'Update Category', nl: 'Categorie bijwerken' },
   'categories.toastCreateSuccess': { en: 'Category created successfully', nl: 'Categorie succesvol aangemaakt' },
   'categories.toastUpdateSuccess': { en: 'Category updated successfully', nl: 'Categorie succesvol bijgewerkt' },
@@ -7536,26 +7483,18 @@ export const translations: Translations = {
   'debug.note4': { en: 'Admin monitoring fully operational', nl: 'Admin monitoring volledig operationeel' },
   'debug.note5': { en: 'Platform ready for production', nl: 'Platform klaar voor productie' },
 
-  // Messaging page
+  // Messaging page (additional keys)
   'messaging.pageTitle': { en: 'Messages', nl: 'Berichten' },
   'messaging.subtitle': { en: 'Communicate with teachers and students', nl: 'Communiceer met docenten en leerlingen' },
-  'messaging.unread': { en: 'unread', nl: 'ongelezen' },
   'messaging.compose': { en: 'Compose Message', nl: 'Bericht schrijven' },
   'messaging.composeTitle': { en: 'Compose New Message', nl: 'Nieuw bericht schrijven' },
-  'messaging.composeDescription': { en: 'Send a message to a teacher or student.', nl: 'Stuur een bericht naar een docent of leerling.' },
   'messaging.recipientLabel': { en: 'Recipient', nl: 'Ontvanger' },
   'messaging.recipientPlaceholder': { en: 'Select recipient', nl: 'Selecteer ontvanger' },
   'messaging.subjectLabel': { en: 'Subject', nl: 'Onderwerp' },
-  'messaging.subjectPlaceholder': { en: 'Enter message subject', nl: 'Voer berichtonderwerp in' },
   'messaging.messageLabel': { en: 'Message', nl: 'Bericht' },
-  'messaging.messagePlaceholder': { en: 'Type your message here...', nl: 'Typ hier je bericht...' },
   'messaging.cancel': { en: 'Cancel', nl: 'Annuleren' },
   'messaging.sending': { en: 'Sending...', nl: 'Verzenden...' },
   'messaging.sendButton': { en: 'Send Message', nl: 'Bericht verzenden' },
-  'messaging.inbox': { en: 'Inbox', nl: 'Postvak IN' },
-  'messaging.inboxDescription': { en: 'Messages received from others', nl: 'Berichten ontvangen van anderen' },
-  'messaging.sentMessages': { en: 'Sent Messages', nl: 'Verzonden berichten' },
-  'messaging.sentDescription': { en: 'Messages you have sent to others', nl: 'Berichten die je naar anderen hebt gestuurd' },
   'messaging.noInbox': { en: 'No messages in your inbox', nl: 'Geen berichten in je postvak' },
   'messaging.noSent': { en: 'No sent messages', nl: 'Geen verzonden berichten' },
   'messaging.new': { en: 'New', nl: 'Nieuw' },
@@ -7567,9 +7506,6 @@ export const translations: Translations = {
   'messaging.sentSuccess': { en: 'Your message has been sent successfully.', nl: 'Je bericht is succesvol verzonden.' },
   'messaging.sendError': { en: 'Failed to send message. Please try again.', nl: 'Bericht verzenden mislukt. Probeer het opnieuw.' },
 
-  // Avatar page
-  'avatar.title': { en: 'Customize Your Avatar', nl: 'Pas je avatar aan' },
-  'avatar.subtitle': { en: 'Create a unique avatar that represents you', nl: 'Maak een unieke avatar die jou vertegenwoordigt' }
 };
 
 // Translation function
