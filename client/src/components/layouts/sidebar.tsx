@@ -172,7 +172,7 @@ export default function Sidebar({ isMobile = false, closeMobileMenu }: SidebarPr
               {t('nav.assignments')}
             </NavLink>
             <NavLink href="/my-schedule" icon={<Calendar size={20} />}>
-              Mijn Agenda
+              {t('nav.schedule')}
             </NavLink>
             <NavLink href="/practice-sessions" icon={<PlayCircle size={20} />}>
               {t('nav.practice')}
@@ -194,28 +194,28 @@ export default function Sidebar({ isMobile = false, closeMobileMenu }: SidebarPr
               {t('nav.lessons')}
             </NavLink>
             <NavLink href="/schedule" icon={<Calendar size={20} />}>
-              Agenda
+              {t('nav.schedule')}
             </NavLink>
             <NavLink href="/songs" icon={<Music size={20} />}>
-              Songs
+              {t('nav.search')}
             </NavLink>
             <NavLink href="/analytics" icon={<BarChart size={20} />}>
-              Analytics & Reports
+              {t('nav.analytics')}
             </NavLink>
             <NavLink href="/messages" icon={<MessageCircle size={20} />} badge={unreadTeacherCount}>
               {t('nav.messages')}
             </NavLink>
             <NavLink href="/import" icon={<Upload size={20} />}>
-              Import Data
+              {t('nav.import')}
             </NavLink>
 
             {/* Resources Section - Educational Content */}
             <div className="pt-4 mt-4 border-t border-gray-100">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-                Learning Hub
+                {t('nav.section.learningHub')}
               </p>
               <NavLink href="/resources" icon={<GraduationCap size={20} />}>
-                Resources & Guides
+                {t('nav.resources')}
               </NavLink>
             </div>
           </RequireTeacher>
@@ -224,19 +224,19 @@ export default function Sidebar({ isMobile = false, closeMobileMenu }: SidebarPr
           <RequireSchoolOwner>
             <div className="pt-4 mt-4 border-t border-gray-200">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-                School Management
+                {t('nav.section.schoolManagement')}
               </p>
               <NavLink href="/teachers" icon={<Briefcase size={20} />}>
-                Teachers
+                {t('nav.teachers')}
               </NavLink>
               <NavLink href="/school/members" icon={<UserCog size={20} />}>
-                Manage Members
+                {t('nav.members')}
               </NavLink>
               <NavLink href="/billing" icon={<CreditCard size={20} />}>
-                Billing & Plans
+                {t('nav.billing')}
               </NavLink>
               <NavLink href="/branding" icon={<Building size={20} />}>
-                School Settings
+                {t('nav.schoolSettings')}
               </NavLink>
             </div>
           </RequireSchoolOwner>
