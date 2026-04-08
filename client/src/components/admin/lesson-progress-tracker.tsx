@@ -203,7 +203,7 @@ export default function LessonProgressTracker() {
                       {progress.progress > 0 && (
                         <div className="mb-2">
                           <div className="flex justify-between text-sm mb-1">
-                            <span>{t('progress.label')}</span>
+                            <span>{t('progress.progress')}</span>
                             <span>{progress.progress}%</span>
                           </div>
                           <Progress value={progress.progress} className="h-2" />

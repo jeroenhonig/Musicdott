@@ -727,6 +727,10 @@ export const translations: Translations = {
   },
 
   // Lesson progress tracker
+  'progress.progress': {
+    en: 'Progress',
+    nl: 'Voortgang'
+  },
   'progress.teacherNotes': {
     en: 'Teacher Notes:',
     nl: 'Docent opmerkingen:'
