@@ -100,6 +100,84 @@ export const translations: Translations = {
     nl: 'Rooster'
   },
 
+  // Navigation — additional
+  'nav.analytics': {
+    en: 'Analytics & Reports',
+    nl: 'Analyses & Rapporten'
+  },
+  'nav.import': {
+    en: 'Import Data',
+    nl: 'Data Importeren'
+  },
+  'nav.resources': {
+    en: 'Resources & Guides',
+    nl: 'Bronnen & Handleidingen'
+  },
+  'nav.schoolManagement': {
+    en: 'School Management',
+    nl: 'Schoolbeheer'
+  },
+  'nav.teachers': {
+    en: 'Teachers',
+    nl: 'Docenten'
+  },
+  'nav.members': {
+    en: 'Manage Members',
+    nl: 'Leden Beheren'
+  },
+  'nav.billing': {
+    en: 'Billing & Plans',
+    nl: 'Facturering & Plannen'
+  },
+  'nav.schoolSettings': {
+    en: 'School Settings',
+    nl: 'Schoolinstellingen'
+  },
+  'nav.section.learningHub': {
+    en: 'Learning Hub',
+    nl: 'Leercentrum'
+  },
+  'nav.section.schoolManagement': {
+    en: 'School Management',
+    nl: 'Schoolbeheer'
+  },
+
+  // Lesson progress tracker
+  'progress.teacherNotes': {
+    en: 'Teacher Notes:',
+    nl: 'Docent opmerkingen:'
+  },
+  'progress.studentNotes': {
+    en: 'Student Notes:',
+    nl: 'Student opmerkingen:'
+  },
+  'progress.timeSpent': {
+    en: 'Time spent:',
+    nl: 'Bestede tijd:'
+  },
+  'progress.noData': {
+    en: 'No Progress Data',
+    nl: 'Geen Voortgangsdata'
+  },
+  'progress.noDataDescription': {
+    en: 'Progress tracking will be available once students start practicing lessons.',
+    nl: 'Voortgangsregistratie is beschikbaar zodra studenten met lessen beginnen.'
+  },
+  'progress.translated': {
+    en: 'Translated',
+    nl: 'Vertaald'
+  },
+
+  // Accessibility labels
+  'aria.toggleMenu': {
+    en: 'Toggle navigation menu',
+    nl: 'Navigatiemenu in-/uitklappen'
+  },
+  'aria.userProfile': {
+    en: 'User profile',
+    nl: 'Gebruikersprofiel'
+  },
+
   // Dashboard
   'dashboard.welcomeBack': {
     en: 'Welcome back',
