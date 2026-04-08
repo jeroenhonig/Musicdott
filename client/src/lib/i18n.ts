@@ -4659,6 +4659,1626 @@ export const translations: Translations = {
   'teach.openScreenToStart': {
     en: 'Open the student screen to get started',
     nl: 'Open het leerlingscherm om te beginnen'
+  },
+
+  // Tools — Metronome
+  'tools.metronome.title': {
+    en: 'Practice Metronome',
+    nl: 'Oefenmetronoom'
+  },
+  'tools.metronome.subtitle': {
+    en: 'Keep perfect time with our full-featured metronome',
+    nl: 'Houd de maat perfect met onze volledig uitgeruste metronoom'
+  },
+  'tools.metronome.tips.title': {
+    en: 'Metronome Tips',
+    nl: 'Metronomtips'
+  },
+  'tools.metronome.tips.startSlow.title': {
+    en: 'Start Slow',
+    nl: 'Begin Langzaam'
+  },
+  'tools.metronome.tips.startSlow.description': {
+    en: 'Begin at a comfortable tempo and gradually increase as you build confidence',
+    nl: 'Begin op een comfortabel tempo en verhoog geleidelijk naarmate je zelfvertrouwen groeit'
+  },
+  'tools.metronome.tips.subdivisions.title': {
+    en: 'Use Subdivisions',
+    nl: 'Gebruik Onderverdelingen'
+  },
+  'tools.metronome.tips.subdivisions.description': {
+    en: 'Enable subdivisions to practice eighth notes and improve timing accuracy',
+    nl: 'Schakel onderverdelingen in om achtste noten te oefenen en de timingnauwkeurigheid te verbeteren'
+  },
+  'tools.metronome.tips.accent.title': {
+    en: 'Accent Practice',
+    nl: 'Accentoefening'
+  },
+  'tools.metronome.tips.accent.description': {
+    en: 'The accented first beat helps you feel the downbeat and measure structure',
+    nl: 'De geaccentueerde eerste tel helpt je de neertelling en maatstructuur te voelen'
+  },
+  'tools.metronome.tips.oddTime.title': {
+    en: 'Odd Time Signatures',
+    nl: 'Onregelmatige Maatsoorten'
+  },
+  'tools.metronome.tips.oddTime.description': {
+    en: 'Practice 5/4 and 7/8 to expand your rhythmic vocabulary',
+    nl: 'Oefen 5/4 en 7/8 om je ritmisch vocabulaire uit te breiden'
+  },
+
+  // Tools — ABC Notation
+  'tools.abcNotation.title': {
+    en: 'ABC Notation Editor',
+    nl: 'ABC-notatieditor'
+  },
+  'tools.abcNotation.subtitle': {
+    en: 'Write and play music using ABC notation format',
+    nl: 'Schrijf en speel muziek met het ABC-notatieformaat'
+  },
+  'tools.abcNotation.about.title': {
+    en: 'About ABC Notation',
+    nl: 'Over ABC-notatie'
+  },
+  'tools.abcNotation.about.description': {
+    en: "ABC notation is a simple text-based music notation system widely used for folk and traditional music. It's easy to learn and perfect for sharing tunes online.",
+    nl: 'ABC-notatie is een eenvoudig tekstgebaseerd muzieknotatiesysteem dat veel wordt gebruikt voor folk- en traditionele muziek. Het is gemakkelijk te leren en perfect voor het online delen van melodieën.'
+  },
+  'tools.abcNotation.quickRef.title': {
+    en: 'Quick Reference',
+    nl: 'Snelle Naslaginformatie'
+  },
+  'tools.abcNotation.quickRef.tuneNumber': {
+    en: 'Tune number',
+    nl: 'Melodienummer'
+  },
+  'tools.abcNotation.quickRef.tuneTitle': {
+    en: 'Tune title',
+    nl: 'Melodietitel'
+  },
+  'tools.abcNotation.quickRef.timeSignature': {
+    en: 'Time signature',
+    nl: 'Maatsoort'
+  },
+  'tools.abcNotation.quickRef.noteLength': {
+    en: 'Default note length',
+    nl: 'Standaard nootlengte'
+  },
+  'tools.abcNotation.quickRef.keySignature': {
+    en: 'Key signature',
+    nl: 'Toonsoort'
+  },
+  'tools.abcNotation.quickRef.notes': {
+    en: 'Notes (lowercase = octave higher)',
+    nl: 'Noten (kleine letters = octaaf hoger)'
+  },
+  'tools.abcNotation.quickRef.barLine': {
+    en: 'Bar line',
+    nl: 'Maatstreep'
+  },
+
+  // Tools — Collaborative Notation
+  'tools.collaborative.title': {
+    en: 'Collaborative Notation',
+    nl: 'Samenwerkende Notatie'
+  },
+  'tools.collaborative.subtitle': {
+    en: 'Create and edit musical scores in real-time with your team',
+    nl: 'Maak en bewerk muziekpartituren in realtime met je team'
+  },
+  'tools.collaborative.newScore': {
+    en: 'New Score',
+    nl: 'Nieuwe Partituur'
+  },
+  'tools.collaborative.searchPlaceholder': {
+    en: 'Search notation documents...',
+    nl: 'Zoek notatiedocumenten...'
+  },
+  'tools.collaborative.createTitle': {
+    en: 'Create New Notation Document',
+    nl: 'Nieuw Notatiedocument Aanmaken'
+  },
+  'tools.collaborative.labelTitle': {
+    en: 'Title',
+    nl: 'Titel'
+  },
+  'tools.collaborative.labelDescription': {
+    en: 'Description (Optional)',
+    nl: 'Beschrijving (Optioneel)'
+  },
+  'tools.collaborative.titlePlaceholder': {
+    en: 'Enter document title...',
+    nl: 'Voer documenttitel in...'
+  },
+  'tools.collaborative.descriptionPlaceholder': {
+    en: 'Enter description...',
+    nl: 'Voer beschrijving in...'
+  },
+  'tools.collaborative.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'tools.collaborative.createDocument': {
+    en: 'Create Document',
+    nl: 'Document Aanmaken'
+  },
+  'tools.collaborative.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'tools.collaborative.backToDocuments': {
+    en: '← Back to Documents',
+    nl: '← Terug naar Documenten'
+  },
+  'tools.collaborative.editorTitle': {
+    en: 'Collaborative Notation Editor',
+    nl: 'Samenwerkende Notatieditor'
+  },
+  'tools.collaborative.saved': {
+    en: 'Saved',
+    nl: 'Opgeslagen'
+  },
+  'tools.collaborative.savedDescription': {
+    en: 'Changes saved successfully',
+    nl: 'Wijzigingen succesvol opgeslagen'
+  },
+  'tools.collaborative.validationError': {
+    en: 'Validation Error',
+    nl: 'Validatiefout'
+  },
+  'tools.collaborative.validationErrorDescription': {
+    en: 'Please enter a document title',
+    nl: 'Voer een documenttitel in'
+  },
+  'tools.collaborative.documentCreated': {
+    en: 'Document Created',
+    nl: 'Document Aangemaakt'
+  },
+  'tools.collaborative.documentCreatedDescription': {
+    en: 'New notation document created successfully',
+    nl: 'Nieuw notatiedocument succesvol aangemaakt'
+  },
+  'tools.collaborative.creationError': {
+    en: 'Creation Error',
+    nl: 'Aanmaakfout'
+  },
+  'tools.collaborative.creationErrorDescription': {
+    en: 'Failed to create notation document',
+    nl: 'Aanmaken van notatiedocument mislukt'
+  },
+  'tools.collaborative.owner': {
+    en: 'Owner',
+    nl: 'Eigenaar'
+  },
+  'tools.collaborative.edit': {
+    en: 'Edit',
+    nl: 'Bewerken'
+  },
+  'tools.collaborative.linkCopied': {
+    en: 'Link Copied',
+    nl: 'Link Gekopieerd'
+  },
+  'tools.collaborative.linkCopiedDescription': {
+    en: 'Share link copied to clipboard',
+    nl: 'Deellink gekopieerd naar klembord'
+  },
+  'tools.collaborative.noDocumentsFound': {
+    en: 'No notation documents found',
+    nl: 'Geen notatiedocumenten gevonden'
+  },
+  'tools.collaborative.noDocumentsSearch': {
+    en: 'Try adjusting your search terms',
+    nl: 'Probeer je zoektermen aan te passen'
+  },
+  'tools.collaborative.noDocumentsCreate': {
+    en: 'Create your first collaborative score to get started',
+    nl: 'Maak je eerste samenwerkende partituur om te beginnen'
+  },
+  'tools.collaborative.createFirstScore': {
+    en: 'Create First Score',
+    nl: 'Eerste Partituur Aanmaken'
+  },
+  'tools.collaborative.unknownUser': {
+    en: 'Unknown User',
+    nl: 'Onbekende Gebruiker'
+  },
+
+  // Tools — Flat Embed
+  'tools.flatEmbed.title': {
+    en: 'Flat.io Sheet Music',
+    nl: 'Flat.io Bladmuziek'
+  },
+  'tools.flatEmbed.subtitle': {
+    en: 'View and play interactive sheet music from Flat.io',
+    nl: 'Bekijk en speel interactieve bladmuziek van Flat.io'
+  },
+  'tools.flatEmbed.howToUse': {
+    en: 'How to Use',
+    nl: 'Hoe Te Gebruiken'
+  },
+  'tools.flatEmbed.loadScore': {
+    en: 'Load a score:',
+    nl: 'Laad een partituur:'
+  },
+  'tools.flatEmbed.loadScoreDescription': {
+    en: 'Paste a Flat.io score URL or enter a score ID directly',
+    nl: 'Plak een Flat.io partituur-URL of voer een partituur-ID direct in'
+  },
+  'tools.flatEmbed.playback': {
+    en: 'Playback:',
+    nl: 'Afspelen:'
+  },
+  'tools.flatEmbed.playbackDescription': {
+    en: 'Use the built-in controls to play, pause, and navigate the score',
+    nl: 'Gebruik de ingebouwde bedieningselementen om de partituur af te spelen, te pauzeren en te navigeren'
+  },
+  'tools.flatEmbed.zoom': {
+    en: 'Zoom:',
+    nl: 'Zoomen:'
+  },
+  'tools.flatEmbed.zoomDescription': {
+    en: 'Use the zoom controls to adjust the sheet music size',
+    nl: 'Gebruik de zoomfunctie om de grootte van de bladmuziek aan te passen'
+  },
+  'tools.flatEmbed.findScores': {
+    en: 'Find scores:',
+    nl: 'Partituren zoeken:'
+  },
+  'tools.flatEmbed.findScoresDescription': {
+    en: 'Visit',
+    nl: 'Bezoek'
+  },
+  'tools.flatEmbed.findScoresCommunity': {
+    en: 'Flat.io Community',
+    nl: 'Flat.io Community'
+  },
+  'tools.flatEmbed.findScoresSuffix': {
+    en: 'to discover public scores',
+    nl: 'om openbare partituren te ontdekken'
+  },
+
+  // Tools — Sheet Music
+  'tools.sheetMusic.title': {
+    en: 'Sheet Music Viewer',
+    nl: 'Bladmuziekviewer'
+  },
+  'tools.sheetMusic.subtitle': {
+    en: 'Upload and view MusicXML sheet music files',
+    nl: 'Upload en bekijk MusicXML-bladmuziekbestanden'
+  },
+  'tools.sheetMusic.supportedFormats': {
+    en: 'Supported Formats',
+    nl: 'Ondersteunde Formaten'
+  },
+  'tools.sheetMusic.exportNote': {
+    en: 'Export MusicXML from notation software like MuseScore, Finale, or Sibelius.',
+    nl: 'Exporteer MusicXML vanuit notatiesoftware zoals MuseScore, Finale of Sibelius.'
+  },
+
+  // Tools — Speech to Note
+  'tools.speechToNote.title': {
+    en: 'Speech-to-Note Transcription',
+    nl: 'Spraak-naar-noot-transcriptie'
+  },
+  'tools.speechToNote.subtitle': {
+    en: 'Convert your voice or instrument into musical notation',
+    nl: 'Converteer je stem of instrument naar muzieknotatie'
+  },
+  'tools.speechToNote.tabTranscribe': {
+    en: 'Transcribe',
+    nl: 'Transcriberen'
+  },
+  'tools.speechToNote.tabPreview': {
+    en: 'Preview & Play',
+    nl: 'Voorbeeld & Afspelen'
+  },
+  'tools.speechToNote.noPreview': {
+    en: 'Transcribe some notes first to see the preview',
+    nl: 'Transcribeer eerst enkele noten om het voorbeeld te zien'
+  },
+  'tools.speechToNote.howItWorks.title': {
+    en: 'How It Works',
+    nl: 'Hoe Het Werkt'
+  },
+  'tools.speechToNote.howItWorks.step1': {
+    en: 'Click "Start Listening" to enable your microphone',
+    nl: 'Klik op "Beginnen met luisteren" om je microfoon in te schakelen'
+  },
+  'tools.speechToNote.howItWorks.step2': {
+    en: 'Sing or play notes into your device',
+    nl: 'Zing of speel noten in je apparaat'
+  },
+  'tools.speechToNote.howItWorks.step3': {
+    en: 'Hold each note steady for detection',
+    nl: 'Houd elke noot stabiel voor detectie'
+  },
+  'tools.speechToNote.howItWorks.step4': {
+    en: 'Notes are automatically transcribed to ABC notation',
+    nl: 'Noten worden automatisch omgezet naar ABC-notatie'
+  },
+  'tools.speechToNote.howItWorks.step5': {
+    en: 'Switch to "Preview & Play" to hear your melody',
+    nl: 'Schakel over naar "Voorbeeld & Afspelen" om je melodie te horen'
+  },
+  'tools.speechToNote.useCases.title': {
+    en: 'Use Cases',
+    nl: 'Toepassingen'
+  },
+  'tools.speechToNote.useCases.item1': {
+    en: 'Capture melody ideas quickly',
+    nl: 'Melodie-ideeën snel vastleggen'
+  },
+  'tools.speechToNote.useCases.item2': {
+    en: 'Practice pitch accuracy with visual feedback',
+    nl: 'Toonhoogtetrefzekerheid oefenen met visuele feedback'
+  },
+  'tools.speechToNote.useCases.item3': {
+    en: 'Transcribe simple tunes by ear',
+    nl: 'Eenvoudige melodieën op gehoor transcriberen'
+  },
+  'tools.speechToNote.useCases.item4': {
+    en: 'Create sheet music from vocal melodies',
+    nl: 'Bladmuziek maken van vocale melodieën'
+  },
+
+  // Tools — Tablature
+  'tools.tablature.title': {
+    en: 'Tablature Viewer',
+    nl: 'Tabulatuurviewer'
+  },
+  'tools.tablature.subtitle': {
+    en: 'View and play guitar tablature with built-in MIDI playback',
+    nl: 'Bekijk en speel gitaartabulatuur met ingebouwde MIDI-weergave'
+  },
+  'tools.tablature.tabUpload': {
+    en: 'Upload File',
+    nl: 'Bestand Uploaden'
+  },
+  'tools.tablature.tabWrite': {
+    en: 'Write AlphaTex',
+    nl: 'AlphaTex Schrijven'
+  },
+  'tools.tablature.editorTitle': {
+    en: 'AlphaTex Editor',
+    nl: 'AlphaTex-editor'
+  },
+  'tools.tablature.editorDescription': {
+    en: 'Write tablature using AlphaTex markup language',
+    nl: 'Schrijf tabulatuur met de AlphaTex-opmaaktaal'
+  },
+  'tools.tablature.loadSample': {
+    en: 'Load Sample',
+    nl: 'Voorbeeld Laden'
+  },
+  'tools.tablature.preview': {
+    en: 'Preview',
+    nl: 'Voorbeeld'
+  },
+  'tools.tablature.supportedFormats': {
+    en: 'Supported Formats',
+    nl: 'Ondersteunde Formaten'
+  },
+
+  // Owner Login page
+  'ownerLogin.title': {
+    en: 'Platform Administration',
+    nl: 'Platformbeheer'
+  },
+  'ownerLogin.description': {
+    en: 'Secure access for MusicDott platform administrators',
+    nl: 'Beveiligde toegang voor MusicDott platformbeheerders'
+  },
+  'ownerLogin.usernameLabel': {
+    en: 'Administrator Username',
+    nl: 'Beheerder gebruikersnaam'
+  },
+  'ownerLogin.usernamePlaceholder': {
+    en: 'Enter admin username',
+    nl: 'Voer beheerdersgebruikersnaam in'
+  },
+  'ownerLogin.passwordLabel': {
+    en: 'Administrator Password',
+    nl: 'Beheerder wachtwoord'
+  },
+  'ownerLogin.passwordPlaceholder': {
+    en: 'Enter admin password',
+    nl: 'Voer beheerderswachtwoord in'
+  },
+  'ownerLogin.authenticating': {
+    en: 'Authenticating...',
+    nl: 'Authenticeren...'
+  },
+  'ownerLogin.accessButton': {
+    en: 'Access Platform Dashboard',
+    nl: 'Toegang tot platformdashboard'
+  },
+  'ownerLogin.loginFailed': {
+    en: 'Login failed. Please check your credentials.',
+    nl: 'Inloggen mislukt. Controleer uw inloggegevens.'
+  },
+  'ownerLogin.securityNotice': {
+    en: 'Security Notice:',
+    nl: 'Beveiligingsmelding:'
+  },
+  'ownerLogin.securityMessage': {
+    en: 'This is a restricted area for platform administrators only. All access attempts are logged and monitored.',
+    nl: 'Dit is een beperkt gebied voor platformbeheerders. Alle toegangspogingen worden geregistreerd en bewaakt.'
+  },
+
+  // AI Dashboard page
+  'aiDashboard.authRequired': {
+    en: 'Authentication Required',
+    nl: 'Authenticatie vereist'
+  },
+  'aiDashboard.loginPrompt': {
+    en: 'Please log in to access AI features',
+    nl: 'Log in om toegang te krijgen tot AI-functies'
+  },
+
+  // Real-Time Dashboard page
+  'realtimeDashboard.title': {
+    en: 'Real-Time Dashboard',
+    nl: 'Realtime dashboard'
+  },
+  'realtimeDashboard.subtitle': {
+    en: 'Monitor student activity and manage your teaching schedule',
+    nl: 'Bewaak studentactiviteit en beheer uw lesrooster'
+  },
+  'realtimeDashboard.statusLive': {
+    en: 'Live',
+    nl: 'Live'
+  },
+  'realtimeDashboard.statusConnecting': {
+    en: 'Connecting...',
+    nl: 'Verbinden...'
+  },
+  'realtimeDashboard.statusOffline': {
+    en: 'Offline',
+    nl: 'Offline'
+  },
+  'realtimeDashboard.retry': {
+    en: 'Retry',
+    nl: 'Opnieuw proberen'
+  },
+  'realtimeDashboard.tabOverview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'realtimeDashboard.tabPractice': {
+    en: 'Practice Monitor',
+    nl: 'Oefenmonitor'
+  },
+  'realtimeDashboard.tabScheduling': {
+    en: 'Scheduling',
+    nl: 'Planning'
+  },
+  'realtimeDashboard.cardStudents': {
+    en: 'Students',
+    nl: 'Studenten'
+  },
+  'realtimeDashboard.cardStudentsSubtitle': {
+    en: 'Total enrolled students',
+    nl: 'Totaal ingeschreven studenten'
+  },
+  'realtimeDashboard.cardSongs': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'realtimeDashboard.cardSongsSubtitle': {
+    en: 'Songs in your library',
+    nl: 'Nummers in uw bibliotheek'
+  },
+  'realtimeDashboard.cardThisWeek': {
+    en: "This Week's Sessions",
+    nl: 'Sessies deze week'
+  },
+  'realtimeDashboard.cardThisWeekSubtitle': {
+    en: 'Scheduled lessons this week',
+    nl: 'Geplande lessen deze week'
+  },
+  'realtimeDashboard.cardCurrentlyActive': {
+    en: 'Currently Active',
+    nl: 'Momenteel actief'
+  },
+  'realtimeDashboard.cardCurrentlyActiveSubtitle': {
+    en: 'Students online now',
+    nl: 'Studenten nu online'
+  },
+  'realtimeDashboard.viewActivity': {
+    en: 'View activity →',
+    nl: 'Activiteit bekijken →'
+  },
+  'realtimeDashboard.recentActivity': {
+    en: 'Recent Activity',
+    nl: 'Recente activiteit'
+  },
+  'realtimeDashboard.liveBadge': {
+    en: 'Live',
+    nl: 'Live'
+  },
+  'realtimeDashboard.waitingActivity': {
+    en: 'Waiting for real-time activity...',
+    nl: 'Wachten op realtime activiteit...'
+  },
+  'realtimeDashboard.connectActivity': {
+    en: 'Connect to see live activity feed',
+    nl: 'Verbinden om live activiteitsfeed te zien'
+  },
+  'realtimeDashboard.systemUpdate': {
+    en: 'System update',
+    nl: 'Systeemupdate'
+  },
+  'realtimeDashboard.eventPracticeStart': {
+    en: '🎵 Practice session started',
+    nl: '🎵 Oefensessie gestart'
+  },
+  'realtimeDashboard.eventPracticeEnd': {
+    en: '✅ Practice session ended',
+    nl: '✅ Oefensessie beëindigd'
+  },
+  'realtimeDashboard.eventStudentUpdate': {
+    en: '👤 Student updated',
+    nl: '👤 Student bijgewerkt'
+  },
+  'realtimeDashboard.eventLessonCreate': {
+    en: '📚 New lesson created',
+    nl: '📚 Nieuwe les aangemaakt'
+  },
+  'realtimeDashboard.eventAssignmentCreate': {
+    en: '📝 Assignment created',
+    nl: '📝 Opdracht aangemaakt'
+  },
+  'realtimeDashboard.upcomingSchedule': {
+    en: 'Upcoming Schedule',
+    nl: 'Aankomende planning'
+  },
+  'realtimeDashboard.upcomingScheduleEmpty': {
+    en: 'Your upcoming teaching schedule will appear here.',
+    nl: 'Uw aankomende lesrooster verschijnt hier.'
+  },
+  'realtimeDashboard.manageSchedule': {
+    en: 'Manage Schedule',
+    nl: 'Planning beheren'
+  },
+  'realtimeDashboard.practiceMonitor': {
+    en: 'Practice Monitor',
+    nl: 'Oefenmonitor'
+  },
+  'realtimeDashboard.liveUpdates': {
+    en: 'Live Updates',
+    nl: 'Live updates'
+  },
+  'realtimeDashboard.onlineStudents': {
+    en: 'Online Students',
+    nl: 'Online studenten'
+  },
+  'realtimeDashboard.onlineTeachers': {
+    en: 'Online Teachers',
+    nl: 'Online docenten'
+  },
+  'realtimeDashboard.recentPractice': {
+    en: 'Recent Practice',
+    nl: 'Recente oefening'
+  },
+  'realtimeDashboard.currentlyOnline': {
+    en: 'Currently Online:',
+    nl: 'Momenteel online:'
+  },
+  'realtimeDashboard.noUsersOnline': {
+    en: 'No users currently online',
+    nl: 'Momenteel geen gebruikers online'
+  },
+  'realtimeDashboard.connectToSeeUsers': {
+    en: 'Connect to see online users',
+    nl: 'Verbinden om online gebruikers te zien'
+  },
+  'realtimeDashboard.scheduleManagement': {
+    en: 'Schedule Management',
+    nl: 'Planningsbeheer'
+  },
+  'realtimeDashboard.scheduleManagementEmpty': {
+    en: 'Schedule management features will be available here.',
+    nl: 'Planningsfuncties zijn hier beschikbaar.'
+  },
+  'realtimeDashboard.goToSchedule': {
+    en: 'Go to Schedule Page',
+    nl: 'Naar de planningspagina'
+  },
+
+  // Performance page
+  'performance.title': {
+    en: 'Performance Analytics',
+    nl: 'Prestatieanalyses'
+  },
+
+  // Owners Dashboard page
+  'ownersDashboard.tabOverview': {
+    en: 'Platform Overview',
+    nl: 'Platformoverzicht'
+  },
+  'ownersDashboard.tabSchools': {
+    en: 'School Management',
+    nl: 'Schoolbeheer'
+  },
+  'ownersDashboard.tabUsers': {
+    en: 'User Management',
+    nl: 'Gebruikersbeheer'
+  },
+  'ownersDashboard.tabCustomerService': {
+    en: 'Customer Service',
+    nl: 'Klantenservice'
+  },
+  'ownersDashboard.tabBilling': {
+    en: 'Billing Management',
+    nl: 'Facturatiebeheer'
+  },
+  'ownersDashboard.tabAuditLog': {
+    en: 'Audit Log',
+    nl: 'Auditlog'
+  },
+  'ownersDashboard.statTotalSchools': {
+    en: 'Total Schools',
+    nl: 'Totaal scholen'
+  },
+  'ownersDashboard.statActiveSubscriptions': {
+    en: 'active subscriptions',
+    nl: 'actieve abonnementen'
+  },
+  'ownersDashboard.statTotalUsers': {
+    en: 'Total Users',
+    nl: 'Totaal gebruikers'
+  },
+  'ownersDashboard.statMonthlyRevenue': {
+    en: 'Monthly Revenue',
+    nl: 'Maandelijkse omzet'
+  },
+  'ownersDashboard.statGrowthRate': {
+    en: 'since last month',
+    nl: 'ten opzichte van vorige maand'
+  },
+  'ownersDashboard.statContentCreated': {
+    en: 'Content Created',
+    nl: 'Inhoud aangemaakt'
+  },
+  'ownersDashboard.revenueGrowth': {
+    en: 'Revenue Growth',
+    nl: 'Omzetgroei'
+  },
+  'ownersDashboard.monthlyRecurringRevenue': {
+    en: 'Monthly recurring revenue',
+    nl: 'Maandelijks terugkerende omzet'
+  },
+  'ownersDashboard.revenueTooltip': {
+    en: 'Revenue',
+    nl: 'Omzet'
+  },
+  'ownersDashboard.recentSchools': {
+    en: 'Recent Schools',
+    nl: 'Recente scholen'
+  },
+  'ownersDashboard.latestRegisteredSchools': {
+    en: 'Latest registered schools',
+    nl: 'Laatst geregistreerde scholen'
+  },
+  'ownersDashboard.noSchoolsRegistered': {
+    en: 'No schools registered yet',
+    nl: 'Nog geen scholen geregistreerd'
+  },
+  'ownersDashboard.allSchoolsTitle': {
+    en: 'All Schools',
+    nl: 'Alle scholen'
+  },
+  'ownersDashboard.allSchoolsDescription': {
+    en: 'Manage all registered music schools',
+    nl: 'Beheer alle geregistreerde muziekscholen'
+  },
+  'ownersDashboard.searchSchoolsPlaceholder': {
+    en: 'Search schools...',
+    nl: 'Scholen zoeken...'
+  },
+  'ownersDashboard.newSchool': {
+    en: 'New School',
+    nl: 'Nieuwe school'
+  },
+  'ownersDashboard.createSchoolTitle': {
+    en: 'Create New School',
+    nl: 'Nieuwe school aanmaken'
+  },
+  'ownersDashboard.createSchoolDescription': {
+    en: 'Create a new music school. You can optionally assign an owner directly.',
+    nl: 'Maak een nieuwe muziekschool aan. Je kunt optioneel direct een eigenaar toewijzen.'
+  },
+  'ownersDashboard.schoolFieldName': {
+    en: 'Name *',
+    nl: 'Naam *'
+  },
+  'ownersDashboard.schoolFieldCity': {
+    en: 'City',
+    nl: 'Stad'
+  },
+  'ownersDashboard.schoolFieldPhone': {
+    en: 'Phone',
+    nl: 'Telefoon'
+  },
+  'ownersDashboard.schoolFieldAddress': {
+    en: 'Address',
+    nl: 'Adres'
+  },
+  'ownersDashboard.schoolFieldWebsite': {
+    en: 'Website',
+    nl: 'Website'
+  },
+  'ownersDashboard.schoolFieldOwner': {
+    en: 'Owner (optional)',
+    nl: 'Eigenaar (optioneel)'
+  },
+  'ownersDashboard.schoolOwnerPlaceholder': {
+    en: 'Select an owner...',
+    nl: 'Selecteer een eigenaar...'
+  },
+  'ownersDashboard.schoolNoOwner': {
+    en: 'No owner',
+    nl: 'Geen eigenaar'
+  },
+  'ownersDashboard.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren'
+  },
+  'ownersDashboard.creating': {
+    en: 'Creating...',
+    nl: 'Aanmaken...'
+  },
+  'ownersDashboard.create': {
+    en: 'Create',
+    nl: 'Aanmaken'
+  },
+  'ownersDashboard.loading': {
+    en: 'Loading...',
+    nl: 'Laden...'
+  },
+  'ownersDashboard.tableSchoolName': {
+    en: 'School Name',
+    nl: 'Schoolnaam'
+  },
+  'ownersDashboard.tableOwner': {
+    en: 'Owner',
+    nl: 'Eigenaar'
+  },
+  'ownersDashboard.tableCity': {
+    en: 'City',
+    nl: 'Stad'
+  },
+  'ownersDashboard.tableTeachers': {
+    en: 'Teachers',
+    nl: 'Docenten'
+  },
+  'ownersDashboard.tableStudents': {
+    en: 'Students',
+    nl: 'Leerlingen'
+  },
+  'ownersDashboard.tableStatus': {
+    en: 'Status',
+    nl: 'Status'
+  },
+  'ownersDashboard.tableActions': {
+    en: 'Actions',
+    nl: 'Acties'
+  },
+  'ownersDashboard.noName': {
+    en: 'No name',
+    nl: 'Geen naam'
+  },
+  'ownersDashboard.notAssigned': {
+    en: 'Not assigned',
+    nl: 'Niet toegewezen'
+  },
+  'ownersDashboard.assignOwnerButton': {
+    en: 'Owner',
+    nl: 'Eigenaar'
+  },
+  'ownersDashboard.noSchoolsFound': {
+    en: 'No schools found',
+    nl: 'Geen scholen gevonden'
+  },
+  'ownersDashboard.assignOwnerTitle': {
+    en: 'Assign Owner',
+    nl: 'Eigenaar toewijzen'
+  },
+  'ownersDashboard.selectOwnerLabel': {
+    en: 'Select Owner',
+    nl: 'Eigenaar selecteren'
+  },
+  'ownersDashboard.selectOwnerPlaceholder': {
+    en: 'Choose a school owner...',
+    nl: 'Kies een school-eigenaar...'
+  },
+  'ownersDashboard.noOwnersAvailable': {
+    en: 'No school owners available. Create a school owner first.',
+    nl: 'Er zijn geen school-eigenaren beschikbaar. Maak eerst een school-eigenaar aan.'
+  },
+  'ownersDashboard.allUsersTitle': {
+    en: 'All Users by School',
+    nl: 'Alle gebruikers per school'
+  },
+  'ownersDashboard.allUsersDescription': {
+    en: 'View users grouped by school',
+    nl: 'Bekijk gebruikers gegroepeerd per school'
+  },
+  'ownersDashboard.searchUsersPlaceholder': {
+    en: 'Search users...',
+    nl: 'Gebruikers zoeken...'
+  },
+  'ownersDashboard.newUser': {
+    en: 'New User',
+    nl: 'Nieuwe gebruiker'
+  },
+  'ownersDashboard.createUserTitle': {
+    en: 'Create New User',
+    nl: 'Nieuwe gebruiker aanmaken'
+  },
+  'ownersDashboard.createUserDescription': {
+    en: 'Create a new school owner, teacher or student.',
+    nl: 'Maak een nieuwe school-eigenaar, docent of leerling aan.'
+  },
+  'ownersDashboard.userFieldName': {
+    en: 'Name *',
+    nl: 'Naam *'
+  },
+  'ownersDashboard.userFieldUsername': {
+    en: 'Username *',
+    nl: 'Gebruikersnaam *'
+  },
+  'ownersDashboard.userFieldEmail': {
+    en: 'Email *',
+    nl: 'E-mail *'
+  },
+  'ownersDashboard.userFieldPassword': {
+    en: 'Password *',
+    nl: 'Wachtwoord *'
+  },
+  'ownersDashboard.userFieldRole': {
+    en: 'Role *',
+    nl: 'Rol *'
+  },
+  'ownersDashboard.userFieldSchool': {
+    en: 'School (optional)',
+    nl: 'School (optioneel)'
+  },
+  'ownersDashboard.userRoleTeacher': {
+    en: 'Teacher',
+    nl: 'Docent'
+  },
+  'ownersDashboard.userRoleStudent': {
+    en: 'Student',
+    nl: 'Leerling'
+  },
+  'ownersDashboard.userNoSchool': {
+    en: 'No school',
+    nl: 'Geen school'
+  },
+  'ownersDashboard.platformUsersNoSchool': {
+    en: 'Platform Users (No School)',
+    nl: 'Platformgebruikers (geen school)'
+  },
+  'ownersDashboard.tableUserName': {
+    en: 'Name',
+    nl: 'Naam'
+  },
+  'ownersDashboard.tableUsername': {
+    en: 'Username',
+    nl: 'Gebruikersnaam'
+  },
+  'ownersDashboard.tableEmail': {
+    en: 'Email',
+    nl: 'E-mail'
+  },
+  'ownersDashboard.tableRole': {
+    en: 'Role',
+    nl: 'Rol'
+  },
+  'ownersDashboard.tableLastLogin': {
+    en: 'Last Login',
+    nl: 'Laatste login'
+  },
+  'ownersDashboard.noUserName': {
+    en: 'No name',
+    nl: 'Geen naam'
+  },
+  'ownersDashboard.noUsersFound': {
+    en: 'No users found',
+    nl: 'Geen gebruikers gevonden'
+  },
+  'ownersDashboard.auditLogTitle': {
+    en: 'Admin Audit Log',
+    nl: 'Admin auditlog'
+  },
+  'ownersDashboard.auditLogDescription': {
+    en: 'Track all administrative actions on the platform',
+    nl: 'Volg alle administratieve acties op het platform'
+  },
+  'ownersDashboard.auditTableDateTime': {
+    en: 'Date/Time',
+    nl: 'Datum/tijd'
+  },
+  'ownersDashboard.auditTableActor': {
+    en: 'Actor',
+    nl: 'Uitvoerder'
+  },
+  'ownersDashboard.auditTableAction': {
+    en: 'Action',
+    nl: 'Actie'
+  },
+  'ownersDashboard.auditTableTarget': {
+    en: 'Target',
+    nl: 'Doel'
+  },
+  'ownersDashboard.auditTableDetails': {
+    en: 'Details',
+    nl: 'Details'
+  },
+  'ownersDashboard.noAuditEntries': {
+    en: 'No audit log entries yet',
+    nl: 'Nog geen auditlog-vermeldingen'
+  },
+  'ownersDashboard.statusActive': {
+    en: 'Active',
+    nl: 'Actief'
+  },
+  'ownersDashboard.statusTrial': {
+    en: 'Trial',
+    nl: 'Proef'
+  },
+  'ownersDashboard.statusOverdue': {
+    en: 'Overdue',
+    nl: 'Achterstallig'
+  },
+  'ownersDashboard.statusSuspended': {
+    en: 'Suspended',
+    nl: 'Opgeschort'
+  },
+  'ownersDashboard.statusUnknown': {
+    en: 'Unknown',
+    nl: 'Onbekend'
+  },
+  'ownersDashboard.rolePlatformOwner': {
+    en: 'Platform Owner',
+    nl: 'Platformeigenaar'
+  },
+  'ownersDashboard.roleSchoolOwner': {
+    en: 'School Owner',
+    nl: 'Schooleigenaar'
+  },
+  'ownersDashboard.roleTeacher': {
+    en: 'Teacher',
+    nl: 'Docent'
+  },
+  'ownersDashboard.roleStudent': {
+    en: 'Student',
+    nl: 'Leerling'
+  },
+  'ownersDashboard.warningNoOwner': {
+    en: 'No owner assigned',
+    nl: 'Geen eigenaar toegewezen'
+  },
+  'ownersDashboard.warningNoName': {
+    en: 'No name',
+    nl: 'Geen naam'
+  },
+  'ownersDashboard.warningNoLocation': {
+    en: 'No location',
+    nl: 'Geen locatie'
+  },
+  'ownersDashboard.warningNoEmail': {
+    en: 'No email',
+    nl: 'Geen e-mail'
+  },
+  'ownersDashboard.warningNoSchool': {
+    en: 'No school assigned',
+    nl: 'Geen school toegewezen'
+  },
+  'ownersDashboard.toastSchoolCreated': {
+    en: 'School created',
+    nl: 'School aangemaakt'
+  },
+  'ownersDashboard.toastSchoolCreatedDesc': {
+    en: 'The school has been successfully created',
+    nl: 'De school is succesvol aangemaakt'
+  },
+  'ownersDashboard.toastUserCreated': {
+    en: 'User created',
+    nl: 'Gebruiker aangemaakt'
+  },
+  'ownersDashboard.toastUserCreatedDesc': {
+    en: 'The user has been successfully created',
+    nl: 'De gebruiker is succesvol aangemaakt'
+  },
+  'ownersDashboard.toastOwnerAssigned': {
+    en: 'Owner assigned',
+    nl: 'Eigenaar toegewezen'
+  },
+  'ownersDashboard.toastOwnerAssignedDesc': {
+    en: 'The owner has been successfully assigned to the school',
+    nl: 'De eigenaar is succesvol aan de school toegewezen'
+  },
+  'ownersDashboard.toastUserDeleted': {
+    en: 'User deleted',
+    nl: 'Gebruiker verwijderd'
+  },
+  'ownersDashboard.toastUserDeletedDesc': {
+    en: 'The user has been successfully deleted',
+    nl: 'De gebruiker is succesvol verwijderd'
+  },
+  'ownersDashboard.toastSchoolDeleted': {
+    en: 'School deleted',
+    nl: 'School verwijderd'
+  },
+  'ownersDashboard.toastSchoolDeletedDesc': {
+    en: 'The school has been successfully deleted',
+    nl: 'De school is succesvol verwijderd'
+  },
+  'ownersDashboard.toastError': {
+    en: 'Error',
+    nl: 'Fout'
+  },
+  'ownersDashboard.never': {
+    en: 'Never',
+    nl: 'Nooit'
+  },
+
+  // Analytics page
+  'analytics.title': {
+    en: 'Analytics & Performance',
+    nl: 'Analyses & Prestaties'
+  },
+  'analytics.subtitle': {
+    en: 'Comprehensive insights into student progress and system performance',
+    nl: 'Uitgebreide inzichten in studentvoortgang en systeemprestaties'
+  },
+  'analytics.loading': {
+    en: 'Loading analytics...',
+    nl: 'Analyses laden...'
+  },
+  'analytics.accessDenied': {
+    en: 'Access denied. Teacher privileges required.',
+    nl: 'Toegang geweigerd. Docentrechten vereist.'
+  },
+  'analytics.button.refresh': {
+    en: 'Refresh',
+    nl: 'Vernieuwen'
+  },
+  'analytics.button.exportCsv': {
+    en: 'Export CSV',
+    nl: 'CSV exporteren'
+  },
+  'analytics.dateRange.last7': {
+    en: 'Last 7 days',
+    nl: 'Afgelopen 7 dagen'
+  },
+  'analytics.dateRange.last30': {
+    en: 'Last 30 days',
+    nl: 'Afgelopen 30 dagen'
+  },
+  'analytics.dateRange.last3months': {
+    en: 'Last 3 months',
+    nl: 'Afgelopen 3 maanden'
+  },
+  'analytics.dateRange.lastYear': {
+    en: 'Last year',
+    nl: 'Afgelopen jaar'
+  },
+  'analytics.reportType.overview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'analytics.reportType.students': {
+    en: 'Student Progress',
+    nl: 'Studentvoortgang'
+  },
+  'analytics.reportType.lessons': {
+    en: 'Lesson Analytics',
+    nl: 'Lesanalyses'
+  },
+  'analytics.reportType.performance': {
+    en: 'Performance',
+    nl: 'Prestaties'
+  },
+  'analytics.tab.overview': {
+    en: 'Overview',
+    nl: 'Overzicht'
+  },
+  'analytics.tab.students': {
+    en: 'Students',
+    nl: 'Studenten'
+  },
+  'analytics.tab.performance': {
+    en: 'Performance',
+    nl: 'Prestaties'
+  },
+  'analytics.tab.realtime': {
+    en: 'Real-time',
+    nl: 'Real-time'
+  },
+  'analytics.metric.totalStudents': {
+    en: 'Total Students',
+    nl: 'Totaal studenten'
+  },
+  'analytics.metric.activeStudents': {
+    en: 'Active students',
+    nl: 'Actieve studenten'
+  },
+  'analytics.metric.activeLessons': {
+    en: 'Active Lessons',
+    nl: 'Actieve lessen'
+  },
+  'analytics.metric.availableContent': {
+    en: 'Available content',
+    nl: 'Beschikbare inhoud'
+  },
+  'analytics.metric.completedAssignments': {
+    en: 'Completed Assignments',
+    nl: 'Voltooide opdrachten'
+  },
+  'analytics.metric.studentAchievements': {
+    en: 'Student achievements',
+    nl: 'Prestaties van studenten'
+  },
+  'analytics.metric.upcomingSessions': {
+    en: 'Upcoming Sessions',
+    nl: 'Aankomende sessies'
+  },
+  'analytics.metric.next7days': {
+    en: 'Next 7 days',
+    nl: 'Komende 7 dagen'
+  },
+  'analytics.popularLessons.title': {
+    en: 'Popular Lessons',
+    nl: 'Populaire lessen'
+  },
+  'analytics.popularLessons.completions': {
+    en: 'completions',
+    nl: 'voltooiingen'
+  },
+  'analytics.popularLessons.empty': {
+    en: 'No lesson data available',
+    nl: 'Geen lesgegevens beschikbaar'
+  },
+  'analytics.upcomingDeadlines.title': {
+    en: 'Upcoming Deadlines',
+    nl: 'Aankomende deadlines'
+  },
+  'analytics.upcomingDeadlines.due': {
+    en: 'Due:',
+    nl: 'Deadline:'
+  },
+  'analytics.upcomingDeadlines.empty': {
+    en: 'No upcoming deadlines',
+    nl: 'Geen aankomende deadlines'
+  },
+  'analytics.studentProgress.title': {
+    en: 'Student Progress Overview',
+    nl: 'Overzicht studentvoortgang'
+  },
+  'analytics.studentProgress.colStudent': {
+    en: 'Student Name',
+    nl: 'Studentnaam'
+  },
+  'analytics.studentProgress.colCompletedLessons': {
+    en: 'Completed Lessons',
+    nl: 'Voltooide lessen'
+  },
+  'analytics.studentProgress.colAssignments': {
+    en: 'Assignments',
+    nl: 'Opdrachten'
+  },
+  'analytics.studentProgress.colXp': {
+    en: 'XP Earned',
+    nl: 'XP verdiend'
+  },
+  'analytics.studentProgress.colLastActivity': {
+    en: 'Last Activity',
+    nl: 'Laatste activiteit'
+  },
+  'analytics.studentProgress.colProgress': {
+    en: 'Progress',
+    nl: 'Voortgang'
+  },
+  'analytics.studentProgress.never': {
+    en: 'Never',
+    nl: 'Nooit'
+  },
+  'analytics.studentProgress.empty': {
+    en: 'No student data available for the selected period',
+    nl: 'Geen studentgegevens beschikbaar voor de geselecteerde periode'
+  },
+  'analytics.perf.totalLessons': {
+    en: 'Total Lessons',
+    nl: 'Totaal lessen'
+  },
+  'analytics.perf.totalLessonsDesc': {
+    en: 'All time lesson count',
+    nl: 'Totaal aantal lessen aller tijden'
+  },
+  'analytics.perf.avgCreationTime': {
+    en: 'Average Creation Time',
+    nl: 'Gemiddelde aanmaaktijd'
+  },
+  'analytics.perf.perLessonCreation': {
+    en: 'Per lesson creation',
+    nl: 'Per les aanmaken'
+  },
+  'analytics.perf.successRate': {
+    en: 'Success Rate',
+    nl: 'Slagingspercentage'
+  },
+  'analytics.perf.activeUsers': {
+    en: 'Active Users',
+    nl: 'Actieve gebruikers'
+  },
+  'analytics.perf.creatingLessonsThisWeek': {
+    en: 'Creating lessons this week',
+    nl: 'Lessen aanmaken deze week'
+  },
+  'analytics.perf.alertSlowTitle': {
+    en: 'Performance Alert:',
+    nl: 'Prestatiewaarschuwing:'
+  },
+  'analytics.perf.alertSlowDesc': {
+    en: 'Average lesson creation time is {time}s. Consider optimizing content blocks.',
+    nl: 'Gemiddelde aanmaaktijd voor lessen is {time}s. Overweeg contentblokken te optimaliseren.'
+  },
+  'analytics.perf.alertFailureTitle': {
+    en: 'High Failure Rate:',
+    nl: 'Hoog mislukkingspercentage:'
+  },
+  'analytics.perf.alertFailureDesc': {
+    en: '{rate}% of lesson creations are failing. Check validation rules.',
+    nl: '{rate}% van de les-aanmaken mislukt. Controleer de validatieregels.'
+  },
+  'analytics.perf.statusExcellent': {
+    en: 'Excellent',
+    nl: 'Uitstekend'
+  },
+  'analytics.perf.statusGood': {
+    en: 'Good',
+    nl: 'Goed'
+  },
+  'analytics.perf.statusFair': {
+    en: 'Fair',
+    nl: 'Redelijk'
+  },
+  'analytics.perf.statusPoor': {
+    en: 'Poor',
+    nl: 'Slecht'
+  },
+  'analytics.realtime.title': {
+    en: 'Real-time Statistics',
+    nl: 'Real-time statistieken'
+  },
+  'analytics.realtime.activeSessions': {
+    en: 'Active Sessions',
+    nl: 'Actieve sessies'
+  },
+  'analytics.realtime.lessonsToday': {
+    en: 'Lessons Today',
+    nl: 'Lessen vandaag'
+  },
+  'analytics.realtime.avgResponseTime': {
+    en: 'Avg Response Time',
+    nl: 'Gem. responstijd'
+  },
+  'analytics.realtime.empty': {
+    en: 'Real-time data not available',
+    nl: 'Real-time gegevens niet beschikbaar'
+  },
+  'analytics.csv.colStudentName': {
+    en: 'Student Name',
+    nl: 'Studentnaam'
+  },
+  'analytics.csv.colCompletedLessons': {
+    en: 'Completed Lessons',
+    nl: 'Voltooide lessen'
+  },
+  'analytics.csv.colTotalAssignments': {
+    en: 'Total Assignments',
+    nl: 'Totaal opdrachten'
+  },
+  'analytics.csv.colCompletedAssignments': {
+    en: 'Completed Assignments',
+    nl: 'Voltooide opdrachten'
+  },
+  'analytics.csv.colXpEarned': {
+    en: 'XP Earned',
+    nl: 'XP verdiend'
+  },
+  'analytics.csv.colLastActivity': {
+    en: 'Last Activity',
+    nl: 'Laatste activiteit'
+  },
+
+  // Import page
+  'import.title': {
+    en: 'Import from Old MusicDott',
+    nl: 'Importeren vanuit oud MusicDott'
+  },
+  'import.subtitle': {
+    en: 'Import your existing content from the old MusicDott system. Convert embedded content and Groovescribe patterns into the new format.',
+    nl: 'Importeer je bestaande inhoud vanuit het oude MusicDott-systeem. Converteer ingebedde inhoud en Groovescribe-patronen naar het nieuwe formaat.'
+  },
+  'import.csv.title': {
+    en: 'CSV Import',
+    nl: 'CSV Importeren'
+  },
+  'import.csv.description': {
+    en: 'Import directly from MusicDott 1.0 CSV files (POS_Songs.csv and POS_Notatie.csv).',
+    nl: 'Importeer rechtstreeks vanuit MusicDott 1.0 CSV-bestanden (POS_Songs.csv en POS_Notatie.csv).'
+  },
+  'import.csv.songsLabel': {
+    en: 'Songs CSV (POS_Songs.csv)',
+    nl: 'Nummers CSV (POS_Songs.csv)'
+  },
+  'import.csv.lessonsLabel': {
+    en: 'Lessons CSV (POS_Notatie.csv)',
+    nl: 'Lessen CSV (POS_Notatie.csv)'
+  },
+  'import.csv.fileSelected': {
+    en: '{name} selected',
+    nl: '{name} geselecteerd'
+  },
+  'import.csv.buttonImporting': {
+    en: 'Converting & Importing...',
+    nl: 'Converteren & Importeren...'
+  },
+  'import.csv.button': {
+    en: 'Import CSV Files',
+    nl: 'CSV-bestanden importeren'
+  },
+  'import.csv.autoConversionNote': {
+    en: 'Automatic conversion:',
+    nl: 'Automatische conversie:'
+  },
+  'import.csv.autoConversionDesc': {
+    en: 'YouTube URLs become video embeds, Groovescribe patterns are preserved, and all content is properly structured.',
+    nl: "YouTube-URL's worden video-embeds, Groovescribe-patronen worden bewaard en alle inhoud wordt goed gestructureerd."
+  },
+  'import.preview.title': {
+    en: 'Content Preview',
+    nl: 'Inhoudsvoorbeeld'
+  },
+  'import.preview.description': {
+    en: 'Test how your old content will be converted. Paste a sample with embedded content.',
+    nl: 'Test hoe je oude inhoud geconverteerd wordt. Plak een voorbeeld met ingebedde inhoud.'
+  },
+  'import.preview.sampleLabel': {
+    en: 'Sample Content',
+    nl: 'Voorbeeldinhoud'
+  },
+  'import.preview.normalizeNote': {
+    en: 'Content is automatically normalized when you click outside the editor',
+    nl: 'Inhoud wordt automatisch genormaliseerd wanneer je buiten de editor klikt'
+  },
+  'import.preview.buttonAnalyzing': {
+    en: 'Analyzing...',
+    nl: 'Analyseren...'
+  },
+  'import.preview.button': {
+    en: 'Preview Conversion',
+    nl: 'Conversie bekijken'
+  },
+  'import.preview.detectedBlocks': {
+    en: 'Detected Content Blocks:',
+    nl: 'Gedetecteerde inhoudsblokken:'
+  },
+  'import.preview.noBlocksDetected': {
+    en: 'No content blocks detected. Make sure your content includes embedded iframes or Groovescribe patterns.',
+    nl: 'Geen inhoudsblokken gedetecteerd. Zorg ervoor dat je inhoud ingebedde iframes of Groovescribe-patronen bevat.'
+  },
+  'import.json.title': {
+    en: 'JSON Import',
+    nl: 'JSON Importeren'
+  },
+  'import.json.description': {
+    en: 'Import multiple songs or lessons from your exported JSON data.',
+    nl: 'Importeer meerdere nummers of lessen vanuit je geëxporteerde JSON-gegevens.'
+  },
+  'import.json.importTypeLabel': {
+    en: 'Import Type',
+    nl: 'Importtype'
+  },
+  'import.json.songs': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'import.json.lessons': {
+    en: 'Lessons',
+    nl: 'Lessen'
+  },
+  'import.json.dataLabel': {
+    en: 'JSON Data',
+    nl: 'JSON-gegevens'
+  },
+  'import.json.dataPlaceholderSongs': {
+    en: 'Paste your songs data as JSON array here...',
+    nl: 'Plak je nummergegevens hier als JSON-array...'
+  },
+  'import.json.dataPlaceholderLessons': {
+    en: 'Paste your lessons data as JSON array here...',
+    nl: 'Plak je lesgegevens hier als JSON-array...'
+  },
+  'import.json.buttonImporting': {
+    en: 'Importing...',
+    nl: 'Importeren...'
+  },
+  'import.json.buttonSongs': {
+    en: 'Import songs',
+    nl: 'Nummers importeren'
+  },
+  'import.json.buttonLessons': {
+    en: 'Import lessons',
+    nl: 'Lessen importeren'
+  },
+  'import.examples.title': {
+    en: 'Import Format Examples',
+    nl: 'Voorbeelden importformaat'
+  },
+  'import.examples.description': {
+    en: 'Use these examples to format your data correctly for import.',
+    nl: 'Gebruik deze voorbeelden om je gegevens correct te formatteren voor import.'
+  },
+  'import.examples.songsFormat': {
+    en: 'Songs Format:',
+    nl: 'Nummerformaat:'
+  },
+  'import.examples.lessonsFormat': {
+    en: 'Lessons Format:',
+    nl: 'Lesformaat:'
+  },
+  'import.examples.supportedTypes': {
+    en: 'Supported Content Types:',
+    nl: 'Ondersteunde inhoudstypen:'
+  },
+  'import.examples.supportedTypesDesc': {
+    en: "YouTube videos, Spotify tracks, Apple Music, Groovescribe patterns, and text content will be automatically detected and converted.",
+    nl: "YouTube-video's, Spotify-tracks, Apple Music, Groovescribe-patronen en tekstinhoud worden automatisch gedetecteerd en geconverteerd."
+  },
+  'import.toast.previewError': {
+    en: 'Preview Error',
+    nl: 'Voorbeeldfout'
+  },
+  'import.toast.importComplete': {
+    en: 'Import Complete',
+    nl: 'Import voltooid'
+  },
+  'import.toast.importSongsSuccess': {
+    en: 'Successfully imported {success} songs. {failed} failed.',
+    nl: 'Succesvol {success} nummers geïmporteerd. {failed} mislukt.'
+  },
+  'import.toast.importLessonsSuccess': {
+    en: 'Successfully imported {success} lessons. {failed} failed.',
+    nl: 'Succesvol {success} lessen geïmporteerd. {failed} mislukt.'
+  },
+  'import.toast.importError': {
+    en: 'Import Error',
+    nl: 'Importfout'
+  },
+  'import.toast.csvImportComplete': {
+    en: 'CSV Import Complete',
+    nl: 'CSV-import voltooid'
+  },
+  'import.toast.csvImportError': {
+    en: 'CSV Import Error',
+    nl: 'CSV-importfout'
+  },
+  'import.toast.parseError': {
+    en: 'Parse Error',
+    nl: 'Parserfout'
+  },
+  'import.toast.invalidJson': {
+    en: 'Invalid JSON format. Please check your data.',
+    nl: 'Ongeldig JSON-formaat. Controleer je gegevens.'
+  },
+  'import.toast.noContent': {
+    en: 'Please enter some content to preview',
+    nl: 'Voer wat inhoud in om te bekijken'
+  },
+  'import.toast.noData': {
+    en: 'Please enter data to import',
+    nl: 'Voer gegevens in om te importeren'
+  },
+  'import.toast.noFile': {
+    en: 'Please select at least one CSV file to import',
+    nl: 'Selecteer minimaal één CSV-bestand om te importeren'
+  },
+
+  // Search page
+  'search.title': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'search.subtitle': {
+    en: 'Search and browse songs by artist, title, or genre',
+    nl: 'Zoek en blader door nummers op artiest, titel of genre'
+  },
+  'search.recentSongs': {
+    en: 'Recently Imported Songs',
+    nl: 'Recent geïmporteerde nummers'
+  },
+
+  // Resources page
+  'resources.title': {
+    en: 'Resources & Learning Hub',
+    nl: 'Bronnen & Leercentrum'
+  },
+  'resources.subtitleOwner': {
+    en: 'Comprehensive guides and resources to help you build and grow your music school',
+    nl: 'Uitgebreide handleidingen en bronnen om je muziekschool op te bouwen en te laten groeien'
+  },
+  'resources.subtitleTeacher': {
+    en: 'Professional development resources to enhance your teaching practice',
+    nl: 'Professionele ontwikkelingsbronnen om je lespraktijk te verbeteren'
+  },
+  'resources.tab.guides': {
+    en: 'Guides & Articles',
+    nl: 'Handleidingen & artikelen'
+  },
+  'resources.tab.videos': {
+    en: 'Video Tutorials',
+    nl: 'Videotutorials'
+  },
+  'resources.tab.tools': {
+    en: 'Templates & Tools',
+    nl: 'Sjablonen & hulpmiddelen'
+  },
+  'resources.guides.platformResources': {
+    en: 'Platform Resources',
+    nl: 'Platformbronnen'
+  },
+  'resources.guides.additionalResources': {
+    en: 'Additional Resources',
+    nl: 'Aanvullende bronnen'
+  },
+  'resources.guides.forOwners': {
+    en: 'For Owners',
+    nl: 'Voor eigenaren'
+  },
+  'resources.guides.videos': {
+    en: 'Videos',
+    nl: "Video's"
+  },
+  'resources.guides.readGuide': {
+    en: 'Read Guide',
+    nl: 'Handleiding lezen'
+  },
+  'resources.guides.unavailableTitle': {
+    en: 'Platform Resources Unavailable',
+    nl: 'Platformbronnen niet beschikbaar'
+  },
+  'resources.guides.unavailableDesc': {
+    en: "We're unable to load platform resources at the moment. You can still access our comprehensive guide library below.",
+    nl: 'We kunnen platformbronnen momenteel niet laden. Je hebt nog steeds toegang tot onze uitgebreide handleidingsbibliotheek hieronder.'
+  },
+  'resources.videos.watchTutorial': {
+    en: 'Watch Tutorial',
+    nl: 'Tutorial bekijken'
+  },
+  'resources.tools.openTool': {
+    en: 'Open Tool',
+    nl: 'Hulpmiddel openen'
+  },
+  'resources.tools.download': {
+    en: 'Download',
+    nl: 'Downloaden'
+  },
+  'resources.help.title': {
+    en: 'Need Personal Help?',
+    nl: 'Persoonlijke hulp nodig?'
+  },
+  'resources.help.description': {
+    en: 'Schedule a 30-minute consultation with our education specialists',
+    nl: 'Plan een 30-minuten consultatie met onze onderwijsspecialisten'
+  },
+  'resources.help.button': {
+    en: 'Book Consultation',
+    nl: 'Consultatie boeken'
   }
 };
 

@@ -2,8 +2,11 @@ import { FlatEmbedViewer } from "@/components/music-notation/flat-embed-viewer";
 import { ArrowLeft, FileMusic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 
 export default function FlatEmbedPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4 space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -15,10 +18,10 @@ export default function FlatEmbedPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FileMusic className="h-6 w-6" />
-            Flat.io Sheet Music
+            {t('tools.flatEmbed.title')}
           </h1>
           <p className="text-muted-foreground">
-            View and play interactive sheet music from Flat.io
+            {t('tools.flatEmbed.subtitle')}
           </p>
         </div>
       </div>
@@ -26,28 +29,28 @@ export default function FlatEmbedPage() {
       <FlatEmbedViewer height={500} />
 
       <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold">How to Use</h3>
+        <h3 className="font-semibold">{t('tools.flatEmbed.howToUse')}</h3>
         <ul className="text-sm text-muted-foreground space-y-2">
           <li>
-            <strong>Load a score:</strong> Paste a Flat.io score URL or enter a score ID directly
+            <strong>{t('tools.flatEmbed.loadScore')}</strong> {t('tools.flatEmbed.loadScoreDescription')}
           </li>
           <li>
-            <strong>Playback:</strong> Use the built-in controls to play, pause, and navigate the score
+            <strong>{t('tools.flatEmbed.playback')}</strong> {t('tools.flatEmbed.playbackDescription')}
           </li>
           <li>
-            <strong>Zoom:</strong> Use the zoom controls to adjust the sheet music size
+            <strong>{t('tools.flatEmbed.zoom')}</strong> {t('tools.flatEmbed.zoomDescription')}
           </li>
           <li>
-            <strong>Find scores:</strong> Visit{" "}
-            <a 
-              href="https://flat.io/community" 
-              target="_blank" 
+            <strong>{t('tools.flatEmbed.findScores')}</strong> {t('tools.flatEmbed.findScoresDescription')}{" "}
+            <a
+              href="https://flat.io/community"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              Flat.io Community
+              {t('tools.flatEmbed.findScoresCommunity')}
             </a>{" "}
-            to discover public scores
+            {t('tools.flatEmbed.findScoresSuffix')}
           </li>
         </ul>
       </div>

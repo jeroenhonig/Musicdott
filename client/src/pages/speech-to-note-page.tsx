@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DetectedNote } from "@/lib/pitch-detection";
+import { useTranslation } from "@/lib/i18n";
 
 export default function SpeechToNotePage() {
   const [transcribedNotes, setTranscribedNotes] = useState<DetectedNote[]>([]);
   const [abcForPreview, setAbcForPreview] = useState("");
+  const { t } = useTranslation();
 
   const handleNotesChange = (notes: DetectedNote[]) => {
     setTranscribedNotes(notes);
@@ -53,10 +55,10 @@ ${abcNotes} |`);
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Mic className="h-6 w-6" />
-            Speech-to-Note Transcription
+            {t('tools.speechToNote.title')}
           </h1>
           <p className="text-muted-foreground">
-            Convert your voice or instrument into musical notation
+            {t('tools.speechToNote.subtitle')}
           </p>
         </div>
       </div>
@@ -65,11 +67,11 @@ ${abcNotes} |`);
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="transcribe" data-testid="tab-transcribe">
             <Mic className="h-4 w-4 mr-2" />
-            Transcribe
+            {t('tools.speechToNote.tabTranscribe')}
           </TabsTrigger>
           <TabsTrigger value="preview" data-testid="tab-preview" disabled={!abcForPreview}>
             <Music className="h-4 w-4 mr-2" />
-            Preview & Play
+            {t('tools.speechToNote.tabPreview')}
           </TabsTrigger>
         </TabsList>
 
@@ -87,7 +89,7 @@ ${abcNotes} |`);
           ) : (
             <div className="text-center p-8 text-muted-foreground">
               <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Transcribe some notes first to see the preview</p>
+              <p>{t('tools.speechToNote.noPreview')}</p>
             </div>
           )}
         </TabsContent>
@@ -95,23 +97,23 @@ ${abcNotes} |`);
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-muted/50 rounded-lg p-4">
-          <h3 className="font-semibold mb-2">How It Works</h3>
+          <h3 className="font-semibold mb-2">{t('tools.speechToNote.howItWorks.title')}</h3>
           <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>Click "Start Listening" to enable your microphone</li>
-            <li>Sing or play notes into your device</li>
-            <li>Hold each note steady for detection</li>
-            <li>Notes are automatically transcribed to ABC notation</li>
-            <li>Switch to "Preview & Play" to hear your melody</li>
+            <li>{t('tools.speechToNote.howItWorks.step1')}</li>
+            <li>{t('tools.speechToNote.howItWorks.step2')}</li>
+            <li>{t('tools.speechToNote.howItWorks.step3')}</li>
+            <li>{t('tools.speechToNote.howItWorks.step4')}</li>
+            <li>{t('tools.speechToNote.howItWorks.step5')}</li>
           </ol>
         </div>
 
         <div className="bg-muted/50 rounded-lg p-4">
-          <h3 className="font-semibold mb-2">Use Cases</h3>
+          <h3 className="font-semibold mb-2">{t('tools.speechToNote.useCases.title')}</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Capture melody ideas quickly</li>
-            <li>• Practice pitch accuracy with visual feedback</li>
-            <li>• Transcribe simple tunes by ear</li>
-            <li>• Create sheet music from vocal melodies</li>
+            <li>• {t('tools.speechToNote.useCases.item1')}</li>
+            <li>• {t('tools.speechToNote.useCases.item2')}</li>
+            <li>• {t('tools.speechToNote.useCases.item3')}</li>
+            <li>• {t('tools.speechToNote.useCases.item4')}</li>
           </ul>
         </div>
       </div>
