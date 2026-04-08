@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Globe, Languages } from "lucide-react";
+import { Globe } from "lucide-react";
 
 interface LanguageSelectorProps {
   variant?: 'dropdown' | 'toggle';
@@ -31,8 +31,8 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           onClick={() => setLanguage(language === 'en' ? 'nl' : 'en')}
           className="gap-2"
         >
-          <Languages className="w-4 h-4" />
-          {language === 'en' ? 'EN' : 'NL'}
+          <span className="text-sm">{language === 'en' ? '🇬🇧' : '🇳🇱'}</span>
+          <span className="font-medium text-xs">{language === 'en' ? 'EN' : 'NL'}</span>
         </Button>
       </div>
     );
