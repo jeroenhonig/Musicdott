@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Music, Menu } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAnnounce } from "@/hooks/use-announce";
@@ -13,6 +14,7 @@ interface MobileHeaderProps {
 export default function MobileHeader({ toggleMobileMenu }: MobileHeaderProps) {
   const { user } = useAuth();
   const announce = useAnnounce();
+  const { t } = useTranslation();
   
   const getInitials = (name: string) => {
     return name
@@ -38,7 +40,7 @@ export default function MobileHeader({ toggleMobileMenu }: MobileHeaderProps) {
           size="icon"
           onClick={handleMenuToggle}
           className="text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
-          aria-label="Toggle navigation menu"
+          aria-label={t('aria.toggleMenu')}
           aria-expanded="false" // This should ideally be dynamically set based on menu state
           aria-controls="mobile-menu"
         >
@@ -54,7 +56,7 @@ export default function MobileHeader({ toggleMobileMenu }: MobileHeaderProps) {
         <NotificationBell />
         <Avatar 
           className="h-8 w-8"
-          aria-label={user?.name ? `${user.name}'s profile` : "User profile"}
+          aria-label={user?.name ? `${user.name}'s ${t('aria.userProfile')}` : t('aria.userProfile')}
         >
           <AvatarImage src={user?.avatar || ''} alt="" /> {/* alt is empty because aria-label on Avatar provides the accessible name */}
           <AvatarFallback aria-hidden="true">{user ? getInitials(user.name) : 'U'}</AvatarFallback>
