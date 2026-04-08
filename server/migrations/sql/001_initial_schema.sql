@@ -334,7 +334,8 @@ CREATE TABLE IF NOT EXISTS school_memberships (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   role TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  UNIQUE (school_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS lesson_progress (
@@ -366,6 +367,26 @@ CREATE TABLE IF NOT EXISTS cron_job_health (
   cron_schedule TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS billing_audit_log (
+  id SERIAL PRIMARY KEY,
+  school_id INTEGER,
+  user_id INTEGER,
+  event_type TEXT NOT NULL,
+  description TEXT,
+  event_data JSONB,
+  amount INTEGER,
+  previous_amount TEXT,
+  current_amount TEXT,
+  stripe_event_id TEXT,
+  old_values TEXT,
+  new_values TEXT,
+  processing_time INTEGER,
+  error_message TEXT,
+  performed_by INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_school_id ON users(school_id);

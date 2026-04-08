@@ -183,14 +183,22 @@ export async function importDrumschoolJson(
   const SCHOOL_NAME = "Drumschool Stefan van de Brug";
   const SCHOOL_SLUG = "drumschoolstefanvandebrug";
 
-  const schoolRes = await pool.query<{ id: number }>(
-    `INSERT INTO schools (name, created_at, updated_at)
-     VALUES ($1, NOW(), NOW())
-     ON CONFLICT (name) DO UPDATE SET updated_at = NOW()
-     RETURNING id`,
+  const existingSchool = await pool.query<{ id: number }>(
+    `SELECT id FROM schools WHERE name = $1 LIMIT 1`,
     [SCHOOL_NAME]
   );
-  const schoolId = schoolRes.rows[0].id;
+  let schoolId: number;
+  if (existingSchool.rows.length > 0) {
+    schoolId = existingSchool.rows[0].id;
+  } else {
+    const schoolRes = await pool.query<{ id: number }>(
+      `INSERT INTO schools (name, created_at, updated_at)
+       VALUES ($1, NOW(), NOW())
+       RETURNING id`,
+      [SCHOOL_NAME]
+    );
+    schoolId = schoolRes.rows[0].id;
+  }
   console.log(`   School ID: ${schoolId} — "${SCHOOL_NAME}"`);
 
   // Upsert slug alias
@@ -304,7 +312,7 @@ export async function importDrumschoolJson(
            is_active, created_at, updated_at
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'drumschool_export', $10, $11, NOW(), NOW())
-         ON CONFLICT (school_id, external_id) DO UPDATE
+         ON CONFLICT (school_id, external_id) WHERE external_id IS NOT NULL DO UPDATE
            SET name         = EXCLUDED.name,
                email        = EXCLUDED.email,
                user_id      = EXCLUDED.user_id,
@@ -401,7 +409,7 @@ export async function importDrumschoolJson(
            timezone, location, external_id, created_at, updated_at
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Europe/Amsterdam', $13, $14, NOW(), NOW())
-         ON CONFLICT (external_id) DO UPDATE
+         ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO UPDATE
            SET status     = EXCLUDED.status,
                is_active  = EXCLUDED.is_active,
                updated_at = NOW()
@@ -513,7 +521,7 @@ export async function importDrumschoolJson(
            status, lesson_type, studio_id, notes, external_id
          )
          VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7::timestamp, $8, $9, $10, $11, $12, $13)
-         ON CONFLICT (external_id) DO UPDATE
+         ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO UPDATE
            SET status = EXCLUDED.status`,
         [
           schoolId,
