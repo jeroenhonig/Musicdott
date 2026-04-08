@@ -766,6 +766,46 @@ export const translations: Translations = {
     nl: 'Er is een fout opgetreden. Probeer het opnieuw.'
   },
 
+  // Lesson progress tracker
+  'progress.progress': {
+    en: 'Progress',
+    nl: 'Voortgang'
+  },
+  'progress.teacherNotes': {
+    en: 'Teacher Notes:',
+    nl: 'Docent opmerkingen:'
+  },
+  'progress.studentNotes': {
+    en: 'Student Notes:',
+    nl: 'Student opmerkingen:'
+  },
+  'progress.timeSpent': {
+    en: 'Time spent:',
+    nl: 'Bestede tijd:'
+  },
+  'progress.noData': {
+    en: 'No Progress Data',
+    nl: 'Geen Voortgangsdata'
+  },
+  'progress.noDataDescription': {
+    en: 'Progress tracking will be available once students start practicing lessons.',
+    nl: 'Voortgangsregistratie is beschikbaar zodra studenten met lessen beginnen.'
+  },
+  'progress.translated': {
+    en: 'Translated',
+    nl: 'Vertaald'
+  },
+
+  // Accessibility labels
+  'aria.toggleMenu': {
+    en: 'Toggle navigation menu',
+    nl: 'Navigatiemenu in-/uitklappen'
+  },
+  'aria.userProfile': {
+    en: 'User profile',
+    nl: 'Gebruikersprofiel'
+  },
+
   // Footer
   'footer.proudlyBuilt': {
     en: 'Proudly built in The Netherlands',

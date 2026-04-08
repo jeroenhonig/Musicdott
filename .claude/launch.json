@@ -4,7 +4,7 @@
     {
       "name": "Dev Server",
       "runtimeExecutable": "/bin/sh",
-      "runtimeArgs": ["-c", "cd /Users/stefanvandebrug/Documents/Git-Apps/Musicdott/.claude/worktrees/inspiring-spence && NODE_ENV=development SESSION_SECRET=dev-session-secret-for-local-preview-only-1234 /usr/local/bin/node /Users/stefanvandebrug/Documents/Git-Apps/Musicdott/node_modules/.bin/tsx server/index.ts"],
+      "runtimeArgs": ["-c", "cd /Users/stefanvandebrug/Documents/Git-Apps/Musicdott && NODE_ENV=development SESSION_SECRET=dev-session-secret-for-local-preview-only-1234 /usr/local/bin/node /Users/stefanvandebrug/Documents/Git-Apps/Musicdott/node_modules/.bin/tsx server/index.ts"],
       "autoPort": true,
       "port": 5000
     }

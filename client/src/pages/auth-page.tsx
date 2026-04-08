@@ -1,4 +1,3 @@
-// client/src/pages/auth-page.tsx
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,7 +5,11 @@ import { PasswordChangeDialog } from "@/components/password-change-dialog";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingLoginModal } from "@/components/landing/landing-login-modal";
 import { LandingHero } from "@/components/landing/landing-hero";
-import { LandingFeatures } from "@/components/landing/landing-features";
+import { LandingProblem } from "@/components/landing/landing-problem";
+import { LandingStatement } from "@/components/landing/landing-statement";
+import { LandingTeachMode } from "@/components/landing/landing-teach-mode";
+import { LandingBlocks } from "@/components/landing/landing-blocks";
+import { LandingAudience } from "@/components/landing/landing-audience";
 import { LandingTestimonial } from "@/components/landing/landing-testimonial";
 import { LandingPricing } from "@/components/landing/landing-pricing";
 import { LandingFooterCta } from "@/components/landing/landing-footer-cta";
@@ -52,11 +55,12 @@ export default function AuthPage() {
       />
       <main>
         <LandingHero onLoginClick={() => setLoginModalOpen(true)} />
-        <hr className="border-gray-100 mx-6" />
-        <LandingFeatures />
-        <hr className="border-gray-100 mx-6" />
+        <LandingProblem />
+        <LandingStatement />
+        <LandingTeachMode />
+        <LandingBlocks />
+        <LandingAudience />
         <LandingTestimonial />
-        <hr className="border-gray-100 mx-6" />
         <LandingPricing />
         <LandingFooterCta />
       </main>
