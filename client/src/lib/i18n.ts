@@ -5724,6 +5724,22 @@ export const translations: Translations = {
     en: 'Never',
     nl: 'Nooit'
   },
+  'ownersDashboard.usersLabel': {
+    en: 'users',
+    nl: 'gebruikers'
+  },
+  'ownersDashboard.showingUsersOf': {
+    en: 'Showing 20 of {total} users in this school',
+    nl: 'Toont 20 van {total} gebruikers in deze school'
+  },
+  'ownersDashboard.confirmDeleteSchool': {
+    en: 'Are you sure you want to delete "{name}"?',
+    nl: 'Weet je zeker dat je "{name}" wilt verwijderen?'
+  },
+  'ownersDashboard.confirmDeleteUser': {
+    en: 'Are you sure you want to delete "{name}"?',
+    nl: 'Weet je zeker dat je "{name}" wilt verwijderen?'
+  },
 
   // Analytics page
   'analytics.title': {
