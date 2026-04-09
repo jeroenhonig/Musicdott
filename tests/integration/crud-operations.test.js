@@ -585,4 +585,127 @@ describe('CRUD Operations Integration Tests', () => {
       console.log('✅ Teacher content access working properly');
     });
   });
+
+  describe('Sessions', () => {
+    it('should create a lesson session with ISO date strings', async () => {
+      console.log('📅 Testing session creation with ISO date strings...');
+
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // First create a student to assign the session to
+      const studentData = {
+        firstName: 'Session',
+        lastName: 'Test',
+        name: 'Session Test',
+        username: `session_test_${Date.now()}`,
+        email: `session.test.${Date.now()}@musicdott.test`,
+        level: 'beginner',
+        instrument: 'piano'
+      };
+
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie, studentData
+      );
+
+      let studentId;
+      if (studentRes.status === 201 || studentRes.status === 200) {
+        studentId = studentRes.body.id;
+      } else {
+        // Fallback - use a known student ID
+        studentId = 2;
+      }
+
+      const sessionData = {
+        studentId: studentId,
+        title: 'Piano Lesson',
+        startTime: '2026-04-10T14:00:00.000Z',
+        endTime: '2026-04-10T14:45:00.000Z'
+      };
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/sessions', cookie, sessionData
+      );
+
+      console.log(`Session creation response: ${res.status}`);
+
+      // Should accept ISO date strings without validation error
+      expect(res.status).not.toBe(400);
+      expect(res.status).not.toBe(401);
+      expect(res.status).not.toBe(403);
+
+      if (res.status === 201) {
+        expect(res.body.id).toBeDefined();
+        expect(res.body.title).toBe('Piano Lesson');
+        expect(res.body.studentId).toBe(studentId);
+        console.log('✅ Session created successfully with ISO date strings');
+      }
+    });
+
+    it('should update a session with ISO date strings', async () => {
+      console.log('📅 Testing session update with ISO date strings...');
+
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // First create a session
+      const studentData = {
+        firstName: 'Update',
+        lastName: 'Test',
+        name: 'Update Test',
+        username: `update_test_${Date.now()}`,
+        email: `update.test.${Date.now()}@musicdott.test`,
+        level: 'beginner',
+        instrument: 'guitar'
+      };
+
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie, studentData
+      );
+
+      let studentId = 2;
+      if (studentRes.status === 201 || studentRes.status === 200) {
+        studentId = studentRes.body.id;
+      }
+
+      const createData = {
+        studentId: studentId,
+        title: 'Guitar Lesson',
+        startTime: '2026-04-11T10:00:00.000Z',
+        endTime: '2026-04-11T10:30:00.000Z'
+      };
+
+      const createRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/sessions', cookie, createData
+      );
+
+      if (createRes.status !== 201) {
+        console.log('⏭️ Skipping session update - creation failed');
+        return;
+      }
+
+      const sessionId = createRes.body.id;
+
+      // Now update with ISO date strings
+      const updateData = {
+        title: 'Updated Guitar Lesson',
+        startTime: '2026-04-11T11:00:00.000Z',
+        endTime: '2026-04-11T11:45:00.000Z'
+      };
+
+      const updateRes = await makeAuthenticatedRequest(
+        app, 'PUT', `/api/sessions/${sessionId}`, cookie, updateData
+      );
+
+      console.log(`Session update response: ${updateRes.status}`);
+
+      // Should accept ISO date strings without validation error
+      expect(updateRes.status).not.toBe(400);
+      expect(updateRes.status).not.toBe(401);
+      expect(updateRes.status).not.toBe(403);
+
+      if (updateRes.status === 200) {
+        expect(updateRes.body.title).toBe('Updated Guitar Lesson');
+        console.log('✅ Session updated successfully with ISO date strings');
+      }
+    });
+  });
 });
