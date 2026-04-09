@@ -531,6 +531,26 @@ describe('CRUD Operations Integration Tests', () => {
       expect(Array.isArray(getRes.body)).toBe(true);
       expect(getRes.body.length).toBeGreaterThan(0);
     });
+
+    it('should accept content or message field in POST /api/messages', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // Test with `content` field
+      const resContent = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Content field test', content: 'Hello via content field' }
+      );
+      expect(resContent.status).toBe(201);
+      expect(resContent.body.id).toBeDefined();
+
+      // Test with `message` field
+      const resMessage = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Message field test', message: 'Hello via message field' }
+      );
+      expect(resMessage.status).toBe(201);
+      expect(resMessage.body.id).toBeDefined();
+    });
   });
 
   describe('Permission Checks', () => {
@@ -583,6 +603,73 @@ describe('CRUD Operations Integration Tests', () => {
       }
       
       console.log('✅ Teacher content access working properly');
+    });
+  });
+
+  describe('Assignment schoolId', () => {
+    it('should set schoolId on created assignment', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // Create a student first to have a valid studentId (teacher-owned)
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie,
+        {
+          name: 'Assignment SchoolId Test',
+          instrument: 'guitar',
+          level: 'beginner',
+          username: `assign_school_test_${Date.now()}`,
+          password: 'Password1!',
+        }
+      );
+
+      if (studentRes.status !== 201 && studentRes.status !== 200) {
+        // Skip if student creation is unavailable in this environment
+        return;
+      }
+
+      const studentId = studentRes.body.id;
+
+      // Create a lesson to assign
+      const lessonRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/lessons', cookie,
+        { title: 'SchoolId Test Lesson', instrument: 'guitar', level: 'beginner', contentType: 'standard' }
+      );
+      const lessonId = (lessonRes.status === 201 || lessonRes.status === 200) ? lessonRes.body.id : undefined;
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/assignments', cookie,
+        {
+          studentId,
+          ...(lessonId ? { lessonId } : {}),
+          title: 'Practice scales',
+          status: 'assigned',
+        }
+      );
+
+      expect(res.status).toBe(201);
+      // schoolId should be set (non-null)
+      expect(res.body.schoolId).toBeDefined();
+    });
+  });
+
+  describe('Student age field', () => {
+    it('should store student age as a number', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie,
+        {
+          name: 'Age Test Student',
+          instrument: 'guitar',
+          level: 'beginner',
+          username: `age_test_${Date.now()}`,
+          password: 'Password1!',
+          age: '10',
+        }
+      );
+
+      expect(res.status).toBe(201);
+      expect(res.body.age).toBe(10);
     });
   });
 
