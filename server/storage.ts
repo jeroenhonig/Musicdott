@@ -328,6 +328,8 @@ export class MemStorage implements IStorage {
   private groovePatterns: Map<string, GroovePattern> = new Map();
   private schoolMemberships: Map<number, SchoolMembership> = new Map();
   private notifications: Map<number, Notification> = new Map();
+  private messagesData: Map<number, any> = new Map();
+  private messagesIdCounter: number = 1;
 
   // POS Import System maps
   private posNotations: Map<number, Notation> = new Map();
@@ -1413,11 +1415,20 @@ export class MemStorage implements IStorage {
     });
   }
   
-  async getMessages(userId: number): Promise<any[]> { return []; }
-  async getMessage(id: number): Promise<any | undefined> { return undefined; }
-  async createMessage(message: any): Promise<any> { return { id: 1, ...message }; }
+  async getMessages(userId: number): Promise<any[]> {
+    return Array.from(this.messagesData.values()).filter(
+      (m) => m.senderId === userId || m.recipientId === userId
+    );
+  }
+  async getMessage(id: number): Promise<any | undefined> { return this.messagesData.get(id); }
+  async createMessage(message: any): Promise<any> {
+    const id = this.messagesIdCounter++;
+    const newMessage = { id, createdAt: new Date(), isRead: false, ...message };
+    this.messagesData.set(id, newMessage);
+    return newMessage;
+  }
   async updateMessage(id: number, message: any): Promise<any> { return { id, ...message }; }
-  async deleteMessage(id: number): Promise<void> { }
+  async deleteMessage(id: number): Promise<void> { this.messagesData.delete(id); }
   async getUnreadMessageCount(userId: number, userType: string): Promise<number> { return 0; }
   
   // Lesson Categories

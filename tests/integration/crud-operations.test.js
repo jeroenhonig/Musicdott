@@ -513,6 +513,26 @@ describe('CRUD Operations Integration Tests', () => {
     });
   });
 
+  describe('Messages', () => {
+    it('should persist a message and retrieve it', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const sendRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Test subject', message: 'Hello teacher' }
+      );
+      expect(sendRes.status).toBe(201);
+      expect(sendRes.body.id).toBeDefined();
+
+      const getRes = await makeAuthenticatedRequest(
+        app, 'GET', '/api/messages', cookie
+      );
+      expect(getRes.status).toBe(200);
+      expect(Array.isArray(getRes.body)).toBe(true);
+      expect(getRes.body.length).toBeGreaterThan(0);
+    });
+  });
+
   describe('Permission Checks', () => {
     it('should prevent students from creating content', async () => {
       console.log('🚫 Testing student permission restrictions...');
