@@ -132,6 +132,24 @@ describe('Authentication & Authorization Tests', () => {
 
       assertResponseCode(response, 401, 'Unauthenticated access');
     });
+
+    it("should set session cookie over HTTP when COOKIE_SECURE is not set", async () => {
+      const response = await makeAuthenticatedRequest(
+        app, 'POST', '/api/login', null,
+        {
+          username: TEST_USERS.TEACHER.username,
+          password: TEST_USERS.TEACHER.password
+        }
+      );
+
+      assertResponseCode(response, 200, 'Login with no COOKIE_SECURE set');
+      expect(response.headers["set-cookie"]).toBeDefined();
+      const sessionCookie = response.headers["set-cookie"].find((cookie) =>
+        cookie.startsWith('musicdott.sid=')
+      );
+      expect(sessionCookie).toBeTruthy();
+      expect(sessionCookie).toMatch(/HttpOnly/i);
+    });
   });
 
   describe('Role-Based Access Control', () => {
@@ -398,7 +416,7 @@ describe('Authentication & Authorization Tests', () => {
 
     it('should validate password change requirements', async () => {
       const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
-      
+
       const response = await makeAuthenticatedRequest(
         app, 'PATCH', '/api/user/password', cookie,
         {
@@ -409,7 +427,7 @@ describe('Authentication & Authorization Tests', () => {
 
       // Password change should work for valid data
       expect([200, 400]).toContain(response.status);
-      
+
       if (response.status === 400) {
         // Check if it's validation error (not auth error)
         expect(response.body).toHaveProperty('message');
