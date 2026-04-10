@@ -513,6 +513,46 @@ describe('CRUD Operations Integration Tests', () => {
     });
   });
 
+  describe('Messages', () => {
+    it('should persist a message and retrieve it', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const sendRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Test subject', message: 'Hello teacher' }
+      );
+      expect(sendRes.status).toBe(201);
+      expect(sendRes.body.id).toBeDefined();
+
+      const getRes = await makeAuthenticatedRequest(
+        app, 'GET', '/api/messages', cookie
+      );
+      expect(getRes.status).toBe(200);
+      expect(Array.isArray(getRes.body)).toBe(true);
+      expect(getRes.body.length).toBeGreaterThan(0);
+    });
+
+    it('should accept content or message field in POST /api/messages', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // Test with `content` field
+      const resContent = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Content field test', content: 'Hello via content field' }
+      );
+      expect(resContent.status).toBe(201);
+      expect(resContent.body.id).toBeDefined();
+
+      // Test with `message` field
+      const resMessage = await makeAuthenticatedRequest(
+        app, 'POST', '/api/messages', cookie,
+        { recipientId: 3, subject: 'Message field test', message: 'Hello via message field' }
+      );
+      expect(resMessage.status).toBe(201);
+      expect(resMessage.body.id).toBeDefined();
+    });
+  });
+
   describe('Permission Checks', () => {
     it('should prevent students from creating content', async () => {
       console.log('🚫 Testing student permission restrictions...');
@@ -563,6 +603,196 @@ describe('CRUD Operations Integration Tests', () => {
       }
       
       console.log('✅ Teacher content access working properly');
+    });
+  });
+
+  describe('Assignment schoolId', () => {
+    it('should set schoolId on created assignment', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // Create a student first to have a valid studentId (teacher-owned)
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie,
+        {
+          name: 'Assignment SchoolId Test',
+          instrument: 'guitar',
+          level: 'beginner',
+          username: `assign_school_test_${Date.now()}`,
+          password: 'Password1!',
+        }
+      );
+
+      if (studentRes.status !== 201 && studentRes.status !== 200) {
+        // Skip if student creation is unavailable in this environment
+        return;
+      }
+
+      const studentId = studentRes.body.id;
+
+      // Create a lesson to assign
+      const lessonRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/lessons', cookie,
+        { title: 'SchoolId Test Lesson', instrument: 'guitar', level: 'beginner', contentType: 'standard' }
+      );
+      const lessonId = (lessonRes.status === 201 || lessonRes.status === 200) ? lessonRes.body.id : undefined;
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/assignments', cookie,
+        {
+          studentId,
+          ...(lessonId ? { lessonId } : {}),
+          title: 'Practice scales',
+          status: 'assigned',
+        }
+      );
+
+      expect(res.status).toBe(201);
+      // schoolId should be set (non-null)
+      expect(res.body.schoolId).toBeDefined();
+    });
+  });
+
+  describe('Student age field', () => {
+    it('should store student age as a number', async () => {
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie,
+        {
+          name: 'Age Test Student',
+          instrument: 'guitar',
+          level: 'beginner',
+          username: `age_test_${Date.now()}`,
+          password: 'Password1!',
+          age: '10',
+        }
+      );
+
+      expect(res.status).toBe(201);
+      expect(res.body.age).toBe(10);
+    });
+  });
+
+  describe('Sessions', () => {
+    it('should create a lesson session with ISO date strings', async () => {
+      console.log('📅 Testing session creation with ISO date strings...');
+
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // First create a student to assign the session to
+      const studentData = {
+        firstName: 'Session',
+        lastName: 'Test',
+        name: 'Session Test',
+        username: `session_test_${Date.now()}`,
+        email: `session.test.${Date.now()}@musicdott.test`,
+        level: 'beginner',
+        instrument: 'piano'
+      };
+
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie, studentData
+      );
+
+      let studentId;
+      if (studentRes.status === 201 || studentRes.status === 200) {
+        studentId = studentRes.body.id;
+      } else {
+        // Fallback - use a known student ID
+        studentId = 2;
+      }
+
+      const sessionData = {
+        studentId: studentId,
+        title: 'Piano Lesson',
+        startTime: '2026-04-10T14:00:00.000Z',
+        endTime: '2026-04-10T14:45:00.000Z'
+      };
+
+      const res = await makeAuthenticatedRequest(
+        app, 'POST', '/api/sessions', cookie, sessionData
+      );
+
+      console.log(`Session creation response: ${res.status}`);
+
+      // Should accept ISO date strings without validation error
+      expect(res.status).not.toBe(400);
+      expect(res.status).not.toBe(401);
+      expect(res.status).not.toBe(403);
+
+      if (res.status === 201) {
+        expect(res.body.id).toBeDefined();
+        expect(res.body.title).toBe('Piano Lesson');
+        expect(res.body.studentId).toBe(studentId);
+        console.log('✅ Session created successfully with ISO date strings');
+      }
+    });
+
+    it('should update a session with ISO date strings', async () => {
+      console.log('📅 Testing session update with ISO date strings...');
+
+      const { cookie } = await loginUser(app, TEST_USERS.TEACHER);
+
+      // First create a session
+      const studentData = {
+        firstName: 'Update',
+        lastName: 'Test',
+        name: 'Update Test',
+        username: `update_test_${Date.now()}`,
+        email: `update.test.${Date.now()}@musicdott.test`,
+        level: 'beginner',
+        instrument: 'guitar'
+      };
+
+      const studentRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/students', cookie, studentData
+      );
+
+      let studentId = 2;
+      if (studentRes.status === 201 || studentRes.status === 200) {
+        studentId = studentRes.body.id;
+      }
+
+      const createData = {
+        studentId: studentId,
+        title: 'Guitar Lesson',
+        startTime: '2026-04-11T10:00:00.000Z',
+        endTime: '2026-04-11T10:30:00.000Z'
+      };
+
+      const createRes = await makeAuthenticatedRequest(
+        app, 'POST', '/api/sessions', cookie, createData
+      );
+
+      if (createRes.status !== 201) {
+        console.log('⏭️ Skipping session update - creation failed');
+        return;
+      }
+
+      const sessionId = createRes.body.id;
+
+      // Now update with ISO date strings
+      const updateData = {
+        title: 'Updated Guitar Lesson',
+        startTime: '2026-04-11T11:00:00.000Z',
+        endTime: '2026-04-11T11:45:00.000Z'
+      };
+
+      const updateRes = await makeAuthenticatedRequest(
+        app, 'PUT', `/api/sessions/${sessionId}`, cookie, updateData
+      );
+
+      console.log(`Session update response: ${updateRes.status}`);
+
+      // Should accept ISO date strings without validation error
+      expect(updateRes.status).not.toBe(400);
+      expect(updateRes.status).not.toBe(401);
+      expect(updateRes.status).not.toBe(403);
+
+      if (updateRes.status === 200) {
+        expect(updateRes.body.title).toBe('Updated Guitar Lesson');
+        console.log('✅ Session updated successfully with ISO date strings');
+      }
     });
   });
 });

@@ -86,6 +86,12 @@ export const errorHandler = (
   }
 
   // Handle unexpected errors
+  // Capture unexpected errors in Sentry (not operational AppErrors)
+  if (!(err instanceof AppError) && process.env.SENTRY_DSN) {
+    import("@sentry/node").then(({ captureException }) => {
+      captureException(err, { extra: { path: req.path, method: req.method } });
+    });
+  }
   console.error("Unexpected error:", err);
   
   // Don't expose internal error details in production

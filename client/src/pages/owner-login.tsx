@@ -72,6 +72,7 @@ export default function OwnerLogin() {
                       <Input
                         {...field}
                         type="text"
+                        autoComplete="username"
                         placeholder={t('ownerLogin.usernamePlaceholder')}
                         disabled={isLoading}
                       />
@@ -91,6 +92,7 @@ export default function OwnerLogin() {
                       <Input
                         {...field}
                         type="password"
+                        autoComplete="current-password"
                         placeholder={t('ownerLogin.passwordPlaceholder')}
                         disabled={isLoading}
                       />

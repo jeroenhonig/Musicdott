@@ -78,7 +78,7 @@ export function LandingLoginModal({ isOpen, onClose }: LandingLoginModalProps) {
                   <FormItem>
                     <FormLabel>Gebruikersnaam</FormLabel>
                     <FormControl>
-                      <Input placeholder="gebruikersnaam" {...field} />
+                      <Input autoComplete="username" placeholder="gebruikersnaam" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -91,7 +91,7 @@ export function LandingLoginModal({ isOpen, onClose }: LandingLoginModalProps) {
                   <FormItem>
                     <FormLabel>Wachtwoord</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" autoComplete="current-password" placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
