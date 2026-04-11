@@ -1042,6 +1042,10 @@ export const translations: Translations = {
     en: 'Notes',
     nl: 'Opmerkingen'
   },
+  'studentDetails.tab.practiceLog': {
+    en: 'Practice Log',
+    nl: 'Oefenlog'
+  },
 
   // Student details — Assignments tab
   'studentDetails.assignments.title': {
@@ -1217,6 +1221,115 @@ export const translations: Translations = {
   'studentDetails.sessions.deleteFailed': {
     en: 'Failed to delete session',
     nl: 'Sessie verwijderen mislukt'
+  },
+  // Attendance
+  'studentDetails.sessions.col.attendance': {
+    en: 'Attendance',
+    nl: 'Aanwezigheid'
+  },
+  'studentDetails.sessions.attendance.present': {
+    en: 'Present',
+    nl: 'Aanwezig'
+  },
+  'studentDetails.sessions.attendance.noshow': {
+    en: 'No-show',
+    nl: 'Niet verschenen'
+  },
+  'studentDetails.sessions.attendance.markPresent': {
+    en: 'Mark present',
+    nl: 'Aanwezig markeren'
+  },
+  'studentDetails.sessions.attendance.markNoshow': {
+    en: 'Mark no-show',
+    nl: 'Niet verschenen markeren'
+  },
+  'studentDetails.sessions.attendance.saved': {
+    en: 'Attendance saved',
+    nl: 'Aanwezigheid opgeslagen'
+  },
+  // Teacher notes
+  'studentDetails.sessions.col.teacherNotes': {
+    en: 'Teaching Notes',
+    nl: 'Lesnotities'
+  },
+  'studentDetails.sessions.teacherNotes.placeholder': {
+    en: 'Notes from this lesson...',
+    nl: 'Notities van deze les...'
+  },
+  'studentDetails.sessions.teacherNotes.saved': {
+    en: 'Notes saved',
+    nl: 'Notities opgeslagen'
+  },
+  // Practice log (teacher view on student detail)
+  'studentDetails.practiceLog.title': {
+    en: 'Practice Log',
+    nl: 'Oefenlog'
+  },
+  'studentDetails.practiceLog.description': {
+    en: 'Practice sessions logged by {name}',
+    nl: 'Oefensessies geregistreerd door {name}'
+  },
+  'studentDetails.practiceLog.empty': {
+    en: 'No practice sessions logged yet',
+    nl: 'Nog geen oefensessies geregistreerd'
+  },
+  'studentDetails.practiceLog.col.date': {
+    en: 'Date',
+    nl: 'Datum'
+  },
+  'studentDetails.practiceLog.col.duration': {
+    en: 'Duration',
+    nl: 'Duur'
+  },
+  'studentDetails.practiceLog.col.xp': {
+    en: 'XP',
+    nl: 'XP'
+  },
+  'studentDetails.practiceLog.col.notes': {
+    en: 'Notes',
+    nl: 'Opmerkingen'
+  },
+  'studentDetails.practiceLog.minutes': {
+    en: '{n} min',
+    nl: '{n} min'
+  },
+
+  // Student portal — Practice log (student self-log form)
+  'studentPortal.practice.logManual.title': {
+    en: 'Log Practice Time',
+    nl: 'Oefentijd registreren'
+  },
+  'studentPortal.practice.logManual.description': {
+    en: 'How long did you practice today?',
+    nl: 'Hoe lang heb je vandaag geoefend?'
+  },
+  'studentPortal.practice.logManual.minutesLabel': {
+    en: 'Minutes practiced',
+    nl: 'Minuten geoefend'
+  },
+  'studentPortal.practice.logManual.notesLabel': {
+    en: 'What did you practice? (optional)',
+    nl: 'Wat heb je geoefend? (optioneel)'
+  },
+  'studentPortal.practice.logManual.notesPlaceholder': {
+    en: 'e.g. scales, the new song...',
+    nl: 'bijv. toonladders, het nieuwe nummer...'
+  },
+  'studentPortal.practice.logManual.submit': {
+    en: 'Log practice',
+    nl: 'Registreren'
+  },
+  'studentPortal.practice.logManual.submitting': {
+    en: 'Saving...',
+    nl: 'Opslaan...'
+  },
+  'studentPortal.practice.logManual.success': {
+    en: 'Practice logged! +{xp} XP',
+    nl: 'Oefensessie geregistreerd! +{xp} XP'
+  },
+  'studentPortal.practice.logManual.error': {
+    en: 'Failed to log practice',
+    nl: 'Oefensessie registreren mislukt'
   },
 
   // Student details — Notes tab

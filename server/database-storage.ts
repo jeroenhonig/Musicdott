@@ -637,16 +637,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudentPracticeSessions(studentId: number): Promise<PracticeSession[]> {
-    return db.select({
-      id: practiceSessions.id,
-      studentId: practiceSessions.studentId,
-      lessonId: practiceSessions.lessonId,
-      songId: practiceSessions.songId,
-      startTime: practiceSessions.startTime,
-      endTime: practiceSessions.endTime,
-      duration: practiceSessions.duration,
-      notes: practiceSessions.notes
-    })
+    return db.select()
       .from(practiceSessions)
       .where(eq(practiceSessions.studentId, studentId));
   }

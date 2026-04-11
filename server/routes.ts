@@ -1671,6 +1671,79 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     }
   });
 
+  // Manual practice log: student self-reports practice minutes, earns XP
+  app.post("/api/practice-sessions/manual",
+    requireAuth,
+    loadSchoolContext,
+    async (req: Request, res: Response) => {
+    try {
+      const manualLogSchema = z.object({
+        studentId: z.number().int().positive(),
+        duration: z.number().int().min(1).max(480), // 1–480 minutes
+        notes: z.string().max(500).optional(),
+      });
+
+      const { studentId, duration, notes } = manualLogSchema.parse(req.body);
+
+      // Require school context — reject if middleware didn't populate it
+      const schoolId = req.school?.id;
+      if (!schoolId && !req.school?.isPlatformOwner()) {
+        return res.status(401).json({ message: "School context required" });
+      }
+
+      // Verify student belongs to this school
+      const student = await storage.getStudent(studentId);
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+      if (!req.school?.isPlatformOwner() && student.schoolId !== schoolId) {
+        return res.status(403).json({ message: "Student belongs to a different school" });
+      }
+
+      // Students may only log for themselves
+      if (req.user!.role === "student" && student.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Students can only log their own practice" });
+      }
+
+      const now = new Date();
+      const startTime = new Date(now.getTime() - duration * 60 * 1000);
+
+      // XP: 1 per minute, capped at 60
+      const xpAwarded = Math.min(duration, 60);
+
+      const practiceSession = await storage.createPracticeSession({
+        studentId,
+        startTime,
+        endTime: now,
+        duration,
+        notes: notes ?? null,
+        xpAwarded,
+      });
+
+      // Award XP — soft failure so a DB error here doesn't undo the practice log
+      try {
+        await storage.createStudentAchievement({
+          studentId,
+          achievementType: "practice_logged",
+          title: `Geoefend: ${duration} min`,
+          description: notes || null,
+          pointsEarned: xpAwarded,
+          badgeIcon: "music",
+          isVisible: true,
+        });
+      } catch (xpError) {
+        console.error("XP award failed (practice session was saved):", xpError);
+      }
+
+      res.status(201).json({ ...practiceSession, xpAwarded });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to log practice session" });
+    }
+  });
+
   // Configure multer for CSV file uploads
   const upload = multer({
     storage: multer.diskStorage({

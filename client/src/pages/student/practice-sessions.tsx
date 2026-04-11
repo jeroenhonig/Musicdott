@@ -4,7 +4,10 @@ import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlayCircle, Square, Clock, TrendingUp, Wifi, WifiOff } from "lucide-react";
+import { PlayCircle, Square, Clock, TrendingUp, Wifi, WifiOff, Zap, PenLine } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -18,6 +21,8 @@ export default function PracticeSessionsPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
+  const [manualMinutes, setManualMinutes] = useState<string>("30");
+  const [manualNotes, setManualNotes] = useState<string>("");
   
   // Real-time synchronization for practice session coordination
   const { 
@@ -128,6 +133,33 @@ export default function PracticeSessionsPage() {
     },
   });
 
+  const logPracticeMutation = useMutation({
+    mutationFn: async ({ studentId, duration, notes }: { studentId: number; duration: number; notes: string }) => {
+      return apiRequest("POST", "/api/practice-sessions/manual", { studentId, duration, notes });
+    },
+    onSuccess: (data: any) => {
+      setManualMinutes("30");
+      setManualNotes("");
+      queryClient.invalidateQueries({ queryKey: ["/api/students", studentId, "practice-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/practice-sessions"] });
+      toast({
+        title: t('studentPortal.practice.logManual.success', { xp: String(data?.xpAwarded ?? 0) }),
+      });
+    },
+    onError: () => {
+      toast({
+        title: t('studentPortal.practice.logManual.error'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleManualLog = () => {
+    const mins = parseInt(manualMinutes, 10);
+    if (!studentId || isNaN(mins) || mins < 1) return;
+    logPracticeMutation.mutate({ studentId, duration: mins, notes: manualNotes });
+  };
+
   const activeSession = Array.isArray(activeSessions) ? activeSessions[0] : null;
 
   if (isLoading) {
@@ -222,6 +254,58 @@ export default function PracticeSessionsPage() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Manual Practice Log */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <PenLine className="h-4 w-4" />
+              {t('studentPortal.practice.logManual.title')}
+            </CardTitle>
+            <CardDescription>{t('studentPortal.practice.logManual.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3 items-end">
+              <div className="flex-none w-32">
+                <Label htmlFor="practice-minutes" className="text-sm mb-1 block">
+                  {t('studentPortal.practice.logManual.minutesLabel')}
+                </Label>
+                <Input
+                  id="practice-minutes"
+                  type="number"
+                  min={1}
+                  max={480}
+                  value={manualMinutes}
+                  onChange={(e) => setManualMinutes(e.target.value)}
+                  className="text-center"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="practice-notes" className="text-sm mb-1 block">
+                  {t('studentPortal.practice.logManual.notesLabel')}
+                </Label>
+                <Textarea
+                  id="practice-notes"
+                  placeholder={t('studentPortal.practice.logManual.notesPlaceholder')}
+                  value={manualNotes}
+                  onChange={(e) => setManualNotes(e.target.value)}
+                  className="resize-none h-10"
+                  rows={1}
+                />
+              </div>
+              <Button
+                onClick={handleManualLog}
+                disabled={logPracticeMutation.isPending || !studentId}
+                className="flex-none"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                {logPracticeMutation.isPending
+                  ? t('studentPortal.practice.logManual.submitting')
+                  : t('studentPortal.practice.logManual.submit')}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

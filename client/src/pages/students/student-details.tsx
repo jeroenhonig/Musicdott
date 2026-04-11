@@ -21,8 +21,15 @@ import {
   Trash2,
   Calendar,
   Plus,
-  MoreHorizontal
+  MoreHorizontal,
+  CheckCircle2,
+  XCircle,
+  NotebookPen,
+  Clock,
+  Zap,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 import AchievementsTab from "./achievements-tab";
 import {
   Table,
@@ -48,7 +55,11 @@ export default function StudentDetailsPage() {
   const studentId = parseInt(id);
   const { toast } = useToast();
   const { t } = useTranslation();
-  
+  const { user } = useAuth();
+
+  // Per-session teacher notes: track local edits before save
+  const [pendingNotes, setPendingNotes] = useState<Record<number, string>>({});
+
   const { data: student, isLoading: isLoadingStudent } = useQuery<Student>({
     queryKey: [`/api/students/${studentId}`],
     enabled: !isNaN(studentId),
@@ -61,6 +72,11 @@ export default function StudentDetailsPage() {
   
   const { data: sessions, isLoading: isLoadingSessions } = useQuery<Session[]>({
     queryKey: [`/api/students/${studentId}/sessions`],
+    enabled: !isNaN(studentId),
+  });
+
+  const { data: practiceLogs = [], isLoading: isLoadingPracticeLogs } = useQuery<any[]>({
+    queryKey: [`/api/students/${studentId}/practice-sessions`],
     enabled: !isNaN(studentId),
   });
   
@@ -103,7 +119,37 @@ export default function StudentDetailsPage() {
       });
     },
   });
-  
+
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ sessionId, data }: { sessionId: number; data: Record<string, unknown> }) => {
+      return apiRequest("PUT", `/api/sessions/${sessionId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/students/${studentId}/sessions`] });
+    },
+  });
+
+  const saveTeacherNotes = (sessionId: number) => {
+    const notes = pendingNotes[sessionId];
+    if (notes === undefined) return;
+    updateSessionMutation.mutate(
+      { sessionId, data: { teacherNotes: notes } },
+      {
+        onSuccess: () => toast({ title: t('studentDetails.sessions.teacherNotes.saved') }),
+      }
+    );
+  };
+
+  const toggleAttendance = (session: Session) => {
+    const newStatus = session.status === "completed" ? "noshow" : "completed";
+    updateSessionMutation.mutate(
+      { sessionId: session.id, data: { status: newStatus } },
+      {
+        onSuccess: () => toast({ title: t('studentDetails.sessions.attendance.saved') }),
+      }
+    );
+  };
+
   const getLevelBadgeColor = (level: string) => {
     switch (level.toLowerCase()) {
       case 'beginner':
@@ -256,6 +302,10 @@ export default function StudentDetailsPage() {
               <TabsTrigger value="notes" className="flex items-center">
                 <CalendarRange className="h-4 w-4 mr-2" />
                 {t('studentDetails.tab.notes')}
+              </TabsTrigger>
+              <TabsTrigger value="practiceLog" className="flex items-center">
+                <Clock className="h-4 w-4 mr-2" />
+                {t('studentDetails.tab.practiceLog')}
               </TabsTrigger>
             </TabsList>
             
@@ -418,7 +468,8 @@ export default function StudentDetailsPage() {
                             <TableHead>{t('studentDetails.sessions.col.date')}</TableHead>
                             <TableHead>{t('studentDetails.sessions.col.time')}</TableHead>
                             <TableHead>{t('studentDetails.sessions.col.duration')}</TableHead>
-                            <TableHead>{t('studentDetails.sessions.col.notes')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.attendance')}</TableHead>
+                            <TableHead>{t('studentDetails.sessions.col.teacherNotes')}</TableHead>
                             <TableHead className="text-right">{t('studentDetails.sessions.col.actions')}</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -436,9 +487,40 @@ export default function StudentDetailsPage() {
                                 {Math.round((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60))} min
                               </TableCell>
                               <TableCell>
-                                <div className="max-w-xs truncate">
-{session.notes || t('studentDetails.sessions.noNotes')}
-                                </div>
+                                {session.status === "scheduled" || session.status === "vacation_blocked" ? (
+                                  <Badge variant="outline" className="text-gray-500">—</Badge>
+                                ) : session.status === "completed" ? (
+                                  <button
+                                    onClick={() => toggleAttendance(session)}
+                                    className="flex items-center gap-1 text-green-700 hover:opacity-70 transition-opacity"
+                                    title={t('studentDetails.sessions.attendance.markNoshow')}
+                                  >
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    <span className="text-xs font-medium">{t('studentDetails.sessions.attendance.present')}</span>
+                                  </button>
+                                ) : session.status === "noshow" ? (
+                                  <button
+                                    onClick={() => toggleAttendance(session)}
+                                    className="flex items-center gap-1 text-red-600 hover:opacity-70 transition-opacity"
+                                    title={t('studentDetails.sessions.attendance.markPresent')}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    <span className="text-xs font-medium">{t('studentDetails.sessions.attendance.noshow')}</span>
+                                  </button>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-400 capitalize">{session.status}</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="max-w-[200px]">
+                                <Textarea
+                                  className="text-xs min-h-[60px] resize-none border-dashed focus:border-solid"
+                                  placeholder={t('studentDetails.sessions.teacherNotes.placeholder')}
+                                  value={pendingNotes[session.id] ?? session.teacherNotes ?? ""}
+                                  onChange={(e) =>
+                                    setPendingNotes((prev) => ({ ...prev, [session.id]: e.target.value }))
+                                  }
+                                  onBlur={() => saveTeacherNotes(session.id)}
+                                />
                               </TableCell>
                               <TableCell className="text-right">
                                 <DropdownMenu>
@@ -449,12 +531,24 @@ export default function StudentDetailsPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      <Edit className="mr-2 h-4 w-4" />
-                                      {t('studentDetails.sessions.editSession')}
+                                    <DropdownMenuItem
+                                      onClick={() => toggleAttendance(session)}
+                                      disabled={session.status === "scheduled" || session.status === "vacation_blocked"}
+                                    >
+                                      {session.status === "completed" ? (
+                                        <>
+                                          <XCircle className="mr-2 h-4 w-4" />
+                                          {t('studentDetails.sessions.attendance.markNoshow')}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                                          {t('studentDetails.sessions.attendance.markPresent')}
+                                        </>
+                                      )}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-red-600" 
-                                      onClick={() => deleteSessionMutation.mutate(session.id)} 
+                                    <DropdownMenuItem className="text-red-600"
+                                      onClick={() => deleteSessionMutation.mutate(session.id)}
                                       disabled={deleteSessionMutation.isPending}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
@@ -495,6 +589,67 @@ export default function StudentDetailsPage() {
                       </div>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="practiceLog">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    {t('studentDetails.practiceLog.title')}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('studentDetails.practiceLog.description', { name: student.name })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingPracticeLogs ? (
+                    <div className="flex justify-center py-8">
+                      <p>{t('common.loading')}</p>
+                    </div>
+                  ) : practiceLogs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
+                      <Clock className="h-10 w-10 mb-2 opacity-30" />
+                      <p>{t('studentDetails.practiceLog.empty')}</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t('studentDetails.practiceLog.col.date')}</TableHead>
+                            <TableHead>{t('studentDetails.practiceLog.col.duration')}</TableHead>
+                            <TableHead className="flex items-center gap-1">
+                              <Zap className="h-3 w-3 text-yellow-500" />
+                              {t('studentDetails.practiceLog.col.xp')}
+                            </TableHead>
+                            <TableHead>{t('studentDetails.practiceLog.col.notes')}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {practiceLogs.map((log: any) => (
+                            <TableRow key={log.id}>
+                              <TableCell>{formatDate(log.startTime)}</TableCell>
+                              <TableCell>
+                                {t('studentDetails.practiceLog.minutes', { n: String(log.duration ?? "?") })}
+                              </TableCell>
+                              <TableCell>
+                                {log.xpAwarded ? (
+                                  <span className="text-yellow-600 font-medium">+{log.xpAwarded}</span>
+                                ) : (
+                                  <span className="text-gray-400">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm text-gray-600">{log.notes || "—"}</span>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

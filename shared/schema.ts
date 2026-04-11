@@ -464,6 +464,7 @@ export const sessions = pgTable("sessions", {
   endTime: timestamp("end_time").notNull(),
   durationMin: integer("duration_min").default(30),
   notes: text("notes"),
+  teacherNotes: text("teacher_notes"), // Private teaching log — visible to teachers/owners only
   // Agenda improvements
   parentSeriesId: integer("parent_series_id"),
   status: text("status").default("scheduled"), // scheduled | completed | noshow | cancelled | rescheduled | vacation_blocked
@@ -530,8 +531,9 @@ export const practiceSessions = pgTable("practice_sessions", {
   songId: integer("song_id"),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
-  duration: integer("duration"),
+  duration: integer("duration"), // minutes
   notes: text("notes"),
+  xpAwarded: integer("xp_awarded").default(0), // XP earned for this practice entry
 });
 
 export type PracticeSession = typeof practiceSessions.$inferSelect;
