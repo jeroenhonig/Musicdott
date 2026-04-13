@@ -14,9 +14,11 @@ export function shouldSkipTranslation(text: string | null | undefined): boolean 
 // Client-side cache to avoid duplicate API calls within a session
 const clientCache = new Map<string, string>();
 
-const TARGET_LANG: Record<Language, "EN" | "NL"> = {
+const TARGET_LANG: Record<Language, string> = {
   en: "EN",
   nl: "NL",
+  de: "DE",
+  es: "ES",
 };
 
 /**

@@ -78,13 +78,13 @@ const scheduleFormSchema = z.object({
 type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
 
 const DAYS_OF_WEEK = [
-  { value: 1, label: "Monday", short: "Mon" },
-  { value: 2, label: "Tuesday", short: "Tue" },
-  { value: 3, label: "Wednesday", short: "Wed" },
-  { value: 4, label: "Thursday", short: "Thu" },
-  { value: 5, label: "Friday", short: "Fri" },
-  { value: 6, label: "Saturday", short: "Sat" },
-  { value: 0, label: "Sunday", short: "Sun" },
+  { value: 1, labelKey: "schedule.days.monday" as const },
+  { value: 2, labelKey: "schedule.days.tuesday" as const },
+  { value: 3, labelKey: "schedule.days.wednesday" as const },
+  { value: 4, labelKey: "schedule.days.thursday" as const },
+  { value: 5, labelKey: "schedule.days.friday" as const },
+  { value: 6, labelKey: "schedule.days.saturday" as const },
+  { value: 0, labelKey: "schedule.days.sunday" as const },
 ];
 
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => {
@@ -513,7 +513,7 @@ export default function SchedulePage() {
                   return (
                     <div key={day.value} className="min-h-[200px]">
                       <div className="text-center mb-3">
-                        <h3 className="font-semibold text-gray-900">{day.label}</h3>
+                        <h3 className="font-semibold text-gray-900">{t(day.labelKey)}</h3>
                         <p className="text-sm text-gray-500">
                           {format(currentDate, "MMM d")}
                         </p>
@@ -578,7 +578,7 @@ export default function SchedulePage() {
                           {t('schedule.conflictWith')} {getStudentName(conflict.existing.studentId)}
                         </div>
                         <div className="text-sm text-red-700">
-                          {DAYS_OF_WEEK.find(d => d.value === Number(conflict.existing.dayOfWeek))?.label || t('schedule.unknownDay')} {conflict.existing.startTime || 'TBD'} - {conflict.existing.endTime || 'TBD'}
+                          {(() => { const d = DAYS_OF_WEEK.find(d => d.value === Number(conflict.existing.dayOfWeek)); return d ? t(d.labelKey) : t('schedule.unknownDay'); })()} {conflict.existing.startTime || 'TBD'} - {conflict.existing.endTime || 'TBD'}
                         </div>
                       </div>
                     );
@@ -823,7 +823,7 @@ export default function SchedulePage() {
                       <SelectContent>
                         {DAYS_OF_WEEK.map((day) => (
                           <SelectItem key={day.value} value={day.value.toString()}>
-                            {day.label}
+                            {t(day.labelKey)}
                           </SelectItem>
                         ))}
                       </SelectContent>

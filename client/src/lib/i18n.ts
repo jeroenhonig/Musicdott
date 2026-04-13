@@ -1,7 +1,21 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-// Supported languages
-export type Language = 'en' | 'nl';
+// Supported languages — 'de' and 'es' are architecture-ready (keys fall back to 'en' until translated)
+export type Language = 'en' | 'nl' | 'de' | 'es';
+
+export interface LanguageMeta {
+  code: Language;
+  label: string;
+  flag: string;
+}
+
+export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
+  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  // Uncomment when translation files are ready:
+  // { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  // { code: 'es', label: 'Español', flag: '🇪🇸' },
+];
 
 // Language context
 export interface LanguageContextType {
@@ -10,11 +24,13 @@ export interface LanguageContextType {
   t: (key: string, params?: Record<string, string>) => string;
 }
 
-// Translation interface
+// Translation interface — de and es are optional; missing keys fall back to 'en'
 export interface Translations {
   [key: string]: {
     en: string;
     nl: string;
+    de?: string;
+    es?: string;
   };
 }
 
@@ -218,6 +234,154 @@ export const translations: Translations = {
   'dashboard.recentAssignments': {
     en: 'Recent Assignments',
     nl: 'Recente Opdrachten'
+  },
+  'dashboard.platformTitle': {
+    en: 'Platform Dashboard',
+    nl: 'Platform Dashboard'
+  },
+  'dashboard.teacherTitle': {
+    en: 'Teacher Dashboard',
+    nl: 'Lerarendashboard'
+  },
+  'dashboard.myTitle': {
+    en: 'My Dashboard',
+    nl: 'Mijn Dashboard'
+  },
+  'dashboard.loading': {
+    en: 'Loading...',
+    nl: 'Laden...'
+  },
+  'dashboard.grooveScribeDesc': {
+    en: 'Convert drum patterns and create interactive groove embeds',
+    nl: 'Converteer drumpatronen en maak interactieve groove-embeds'
+  },
+  'dashboard.syncDesc': {
+    en: 'Synchronize video with sheet music for interactive lessons',
+    nl: 'Synchroniseer video met bladmuziek voor interactieve lessen'
+  },
+  'dashboard.recentActivity': {
+    en: 'Recent Activity',
+    nl: 'Recente activiteit'
+  },
+  'dashboard.startPracticing': {
+    en: 'Start practicing to see your activity here!',
+    nl: 'Begin met oefenen om je activiteit hier te zien!'
+  },
+  'dashboard.totalSchools': {
+    en: 'Total Schools',
+    nl: 'Totaal Scholen'
+  },
+  'dashboard.totalUsers': {
+    en: 'Total Users',
+    nl: 'Totaal Gebruikers'
+  },
+  'dashboard.monthlyRevenue': {
+    en: 'Monthly Revenue',
+    nl: 'Maandelijkse Omzet'
+  },
+  'dashboard.activeSessions': {
+    en: 'Active Sessions',
+    nl: 'Actieve Sessies'
+  },
+  'dashboard.recentSchools': {
+    en: 'Recent Schools',
+    nl: 'Recente Scholen'
+  },
+  'dashboard.platformAnalyticsSoon': {
+    en: 'Platform analytics coming soon',
+    nl: 'Platform-analyse komt binnenkort'
+  },
+  'dashboard.systemHealth': {
+    en: 'System Health',
+    nl: 'Systeemgezondheid'
+  },
+  'dashboard.allSystemsOperational': {
+    en: 'All systems operational',
+    nl: 'Alle systemen operationeel'
+  },
+  'dashboard.students': {
+    en: 'Students',
+    nl: 'Leerlingen'
+  },
+  'dashboard.songs': {
+    en: 'Songs',
+    nl: 'Nummers'
+  },
+  'dashboard.lessons': {
+    en: 'Lessons',
+    nl: 'Lessen'
+  },
+  'dashboard.categories': {
+    en: 'Categories',
+    nl: 'Categorieën'
+  },
+  'dashboard.recentLessons': {
+    en: 'Recent Lessons',
+    nl: 'Recente Lessen'
+  },
+  'dashboard.allLevels': {
+    en: 'All levels',
+    nl: 'Alle niveaus'
+  },
+  'dashboard.viewAllLessons': {
+    en: 'View All Lessons',
+    nl: 'Alle Lessen Bekijken'
+  },
+  'dashboard.noLessonsYet': {
+    en: 'No lessons created yet',
+    nl: 'Nog geen lessen aangemaakt'
+  },
+  'dashboard.createFirstLesson': {
+    en: 'Create First Lesson',
+    nl: 'Eerste Les Aanmaken'
+  },
+  'dashboard.recentSongs': {
+    en: 'Recent Songs',
+    nl: 'Recente Nummers'
+  },
+  'dashboard.by': {
+    en: 'by',
+    nl: 'van'
+  },
+  'dashboard.viewAllSongs': {
+    en: 'View All Songs',
+    nl: 'Alle Nummers Bekijken'
+  },
+  'dashboard.noSongsYet': {
+    en: 'No songs created yet',
+    nl: 'Nog geen nummers aangemaakt'
+  },
+  'dashboard.createFirstSong': {
+    en: 'Create First Song',
+    nl: 'Eerste Nummer Aanmaken'
+  },
+  'dashboard.schoolManagement': {
+    en: 'School Management',
+    nl: 'Schoolbeheer'
+  },
+  'dashboard.manageMembers': {
+    en: 'Manage Members',
+    nl: 'Leden Beheren'
+  },
+  'dashboard.schoolSettings': {
+    en: 'School Settings',
+    nl: 'Schoolinstellingen'
+  },
+  'dashboard.billing': {
+    en: 'Billing',
+    nl: 'Facturering'
+  },
+  'dashboard.monthlyCharges': {
+    en: 'Monthly charges',
+    nl: 'Maandelijkse kosten'
+  },
+  'dashboard.performance': {
+    en: 'Performance',
+    nl: 'Prestaties'
+  },
+  'dashboard.activeThisMonth': {
+    en: 'Active this month',
+    nl: 'Actief deze maand'
   },
 
   // Lessons
@@ -7802,10 +7966,13 @@ export const translate = (key: string, language: Language, params?: Record<strin
 };
 
 // Language storage utilities
+export const isValidLanguage = (lang: unknown): lang is Language =>
+  lang === 'en' || lang === 'nl' || lang === 'de' || lang === 'es';
+
 export const getStoredLanguage = (): Language => {
   try {
     const stored = localStorage.getItem('musicdott-language');
-    return (stored === 'nl' || stored === 'en') ? stored : 'en';
+    return isValidLanguage(stored) ? stored : 'en';
   } catch {
     return 'en';
   }
@@ -7824,6 +7991,9 @@ export const detectBrowserLanguage = (): Language => {
   try {
     const browserLang = navigator.language.toLowerCase();
     if (browserLang.startsWith('nl')) return 'nl';
+    // DE and ES detection ready — uncomment when translations are available:
+    // if (browserLang.startsWith('de')) return 'de';
+    // if (browserLang.startsWith('es')) return 'es';
     return 'en';
   } catch {
     return 'en';

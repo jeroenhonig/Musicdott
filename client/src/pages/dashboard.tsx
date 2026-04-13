@@ -68,14 +68,14 @@ export default function Dashboard() {
   };
 
   const getDashboardTitle = () => {
-    if (isPlatformOwner()) return "Platform Dashboard";
+    if (isPlatformOwner()) return t('dashboard.platformTitle');
     if (isSchoolOwner()) return `${currentSchool?.name || 'School'} Dashboard`;
-    if (isTeacher()) return "Teacher Dashboard";
-    return "My Dashboard";
+    if (isTeacher()) return t('dashboard.teacherTitle');
+    return t('dashboard.myTitle');
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <div>{t('dashboard.loading')}</div>;
   }
 
   return (
@@ -116,7 +116,7 @@ export default function Dashboard() {
                   <ExternalLink className="h-3.5 w-3.5 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>
                 <p className="text-sm text-gray-600">
-                  Convert drum patterns and create interactive groove embeds
+                  {t('dashboard.grooveScribeDesc')}
                 </p>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function Dashboard() {
                   <ExternalLink className="h-3.5 w-3.5 text-gray-400 group-hover:text-purple-600 transition-colors" />
                 </div>
                 <p className="text-sm text-gray-600">
-                  Synchronize video with sheet music for interactive lessons
+                  {t('dashboard.syncDesc')}
                 </p>
               </div>
             </div>
@@ -160,11 +160,11 @@ export default function Dashboard() {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center text-gray-500 py-8">
-                Start practicing to see your activity here!
+                {t('dashboard.startPracticing')}
               </div>
             </CardContent>
           </Card>
@@ -175,17 +175,17 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Schools</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.totalSchools')}</CardTitle>
                 <Building className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{(platformStats as any)?.totalSchools || 0}</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.totalUsers')}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -195,7 +195,7 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.monthlyRevenue')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -205,7 +205,7 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.activeSessions')}</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -217,24 +217,24 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Schools</CardTitle>
+                <CardTitle>{t('dashboard.recentSchools')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center text-gray-500 py-8">
                   <Building className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">Platform analytics coming soon</p>
+                  <p className="text-sm">{t('dashboard.platformAnalyticsSoon')}</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>System Health</CardTitle>
+                <CardTitle>{t('dashboard.systemHealth')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center text-gray-500 py-8">
                   <Shield className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">All systems operational</p>
+                  <p className="text-sm">{t('dashboard.allSystemsOperational')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -246,37 +246,37 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Students</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.students')}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{(stats as any)?.students || 0}</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Songs</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.songs')}</CardTitle>
                 <Music className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{(stats as any)?.songs || 0}</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Lessons</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.lessons')}</CardTitle>
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{(stats as any)?.lessons || 0}</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Categories</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.categories')}</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -288,7 +288,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Lessons</CardTitle>
+                <CardTitle>{t('dashboard.recentLessons')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {lessonsLoading ? (
@@ -303,34 +303,34 @@ export default function Dashboard() {
                       <div key={lesson.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={() => setLocation(`/lessons/${lesson.id}`)}>
                         <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-900">{lesson.title}</h4>
-                          <p className="text-xs text-gray-500">{lesson.level || 'All levels'}</p>
+                          <p className="text-xs text-gray-500">{lesson.level || t('dashboard.allLevels')}</p>
                         </div>
                         <div className="text-xs text-gray-400">
                           {lesson.createdAt ? new Date(lesson.createdAt).toLocaleDateString() : ''}
                         </div>
                       </div>
                     ))}
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full mt-3" 
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-3"
                       onClick={() => setLocation('/lessons')}
                     >
-                      View All Lessons
+                      {t('dashboard.viewAllLessons')}
                     </Button>
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-8">
                     <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm">No lessons created yet</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="mt-2" 
+                    <p className="text-sm">{t('dashboard.noLessonsYet')}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
                       onClick={() => setLocation('/lessons')}
                       data-testid="button-create-first-lesson"
                     >
-                      Create First Lesson
+                      {t('dashboard.createFirstLesson')}
                     </Button>
                   </div>
                 )}
@@ -339,7 +339,7 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Recent Songs</CardTitle>
+                <CardTitle>{t('dashboard.recentSongs')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {songsLoading ? (
@@ -354,34 +354,34 @@ export default function Dashboard() {
                       <div key={song.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={() => setLocation(`/songs/${song.id}`)}>
                         <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-900">{song.title}</h4>
-                          <p className="text-xs text-gray-500">{song.artist ? `by ${song.artist}` : (song.level || 'All levels')}</p>
+                          <p className="text-xs text-gray-500">{song.artist ? `${t('dashboard.by')} ${song.artist}` : (song.level || t('dashboard.allLevels'))}</p>
                         </div>
                         <div className="text-xs text-gray-400">
                           {song.createdAt ? new Date(song.createdAt).toLocaleDateString() : ''}
                         </div>
                       </div>
                     ))}
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full mt-3" 
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-3"
                       onClick={() => setLocation('/songs')}
                     >
-                      View All Songs
+                      {t('dashboard.viewAllSongs')}
                     </Button>
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-8">
                     <Music className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm">No songs created yet</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="mt-2" 
+                    <p className="text-sm">{t('dashboard.noSongsYet')}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
                       onClick={() => setLocation('/songs')}
                       data-testid="button-create-first-song"
                     >
-                      Create First Song
+                      {t('dashboard.createFirstSong')}
                     </Button>
                   </div>
                 )}
@@ -394,49 +394,49 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 mt-6 border-t border-gray-200">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">School Management</CardTitle>
+                  <CardTitle className="text-base">{t('dashboard.schoolManagement')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="w-full justify-start"
                     onClick={() => setLocation('/school/members')}
                     data-testid="button-manage-members"
                   >
                     <UserCog className="h-4 w-4 mr-2" />
-                    Manage Members
+                    {t('dashboard.manageMembers')}
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="w-full justify-start"
                     onClick={() => setLocation('/branding')}
                     data-testid="button-school-settings"
                   >
                     <Building className="h-4 w-4 mr-2" />
-                    School Settings
+                    {t('dashboard.schoolSettings')}
                   </Button>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Billing</CardTitle>
+                  <CardTitle className="text-base">{t('dashboard.billing')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">€{(stats as any)?.monthlyBill || 0}</div>
-                  <p className="text-xs text-muted-foreground">Monthly charges</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.monthlyCharges')}</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Performance</CardTitle>
+                  <CardTitle className="text-base">{t('dashboard.performance')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{(stats as any)?.activeStudents || 0}</div>
-                  <p className="text-xs text-muted-foreground">Active this month</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.activeThisMonth')}</p>
                 </CardContent>
               </Card>
             </div>
