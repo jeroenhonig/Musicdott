@@ -13,7 +13,7 @@ import {
 import { db } from "./db";
 import { eq, and, or, ne, not, sql } from "drizzle-orm";
 import { notificationService } from "./services/notification-service";
-import { sendAssignmentEmail } from "./services/user-email-service";
+import { sendAssignmentEmail, getUserLanguage } from "./services/user-email-service";
 import { registerSchoolRoutes } from "./routes/schools";
 import { registerTeacherRoutes } from "./routes/teachers";
 import { registerStudentRoutes } from "./routes/students";
@@ -1013,6 +1013,8 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
         if (student.email && !student.email.includes('@student.musicdott.app')) {
           const teacherName = req.user?.name || 'Je docent';
           const schoolName = req.school?.name || 'je muziekschool';
+          // Resolve student's language preference (accountId = student's user account)
+          const emailLang = student.accountId ? await getUserLanguage(student.accountId) : 'nl';
           sendAssignmentEmail({
             to: student.email,
             studentName: student.name,
@@ -1021,6 +1023,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
             schoolName,
             assignmentId: assignment.id,
             dueDate: (validatedData as any).dueDate ?? null,
+            lang: emailLang,
           }).catch((err) => console.error('[UserEmail] Assignment email failed:', err));
         }
       } catch (notifError) {

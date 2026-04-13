@@ -5,7 +5,7 @@
  */
 import { CronJob } from 'cron';
 import { storage } from '../storage-wrapper';
-import { sendLessonReminderEmail } from './user-email-service';
+import { sendLessonReminderEmail, getUserLanguage } from './user-email-service';
 import { cronHealthMonitor } from './cron-health-monitor';
 
 const JOB_NAME = 'lesson_reminders';
@@ -121,6 +121,9 @@ class LessonReminderScheduler {
             // Ignore
           }
 
+          // Resolve student's preferred language via their user account
+          const lang = student.accountId ? await getUserLanguage(student.accountId) : 'nl';
+
           await sendLessonReminderEmail({
             to: student.email,
             studentName: student.name,
@@ -131,6 +134,7 @@ class LessonReminderScheduler {
               : null,
             location: null, // sessions table has no location column
             schoolName,
+            lang,
           });
 
           sent++;
