@@ -12,6 +12,7 @@ import {
 import { setStorageContext } from "../middleware/storage-context";
 import bcrypt from "bcrypt";
 import { logger } from "../utils/logger";
+import { sendStudentWelcomeEmail } from "../services/user-email-service";
 
 // Enhanced student access middleware using school context
 // This replaces the old manual access control with proper school scoping
@@ -193,6 +194,17 @@ export function registerStudentRoutes(app: Express) {
           
           
           res.status(201).json(student);
+
+          // Send welcome email — soft-fail, never blocks the response
+          if (studentEmail && !studentEmail.includes('@student.musicdott.app')) {
+            sendStudentWelcomeEmail({
+              to: studentEmail,
+              studentName: validatedData.name,
+              username: validatedData.username,
+              password: validatedData.password,
+              schoolName: req.school.name || 'je muziekschool',
+            }).catch((err) => console.error('[UserEmail] Welcome email failed:', err));
+          }
         } catch (error) {
           // Rollback: delete user account if student creation failed
           if (newUser && !student) {

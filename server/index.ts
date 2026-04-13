@@ -53,6 +53,7 @@ let realtimeBus: any = null;
 let shutdownHandlersRegistered = false;
 let billingSchedulerRef: { stop(): void } | null = null;
 let birthdaySchedulerRef: { stop(): void } | null = null;
+let lessonReminderSchedulerRef: { stop(): void } | null = null;
 
 function getBootstrapMode(mode?: BootstrapMode): BootstrapMode {
   if (mode) {
@@ -277,16 +278,19 @@ async function initializeSchedulers() {
     return;
   }
 
-  const [{ billingScheduler }, { birthdayScheduler }] = await Promise.all([
+  const [{ billingScheduler }, { birthdayScheduler }, { lessonReminderScheduler }] = await Promise.all([
     import("./services/billing-scheduler"),
     import("./services/birthday-scheduler"),
+    import("./services/lesson-reminder-scheduler"),
   ]);
 
   billingSchedulerRef = billingScheduler;
   birthdaySchedulerRef = birthdayScheduler;
+  lessonReminderSchedulerRef = lessonReminderScheduler;
 
   logger.info("✅ Billing scheduler initialized successfully");
   logger.info("✅ Birthday scheduler initialized successfully");
+  logger.info("✅ Lesson reminder scheduler initialized successfully");
 
   // AVG Art. 5(1)(e): run data retention cleanup daily at 03:00 UTC
   const { runDataRetentionCleanup } = await import("./services/data-retention");

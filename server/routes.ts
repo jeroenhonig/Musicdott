@@ -13,6 +13,7 @@ import {
 import { db } from "./db";
 import { eq, and, or, ne, not, sql } from "drizzle-orm";
 import { notificationService } from "./services/notification-service";
+import { sendAssignmentEmail } from "./services/user-email-service";
 import { registerSchoolRoutes } from "./routes/schools";
 import { registerTeacherRoutes } from "./routes/teachers";
 import { registerStudentRoutes } from "./routes/students";
@@ -994,7 +995,7 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
       
       const assignment = await storage.createAssignment(validatedData);
       
-      // Send notification to student about new assignment
+      // Send in-app + email notification to student about new assignment
       try {
         if (student.userId && student.schoolId) {
           await notificationService.sendNotification({
@@ -1006,6 +1007,21 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
             link: `/assignments/${assignment.id}`,
             metadata: { assignmentId: assignment.id, studentId: student.id }
           });
+        }
+
+        // Email notification — soft-fail, runs after in-app notification
+        if (student.email && !student.email.includes('@student.musicdott.app')) {
+          const teacherName = req.user?.name || 'Je docent';
+          const schoolName = req.school?.name || 'je muziekschool';
+          sendAssignmentEmail({
+            to: student.email,
+            studentName: student.name,
+            assignmentTitle: validatedData.title,
+            teacherName,
+            schoolName,
+            assignmentId: assignment.id,
+            dueDate: (validatedData as any).dueDate ?? null,
+          }).catch((err) => console.error('[UserEmail] Assignment email failed:', err));
         }
       } catch (notifError) {
         console.error('Failed to send assignment notification:', notifError);
