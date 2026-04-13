@@ -10,7 +10,10 @@ import { LandingStatement } from "@/components/landing/landing-statement";
 import { LandingTeachMode } from "@/components/landing/landing-teach-mode";
 import { LandingBlocks } from "@/components/landing/landing-blocks";
 import { LandingAudience } from "@/components/landing/landing-audience";
+import { LandingFeatures } from "@/components/landing/landing-features";
+import { LandingSocialProof } from "@/components/landing/landing-social-proof";
 import { LandingTestimonial } from "@/components/landing/landing-testimonial";
+import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingPricing } from "@/components/landing/landing-pricing";
 import { LandingFooterCta } from "@/components/landing/landing-footer-cta";
 
@@ -59,8 +62,11 @@ export default function AuthPage() {
         <LandingStatement />
         <LandingTeachMode />
         <LandingBlocks />
+        <LandingFeatures />
         <LandingAudience />
+        <LandingSocialProof />
         <LandingTestimonial />
+        <LandingFaq />
         <LandingPricing />
         <LandingFooterCta />
       </main>

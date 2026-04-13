@@ -8,8 +8,10 @@ import { lessonRecapAI } from "../ai-services/lesson-recap-ai";
 import { transcriptionAI } from "../ai-services/transcription-ai";
 import { practiceFeedbackAI } from "../ai-services/practice-feedback-ai";
 import { smartAssignmentBuilder } from "../ai-services/smart-assignment-builder";
+import { teacherCopilot } from "../ai-services/teacher-copilot";
 import { requireAuth } from "../middleware/auth";
 import { loadSchoolContext, requireTeacherOrOwner } from "../middleware/authz";
+import { storage } from "../storage-wrapper";
 import { z } from "zod";
 
 const router = Router();
@@ -221,6 +223,58 @@ router.post("/transcribe-media", requireAuth, loadSchoolContext, requireTeacherO
   }
 });
 
+const copilotQuerySchema = z.object({
+  queryText: z.string().min(1),
+  studentId: z.number().optional().nullable(),
+  context: z.object({
+    studentLevel: z.string().optional(),
+    instrument: z.string().optional(),
+    currentLesson: z.string().optional(),
+  }).optional(),
+});
+
+/**
+ * POST /api/ai/copilot
+ * Real-time teacher copilot assistant
+ * SECURITY: Teachers and owners only
+ */
+router.post("/copilot", requireAuth, loadSchoolContext, requireTeacherOrOwner(), async (req: Request, res: Response) => {
+  try {
+    const data = copilotQuerySchema.parse(req.body);
+    const teacherId = req.user!.id;
+
+    let context = data.context || {};
+    if (data.studentId) {
+      const student = await storage.getStudent(data.studentId);
+      if (student) {
+        context = {
+          ...context,
+          studentLevel: context.studentLevel || (student as any).level || "Beginner",
+          instrument: context.instrument || (student as any).instrument || "Piano",
+        };
+      }
+    }
+
+    const response = await teacherCopilot.processQuery({
+      teacherId,
+      studentId: data.studentId ?? undefined,
+      queryText: data.queryText,
+      context,
+    });
+
+    res.json({
+      success: true,
+      response,
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Teacher copilot error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Failed to process copilot query",
+    });
+  }
+});
+
 /**
  * GET /api/ai/status
  * Check AI services availability
@@ -228,13 +282,14 @@ router.post("/transcribe-media", requireAuth, loadSchoolContext, requireTeacherO
  */
 router.get("/status", requireAuth, loadSchoolContext, requireTeacherOrOwner(), (req: Request, res: Response) => {
   const hasOpenAI = !!process.env.OPENAI_API_KEY;
-  
+
   res.json({
     services: {
       lessonRecap: hasOpenAI,
       transcription: hasOpenAI,
       practiceFeedback: hasOpenAI,
       smartAssignment: hasOpenAI,
+      copilot: hasOpenAI,
     },
     timestamp: new Date().toISOString(),
   });
