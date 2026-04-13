@@ -12,9 +12,8 @@ export interface LanguageMeta {
 export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
   { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
-  // Uncomment when translation files are ready:
-  // { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
-  // { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
 ];
 
 // Language context
@@ -39,123 +38,181 @@ export const translations: Translations = {
   // Authentication & Login
   'auth.login': {
     en: 'Login',
-    nl: 'Inloggen'
+    nl: 'Inloggen',
+    de: 'Anmelden',
+    es: 'Iniciar sesión'
   },
   'auth.logout': {
     en: 'Logout',
-    nl: 'Uitloggen'
+    nl: 'Uitloggen',
+    de: 'Abmelden',
+    es: 'Cerrar sesión'
   },
   'auth.username': {
     en: 'Username',
-    nl: 'Gebruikersnaam'
+    nl: 'Gebruikersnaam',
+    de: 'Benutzername',
+    es: 'Usuario'
   },
   'auth.password': {
     en: 'Password',
-    nl: 'Wachtwoord'
+    nl: 'Wachtwoord',
+    de: 'Passwort',
+    es: 'Contraseña'
   },
   'auth.welcome': {
     en: 'Welcome to MusicDott',
-    nl: 'Welkom bij MusicDott'
+    nl: 'Welkom bij MusicDott',
+    de: 'Willkommen bei MusicDott',
+    es: 'Bienvenido a MusicDott'
   },
   'auth.loginPrompt': {
     en: 'Please log in to continue',
-    nl: 'Log in om door te gaan'
+    nl: 'Log in om door te gaan',
+    de: 'Bitte melden Sie sich an, um fortzufahren',
+    es: 'Inicia sesión para continuar'
   },
   'auth.invalidCredentials': {
     en: 'Invalid username or password',
-    nl: 'Ongeldige gebruikersnaam of wachtwoord'
+    nl: 'Ongeldige gebruikersnaam of wachtwoord',
+    de: 'Ungültiger Benutzername oder Passwort',
+    es: 'Usuario o contraseña incorrectos'
   },
   'auth.newAccount': {
     en: 'New School? Create Account',
-    nl: 'Nieuwe School? Account Aanmaken'
+    nl: 'Nieuwe School? Account Aanmaken',
+    de: 'Neue Schule? Konto erstellen',
+    es: '¿Nueva escuela? Crear cuenta'
   },
 
   // Navigation
   'nav.dashboard': {
     en: 'Dashboard',
-    nl: 'Dashboard'
+    nl: 'Dashboard',
+    de: 'Dashboard',
+    es: 'Panel'
   },
   'nav.lessons': {
     en: 'Lessons',
-    nl: 'Lessen'
+    nl: 'Lessen',
+    de: 'Stunden',
+    es: 'Lecciones'
   },
   'nav.students': {
     en: 'Students',
-    nl: 'Studenten'
+    nl: 'Studenten',
+    de: 'Schüler',
+    es: 'Alumnos'
   },
   'nav.messages': {
     en: 'Messages',
-    nl: 'Berichten'
+    nl: 'Berichten',
+    de: 'Nachrichten',
+    es: 'Mensajes'
   },
   'nav.reports': {
     en: 'Reports',
-    nl: 'Rapporten'
+    nl: 'Rapporten',
+    de: 'Berichte',
+    es: 'Informes'
   },
   'nav.settings': {
     en: 'Settings',
-    nl: 'Instellingen'
+    nl: 'Instellingen',
+    de: 'Einstellungen',
+    es: 'Configuración'
   },
   'nav.search': {
     en: 'Songs',
-    nl: 'Nummers'
+    nl: 'Nummers',
+    de: 'Songs',
+    es: 'Canciones'
   },
   'nav.assignments': {
     en: 'Assignments',
-    nl: 'Opdrachten'
+    nl: 'Opdrachten',
+    de: 'Aufgaben',
+    es: 'Tareas'
   },
   'nav.achievements': {
     en: 'Achievements',
-    nl: 'Prestaties'
+    nl: 'Prestaties',
+    de: 'Erfolge',
+    es: 'Logros'
   },
   'nav.practice': {
     en: 'Practice',
-    nl: 'Oefenen'
+    nl: 'Oefenen',
+    de: 'Üben',
+    es: 'Práctica'
   },
   'nav.schedule': {
     en: 'Schedule',
-    nl: 'Rooster'
+    nl: 'Rooster',
+    de: 'Stundenplan',
+    es: 'Horario'
   },
 
   // Navigation — additional
   'nav.analytics': {
     en: 'Analytics & Reports',
-    nl: 'Analyses & Rapporten'
+    nl: 'Analyses & Rapporten',
+    de: 'Analysen & Berichte',
+    es: 'Análisis e informes'
   },
   'nav.import': {
     en: 'Import Data',
-    nl: 'Data Importeren'
+    nl: 'Data Importeren',
+    de: 'Daten importieren',
+    es: 'Importar datos'
   },
   'nav.resources': {
     en: 'Resources & Guides',
-    nl: 'Bronnen & Handleidingen'
+    nl: 'Bronnen & Handleidingen',
+    de: 'Ressourcen & Leitfäden',
+    es: 'Recursos y guías'
   },
   'nav.schoolManagement': {
     en: 'School Management',
-    nl: 'Schoolbeheer'
+    nl: 'Schoolbeheer',
+    de: 'Schulverwaltung',
+    es: 'Gestión de escuela'
   },
   'nav.teachers': {
     en: 'Teachers',
-    nl: 'Docenten'
+    nl: 'Docenten',
+    de: 'Lehrer',
+    es: 'Profesores'
   },
   'nav.members': {
     en: 'Manage Members',
-    nl: 'Leden Beheren'
+    nl: 'Leden Beheren',
+    de: 'Mitglieder verwalten',
+    es: 'Gestionar miembros'
   },
   'nav.billing': {
     en: 'Billing & Plans',
-    nl: 'Facturering & Plannen'
+    nl: 'Facturering & Plannen',
+    de: 'Abrechnung & Tarife',
+    es: 'Facturación y planes'
   },
   'nav.schoolSettings': {
     en: 'School Settings',
-    nl: 'Schoolinstellingen'
+    nl: 'Schoolinstellingen',
+    de: 'Schuleinstellungen',
+    es: 'Configuración de escuela'
   },
   'nav.section.learningHub': {
     en: 'Learning Hub',
-    nl: 'Leercentrum'
+    nl: 'Leercentrum',
+    de: 'Lernbereich',
+    es: 'Centro de aprendizaje'
   },
   'nav.section.schoolManagement': {
     en: 'School Management',
-    nl: 'Schoolbeheer'
+    nl: 'Schoolbeheer',
+    de: 'Schulverwaltung',
+    es: 'Gestión de escuela'
   },
 
   // Lesson progress tracker
@@ -201,183 +258,273 @@ export const translations: Translations = {
   // Dashboard
   'dashboard.welcomeBack': {
     en: 'Welcome back',
-    nl: 'Welkom terug'
+    nl: 'Welkom terug',
+    de: 'Willkommen zurück',
+    es: 'Bienvenido de nuevo'
   },
   'dashboard.overview': {
     en: 'Overview',
-    nl: 'Overzicht'
+    nl: 'Overzicht',
+    de: 'Übersicht',
+    es: 'Resumen'
   },
   'dashboard.totalStudents': {
     en: 'Total Students',
-    nl: 'Totaal Studenten'
+    nl: 'Totaal Studenten',
+    de: 'Schüler gesamt',
+    es: 'Total de alumnos'
   },
   'dashboard.totalLessons': {
     en: 'Total Lessons',
-    nl: 'Totaal Lessen'
+    nl: 'Totaal Lessen',
+    de: 'Stunden gesamt',
+    es: 'Total de lecciones'
   },
   'dashboard.totalSongs': {
     en: 'Total Songs',
-    nl: 'Totaal Nummers'
+    nl: 'Totaal Nummers',
+    de: 'Songs gesamt',
+    es: 'Total de canciones'
   },
   'dashboard.thisWeek': {
     en: 'This Week',
-    nl: 'Deze Week'
+    nl: 'Deze Week',
+    de: 'Diese Woche',
+    es: 'Esta semana'
   },
   'dashboard.recentContent': {
     en: 'Recent Content',
-    nl: 'Recente Inhoud'
+    nl: 'Recente Inhoud',
+    de: 'Aktuelle Inhalte',
+    es: 'Contenido reciente'
   },
   'dashboard.upcomingLessons': {
     en: 'Upcoming Lessons',
-    nl: 'Komende Lessen'
+    nl: 'Komende Lessen',
+    de: 'Bevorstehende Stunden',
+    es: 'Próximas lecciones'
   },
   'dashboard.recentAssignments': {
     en: 'Recent Assignments',
-    nl: 'Recente Opdrachten'
+    nl: 'Recente Opdrachten',
+    de: 'Aktuelle Aufgaben',
+    es: 'Tareas recientes'
   },
   'dashboard.platformTitle': {
     en: 'Platform Dashboard',
-    nl: 'Platform Dashboard'
+    nl: 'Platform Dashboard',
+    de: 'Plattform-Dashboard',
+    es: 'Panel de plataforma'
   },
   'dashboard.teacherTitle': {
     en: 'Teacher Dashboard',
-    nl: 'Lerarendashboard'
+    nl: 'Lerarendashboard',
+    de: 'Lehrer-Dashboard',
+    es: 'Panel del profesor'
   },
   'dashboard.myTitle': {
     en: 'My Dashboard',
-    nl: 'Mijn Dashboard'
+    nl: 'Mijn Dashboard',
+    de: 'Mein Dashboard',
+    es: 'Mi panel'
   },
   'dashboard.loading': {
     en: 'Loading...',
-    nl: 'Laden...'
+    nl: 'Laden...',
+    de: 'Laden...',
+    es: 'Cargando...'
   },
   'dashboard.grooveScribeDesc': {
     en: 'Convert drum patterns and create interactive groove embeds',
-    nl: 'Converteer drumpatronen en maak interactieve groove-embeds'
+    nl: 'Converteer drumpatronen en maak interactieve groove-embeds',
+    de: 'Schlagzeugmuster konvertieren und interaktive Groove-Embeds erstellen',
+    es: 'Convierte patrones de batería y crea incrustaciones de groove interactivas'
   },
   'dashboard.syncDesc': {
     en: 'Synchronize video with sheet music for interactive lessons',
-    nl: 'Synchroniseer video met bladmuziek voor interactieve lessen'
+    nl: 'Synchroniseer video met bladmuziek voor interactieve lessen',
+    de: 'Video mit Noten für interaktive Unterrichtsstunden synchronisieren',
+    es: 'Sincroniza vídeo con partituras para lecciones interactivas'
   },
   'dashboard.recentActivity': {
     en: 'Recent Activity',
-    nl: 'Recente activiteit'
+    nl: 'Recente activiteit',
+    de: 'Letzte Aktivität',
+    es: 'Actividad reciente'
   },
   'dashboard.startPracticing': {
     en: 'Start practicing to see your activity here!',
-    nl: 'Begin met oefenen om je activiteit hier te zien!'
+    nl: 'Begin met oefenen om je activiteit hier te zien!',
+    de: 'Fang an zu üben, um deine Aktivität hier zu sehen!',
+    es: '¡Empieza a practicar para ver tu actividad aquí!'
   },
   'dashboard.totalSchools': {
     en: 'Total Schools',
-    nl: 'Totaal Scholen'
+    nl: 'Totaal Scholen',
+    de: 'Schulen gesamt',
+    es: 'Total de escuelas'
   },
   'dashboard.totalUsers': {
     en: 'Total Users',
-    nl: 'Totaal Gebruikers'
+    nl: 'Totaal Gebruikers',
+    de: 'Nutzer gesamt',
+    es: 'Total de usuarios'
   },
   'dashboard.monthlyRevenue': {
     en: 'Monthly Revenue',
-    nl: 'Maandelijkse Omzet'
+    nl: 'Maandelijkse Omzet',
+    de: 'Monatlicher Umsatz',
+    es: 'Ingresos mensuales'
   },
   'dashboard.activeSessions': {
     en: 'Active Sessions',
-    nl: 'Actieve Sessies'
+    nl: 'Actieve Sessies',
+    de: 'Aktive Sitzungen',
+    es: 'Sesiones activas'
   },
   'dashboard.recentSchools': {
     en: 'Recent Schools',
-    nl: 'Recente Scholen'
+    nl: 'Recente Scholen',
+    de: 'Aktuelle Schulen',
+    es: 'Escuelas recientes'
   },
   'dashboard.platformAnalyticsSoon': {
     en: 'Platform analytics coming soon',
-    nl: 'Platform-analyse komt binnenkort'
+    nl: 'Platform-analyse komt binnenkort',
+    de: 'Plattform-Analysen demnächst verfügbar',
+    es: 'Análisis de plataforma próximamente'
   },
   'dashboard.systemHealth': {
     en: 'System Health',
-    nl: 'Systeemgezondheid'
+    nl: 'Systeemgezondheid',
+    de: 'Systemstatus',
+    es: 'Estado del sistema'
   },
   'dashboard.allSystemsOperational': {
     en: 'All systems operational',
-    nl: 'Alle systemen operationeel'
+    nl: 'Alle systemen operationeel',
+    de: 'Alle Systeme betriebsbereit',
+    es: 'Todos los sistemas operativos'
   },
   'dashboard.students': {
     en: 'Students',
-    nl: 'Leerlingen'
+    nl: 'Leerlingen',
+    de: 'Schüler',
+    es: 'Alumnos'
   },
   'dashboard.songs': {
     en: 'Songs',
-    nl: 'Nummers'
+    nl: 'Nummers',
+    de: 'Songs',
+    es: 'Canciones'
   },
   'dashboard.lessons': {
     en: 'Lessons',
-    nl: 'Lessen'
+    nl: 'Lessen',
+    de: 'Stunden',
+    es: 'Lecciones'
   },
   'dashboard.categories': {
     en: 'Categories',
-    nl: 'Categorieën'
+    nl: 'Categorieën',
+    de: 'Kategorien',
+    es: 'Categorías'
   },
   'dashboard.recentLessons': {
     en: 'Recent Lessons',
-    nl: 'Recente Lessen'
+    nl: 'Recente Lessen',
+    de: 'Aktuelle Stunden',
+    es: 'Lecciones recientes'
   },
   'dashboard.allLevels': {
     en: 'All levels',
-    nl: 'Alle niveaus'
+    nl: 'Alle niveaus',
+    de: 'Alle Niveaus',
+    es: 'Todos los niveles'
   },
   'dashboard.viewAllLessons': {
     en: 'View All Lessons',
-    nl: 'Alle Lessen Bekijken'
+    nl: 'Alle Lessen Bekijken',
+    de: 'Alle Stunden anzeigen',
+    es: 'Ver todas las lecciones'
   },
   'dashboard.noLessonsYet': {
     en: 'No lessons created yet',
-    nl: 'Nog geen lessen aangemaakt'
+    nl: 'Nog geen lessen aangemaakt',
+    de: 'Noch keine Stunden erstellt',
+    es: 'Aún no hay lecciones creadas'
   },
   'dashboard.createFirstLesson': {
     en: 'Create First Lesson',
-    nl: 'Eerste Les Aanmaken'
+    nl: 'Eerste Les Aanmaken',
+    de: 'Erste Stunde erstellen',
+    es: 'Crear primera lección'
   },
   'dashboard.recentSongs': {
     en: 'Recent Songs',
-    nl: 'Recente Nummers'
+    nl: 'Recente Nummers',
+    de: 'Aktuelle Songs',
+    es: 'Canciones recientes'
   },
   'dashboard.by': {
     en: 'by',
-    nl: 'van'
+    nl: 'van',
+    de: 'von',
+    es: 'de'
   },
   'dashboard.viewAllSongs': {
     en: 'View All Songs',
-    nl: 'Alle Nummers Bekijken'
+    nl: 'Alle Nummers Bekijken',
+    de: 'Alle Songs anzeigen',
+    es: 'Ver todas las canciones'
   },
   'dashboard.noSongsYet': {
     en: 'No songs created yet',
-    nl: 'Nog geen nummers aangemaakt'
+    nl: 'Nog geen nummers aangemaakt',
+    de: 'Noch keine Songs erstellt',
+    es: 'Aún no hay canciones creadas'
   },
   'dashboard.createFirstSong': {
     en: 'Create First Song',
-    nl: 'Eerste Nummer Aanmaken'
+    nl: 'Eerste Nummer Aanmaken',
+    de: 'Ersten Song erstellen',
+    es: 'Crear primera canción'
   },
   'dashboard.schoolManagement': {
     en: 'School Management',
-    nl: 'Schoolbeheer'
+    nl: 'Schoolbeheer',
+    de: 'Schulverwaltung',
+    es: 'Gestión de escuela'
   },
   'dashboard.manageMembers': {
     en: 'Manage Members',
-    nl: 'Leden Beheren'
+    nl: 'Leden Beheren',
+    de: 'Mitglieder verwalten',
+    es: 'Gestionar miembros'
   },
   'dashboard.schoolSettings': {
     en: 'School Settings',
-    nl: 'Schoolinstellingen'
+    nl: 'Schoolinstellingen',
+    de: 'Schuleinstellungen',
+    es: 'Configuración de escuela'
   },
   'dashboard.billing': {
     en: 'Billing',
-    nl: 'Facturering'
+    nl: 'Facturering',
+    de: 'Abrechnung',
+    es: 'Facturación'
   },
   'dashboard.monthlyCharges': {
     en: 'Monthly charges',
-    nl: 'Maandelijkse kosten'
+    nl: 'Maandelijkse kosten',
+    de: 'Monatliche Kosten',
+    es: 'Cargos mensuales'
   },
   'dashboard.performance': {
     en: 'Performance',
-    nl: 'Prestaties'
+    nl: 'Prestaties',
+    de: 'Leistung',
+    es: 'Rendimiento'
   },
   'dashboard.activeThisMonth': {
     en: 'Active this month',
@@ -2333,31 +2480,45 @@ export const translations: Translations = {
   // Days of week
   'schedule.days.sunday': {
     en: 'Sunday',
-    nl: 'Zondag'
+    nl: 'Zondag',
+    de: 'Sonntag',
+    es: 'Domingo'
   },
   'schedule.days.monday': {
     en: 'Monday',
-    nl: 'Maandag'
+    nl: 'Maandag',
+    de: 'Montag',
+    es: 'Lunes'
   },
   'schedule.days.tuesday': {
     en: 'Tuesday',
-    nl: 'Dinsdag'
+    nl: 'Dinsdag',
+    de: 'Dienstag',
+    es: 'Martes'
   },
   'schedule.days.wednesday': {
     en: 'Wednesday',
-    nl: 'Woensdag'
+    nl: 'Woensdag',
+    de: 'Mittwoch',
+    es: 'Miércoles'
   },
   'schedule.days.thursday': {
     en: 'Thursday',
-    nl: 'Donderdag'
+    nl: 'Donderdag',
+    de: 'Donnerstag',
+    es: 'Jueves'
   },
   'schedule.days.friday': {
     en: 'Friday',
-    nl: 'Vrijdag'
+    nl: 'Vrijdag',
+    de: 'Freitag',
+    es: 'Viernes'
   },
   'schedule.days.saturday': {
     en: 'Saturday',
-    nl: 'Zaterdag'
+    nl: 'Zaterdag',
+    de: 'Samstag',
+    es: 'Sábado'
   },
 
   // Recurrence types
@@ -2505,11 +2666,27 @@ export const translations: Translations = {
   // Language names
   'language.english': {
     en: 'English',
-    nl: 'Engels'
+    nl: 'Engels',
+    de: 'Englisch',
+    es: 'Inglés'
   },
   'language.dutch': {
     en: 'Dutch',
-    nl: 'Nederlands'
+    nl: 'Nederlands',
+    de: 'Niederländisch',
+    es: 'Neerlandés'
+  },
+  'language.german': {
+    en: 'German',
+    nl: 'Duits',
+    de: 'Deutsch',
+    es: 'Alemán'
+  },
+  'language.spanish': {
+    en: 'Spanish',
+    nl: 'Spaans',
+    de: 'Spanisch',
+    es: 'Español'
   },
 
   // Time/Date
@@ -7784,22 +7961,22 @@ export const translations: Translations = {
   'messaging.sendError': { en: 'Failed to send message. Please try again.', nl: 'Bericht verzenden mislukt. Probeer het opnieuw.' },
 
   // Landing page
-  'landing.hero.badge': { en: '🎵 For music schools and private teachers', nl: '🎵 Voor muziekscholen en privédocenten' },
-  'landing.hero.h1a': { en: 'Stop teaching', nl: 'Stop met lesgeven' },
-  'landing.hero.h1b': { en: 'through WhatsApp.', nl: 'in WhatsApp.' },
-  'landing.hero.hookPre': { en: 'The average music teacher wastes ', nl: 'De gemiddelde muziekdocent verliest ' },
-  'landing.hero.hookBold': { en: '4 hours every week', nl: '4 uur per week' },
-  'landing.hero.hookPost': { en: ' on scheduling, payments and messages — hours you\'ll never get back.', nl: ' aan planning, betalingen en berichten — uren die je nooit meer terugkrijgt.' },
-  'landing.hero.sub': { en: 'MusicDott bundles everything: scheduling, billing, lesson content and real-time Teaching Screen — in one platform ready in 15 minutes.', nl: 'MusicDott bundelt alles: agenda, facturering, lesinhoud en real-time Lesscherm — in één platform dat in 15 minuten klaar staat.' },
-  'landing.hero.cta': { en: 'Try 14 days free →', nl: 'Probeer 14 dagen gratis →' },
-  'landing.hero.loginBtn': { en: 'Already have an account? Log in', nl: 'Al een account? Log in' },
-  'landing.hero.legal': { en: 'No credit card needed · No commitment · Cancel anytime', nl: 'Geen creditcard nodig · Geen installatieverplichting · Opzegging op elk moment' },
-  'landing.hero.social1': { en: '⭐⭐⭐⭐⭐ 4.9/5 by teachers', nl: '⭐⭐⭐⭐⭐ 4.9/5 door docenten' },
-  'landing.hero.social2': { en: '🇳🇱 GDPR compliant', nl: '🇳🇱 AVG-compliant' },
-  'landing.hero.social3': { en: '⚡ Ready in 15 min', nl: '⚡ In 15 min operationeel' },
-  'landing.hero.teachLabel': { en: '🎹 Teach Mode — Jazz chords lesson 3', nl: '🎹 Teach Mode — Jazzakkoorden les 3' },
-  'landing.hero.live': { en: '● Live', nl: '● Live' },
-  'landing.hero.studentScreen': { en: 'Student Screen', nl: 'Leerlingscherm' },
+  'landing.hero.badge': { en: '🎵 For music schools and private teachers', nl: '🎵 Voor muziekscholen en privédocenten', de: '🎵 Für Musikschulen und Privatlehrer', es: '🎵 Para escuelas de música y profesores particulares' },
+  'landing.hero.h1a': { en: 'Stop teaching', nl: 'Stop met lesgeven', de: 'Schluss mit dem Unterrichten', es: 'Deja de enseñar' },
+  'landing.hero.h1b': { en: 'through WhatsApp.', nl: 'in WhatsApp.', de: 'über WhatsApp.', es: 'por WhatsApp.' },
+  'landing.hero.hookPre': { en: 'The average music teacher wastes ', nl: 'De gemiddelde muziekdocent verliest ', de: 'Der durchschnittliche Musiklehrer verschwendet ', es: 'El profesor de música promedio pierde ' },
+  'landing.hero.hookBold': { en: '4 hours every week', nl: '4 uur per week', de: '4 Stunden pro Woche', es: '4 horas cada semana' },
+  'landing.hero.hookPost': { en: ' on scheduling, payments and messages — hours you\'ll never get back.', nl: ' aan planning, betalingen en berichten — uren die je nooit meer terugkrijgt.', de: ' mit Terminplanung, Zahlungen und Nachrichten — Stunden, die unwiederbringlich verloren sind.', es: ' en horarios, pagos y mensajes — horas que nunca recuperarás.' },
+  'landing.hero.sub': { en: 'MusicDott bundles everything: scheduling, billing, lesson content and real-time Teaching Screen — in one platform ready in 15 minutes.', nl: 'MusicDott bundelt alles: agenda, facturering, lesinhoud en real-time Lesscherm — in één platform dat in 15 minuten klaar staat.', de: 'MusicDott bündelt alles: Terminplanung, Abrechnung, Unterrichtsinhalte und Live-Unterrichtsbildschirm — in einer Plattform, die in 15 Minuten einsatzbereit ist.', es: 'MusicDott lo reúne todo: horarios, facturación, contenido de lecciones y pantalla de enseñanza en tiempo real — en una plataforma lista en 15 minutos.' },
+  'landing.hero.cta': { en: 'Try 14 days free →', nl: 'Probeer 14 dagen gratis →', de: '14 Tage kostenlos testen →', es: 'Prueba 14 días gratis →' },
+  'landing.hero.loginBtn': { en: 'Already have an account? Log in', nl: 'Al een account? Log in', de: 'Bereits ein Konto? Anmelden', es: '¿Ya tienes cuenta? Iniciar sesión' },
+  'landing.hero.legal': { en: 'No credit card needed · No commitment · Cancel anytime', nl: 'Geen creditcard nodig · Geen installatieverplichting · Opzegging op elk moment', de: 'Keine Kreditkarte · Keine Bindung · Jederzeit kündbar', es: 'Sin tarjeta de crédito · Sin compromiso · Cancela cuando quieras' },
+  'landing.hero.social1': { en: '⭐⭐⭐⭐⭐ 4.9/5 by teachers', nl: '⭐⭐⭐⭐⭐ 4.9/5 door docenten', de: '⭐⭐⭐⭐⭐ 4,9/5 von Lehrern', es: '⭐⭐⭐⭐⭐ 4,9/5 por profesores' },
+  'landing.hero.social2': { en: '🇳🇱 GDPR compliant', nl: '🇳🇱 AVG-compliant', de: '🇳🇱 DSGVO-konform', es: '🇳🇱 Conforme al RGPD' },
+  'landing.hero.social3': { en: '⚡ Ready in 15 min', nl: '⚡ In 15 min operationeel', de: '⚡ In 15 Min. einsatzbereit', es: '⚡ Listo en 15 min' },
+  'landing.hero.teachLabel': { en: '🎹 Teach Mode — Jazz chords lesson 3', nl: '🎹 Teach Mode — Jazzakkoorden les 3', de: '🎹 Lehrmodus — Jazzakkorde Lektion 3', es: '🎹 Modo enseñanza — Acordes de jazz lección 3' },
+  'landing.hero.live': { en: '● Live', nl: '● Live', de: '● Live', es: '● En vivo' },
+  'landing.hero.studentScreen': { en: 'Student Screen', nl: 'Leerlingscherm', de: 'Schülerbild', es: 'Pantalla del alumno' },
 
   'landing.problem.label': { en: 'Does this sound familiar?', nl: 'Klinkt dit bekend?' },
   'landing.problem.h2a': { en: 'Teaching music is great.', nl: 'Muziekles is geweldig.' },
@@ -7876,37 +8053,37 @@ export const translations: Translations = {
   'landing.testimonial.quote': { en: '"MusicDott fundamentally changed how I teach. My students are more engaged than ever and I can see exactly where everyone stands — without a single spreadsheet."', nl: '"MusicDott heeft fundamenteel veranderd hoe ik lesgeef. Mijn leerlingen zijn meer betrokken dan ooit en ik zie precies waar iedereen staat — zonder één spreadsheet."' },
   'landing.testimonial.role': { en: 'Drum School Owner · Netherlands', nl: 'Eigenaar Drumschool · Nederland' },
 
-  'landing.pricing.label': { en: 'Fair pricing', nl: 'Eerlijke prijzen' },
-  'landing.pricing.h2': { en: 'One price. Everything included.', nl: 'Eén prijs. Alles inbegrepen.' },
-  'landing.pricing.sub': { en: 'No hidden fees. No setup costs. No contracts.', nl: 'Geen verborgen kosten. Geen opstartkosten. Geen contracten.' },
-  'landing.pricing.standard.name': { en: 'Standard', nl: 'Standard' },
-  'landing.pricing.standard.f1': { en: 'Up to 25 students', nl: 'Tot 25 leerlingen' },
-  'landing.pricing.standard.f2': { en: '1 teacher account', nl: '1 docentaccount' },
-  'landing.pricing.standard.f3': { en: 'Unlimited lessons & content', nl: 'Onbeperkte lessen & content' },
-  'landing.pricing.standard.f4': { en: 'Progress tracking per student', nl: 'Voortgangsregistratie per leerling' },
-  'landing.pricing.standard.f5': { en: 'Basic reports & analytics', nl: 'Basisrapportages & analyses' },
-  'landing.pricing.standard.f6': { en: 'Scheduling and planning', nl: 'Rooster en planning' },
-  'landing.pricing.standard.cta': { en: 'Choose Standard', nl: 'Kies Standard' },
-  'landing.pricing.pro.badge': { en: 'Most popular', nl: 'Meest gekozen' },
-  'landing.pricing.pro.f1': { en: 'Up to 50 students', nl: 'Tot 50 leerlingen' },
-  'landing.pricing.pro.f2': { en: 'Unlimited teacher accounts', nl: 'Onbeperkte docentaccounts' },
-  'landing.pricing.pro.f3': { en: 'Teaching Screen — live student display', nl: 'Teach Mode — live leerlingscherm' },
-  'landing.pricing.pro.f4': { en: 'Advanced analytics & insights', nl: 'Geavanceerde analyses & inzichten' },
-  'landing.pricing.pro.f5': { en: 'Priority support', nl: 'Prioriteitsondersteuning' },
-  'landing.pricing.pro.f6': { en: 'Custom branding and school colors', nl: 'Eigen branding en schoolkleuren' },
-  'landing.pricing.pro.cta': { en: 'Choose Pro', nl: 'Kies Pro' },
-  'landing.pricing.perMonth': { en: '/month', nl: '/maand' },
-  'landing.pricing.footerNote': { en: 'More students? {extra} per 5 students/month · 30-day money-back guarantee · No setup costs · Cancel anytime', nl: 'Meer leerlingen? {extra} per 5 leerlingen/maand · 30 dagen niet-goed-geld-terug · Geen opstartkosten · Opzeggen wanneer je wilt' },
+  'landing.pricing.label': { en: 'Fair pricing', nl: 'Eerlijke prijzen', de: 'Faire Preise', es: 'Precios justos' },
+  'landing.pricing.h2': { en: 'One price. Everything included.', nl: 'Eén prijs. Alles inbegrepen.', de: 'Ein Preis. Alles inklusive.', es: 'Un precio. Todo incluido.' },
+  'landing.pricing.sub': { en: 'No hidden fees. No setup costs. No contracts.', nl: 'Geen verborgen kosten. Geen opstartkosten. Geen contracten.', de: 'Keine versteckten Gebühren. Keine Einrichtungskosten. Keine Verträge.', es: 'Sin tarifas ocultas. Sin costes de instalación. Sin contratos.' },
+  'landing.pricing.standard.name': { en: 'Standard', nl: 'Standard', de: 'Standard', es: 'Estándar' },
+  'landing.pricing.standard.f1': { en: 'Up to 25 students', nl: 'Tot 25 leerlingen', de: 'Bis zu 25 Schüler', es: 'Hasta 25 alumnos' },
+  'landing.pricing.standard.f2': { en: '1 teacher account', nl: '1 docentaccount', de: '1 Lehrerkonto', es: '1 cuenta de profesor' },
+  'landing.pricing.standard.f3': { en: 'Unlimited lessons & content', nl: 'Onbeperkte lessen & content', de: 'Unbegrenzte Stunden & Inhalte', es: 'Lecciones y contenido ilimitados' },
+  'landing.pricing.standard.f4': { en: 'Progress tracking per student', nl: 'Voortgangsregistratie per leerling', de: 'Fortschrittsverfolgung pro Schüler', es: 'Seguimiento del progreso por alumno' },
+  'landing.pricing.standard.f5': { en: 'Basic reports & analytics', nl: 'Basisrapportages & analyses', de: 'Grundlegende Berichte & Analysen', es: 'Informes y análisis básicos' },
+  'landing.pricing.standard.f6': { en: 'Scheduling and planning', nl: 'Rooster en planning', de: 'Terminplanung', es: 'Horarios y planificación' },
+  'landing.pricing.standard.cta': { en: 'Choose Standard', nl: 'Kies Standard', de: 'Standard wählen', es: 'Elegir Estándar' },
+  'landing.pricing.pro.badge': { en: 'Most popular', nl: 'Meest gekozen', de: 'Am beliebtesten', es: 'Más popular' },
+  'landing.pricing.pro.f1': { en: 'Up to 50 students', nl: 'Tot 50 leerlingen', de: 'Bis zu 50 Schüler', es: 'Hasta 50 alumnos' },
+  'landing.pricing.pro.f2': { en: 'Unlimited teacher accounts', nl: 'Onbeperkte docentaccounts', de: 'Unbegrenzte Lehrerkonten', es: 'Cuentas de profesor ilimitadas' },
+  'landing.pricing.pro.f3': { en: 'Teaching Screen — live student display', nl: 'Teach Mode — live leerlingscherm', de: 'Lehrmodus — Live-Schüleranzeige', es: 'Modo enseñanza — pantalla en vivo del alumno' },
+  'landing.pricing.pro.f4': { en: 'Advanced analytics & insights', nl: 'Geavanceerde analyses & inzichten', de: 'Erweiterte Analysen & Einblicke', es: 'Análisis e información avanzados' },
+  'landing.pricing.pro.f5': { en: 'Priority support', nl: 'Prioriteitsondersteuning', de: 'Prioritäts-Support', es: 'Soporte prioritario' },
+  'landing.pricing.pro.f6': { en: 'Custom branding and school colors', nl: 'Eigen branding en schoolkleuren', de: 'Eigenes Branding und Schulfarben', es: 'Marca propia y colores de escuela' },
+  'landing.pricing.pro.cta': { en: 'Choose Pro', nl: 'Kies Pro', de: 'Pro wählen', es: 'Elegir Pro' },
+  'landing.pricing.perMonth': { en: '/month', nl: '/maand', de: '/Monat', es: '/mes' },
+  'landing.pricing.footerNote': { en: 'More students? {extra} per 5 students/month · 30-day money-back guarantee · No setup costs · Cancel anytime', nl: 'Meer leerlingen? {extra} per 5 leerlingen/maand · 30 dagen niet-goed-geld-terug · Geen opstartkosten · Opzeggen wanneer je wilt', de: 'Mehr Schüler? {extra} pro 5 Schüler/Monat · 30 Tage Geld-zurück-Garantie · Keine Einrichtungskosten · Jederzeit kündbar', es: '¿Más alumnos? {extra} por 5 alumnos/mes · Garantía de devolución de 30 días · Sin costes de instalación · Cancela cuando quieras' },
 
-  'landing.footerCta.h2a': { en: 'Stop tonight', nl: 'Stop vanavond' },
-  'landing.footerCta.h2b': { en: 'with the chaos.', nl: 'met de chaos.' },
-  'landing.footerCta.sub': { en: 'Take the first step toward more time for music — and less time for nonsense. Try it free, no commitments.', nl: 'Zet de eerste stap naar meer tijd voor muziek — en minder tijd voor gedoe. Gratis proberen, geen verplichtingen.' },
-  'landing.footerCta.cta': { en: 'Start free — no credit card needed', nl: 'Start gratis — geen creditcard nodig' },
+  'landing.footerCta.h2a': { en: 'Stop tonight', nl: 'Stop vanavond', de: 'Schluss heute Abend', es: 'Termina esta noche' },
+  'landing.footerCta.h2b': { en: 'with the chaos.', nl: 'met de chaos.', de: 'mit dem Chaos.', es: 'con el caos.' },
+  'landing.footerCta.sub': { en: 'Take the first step toward more time for music — and less time for nonsense. Try it free, no commitments.', nl: 'Zet de eerste stap naar meer tijd voor muziek — en minder tijd voor gedoe. Gratis proberen, geen verplichtingen.', de: 'Machen Sie den ersten Schritt zu mehr Zeit für Musik — und weniger Zeit für Verwaltungskram. Kostenlos testen, keine Bindung.', es: 'Da el primer paso hacia más tiempo para la música y menos para el papeleo. Pruébalo gratis, sin compromisos.' },
+  'landing.footerCta.cta': { en: 'Start free — no credit card needed', nl: 'Start gratis — geen creditcard nodig', de: 'Kostenlos starten — keine Kreditkarte erforderlich', es: 'Empieza gratis — sin tarjeta de crédito' },
   'landing.footerCta.legal': { en: '14 days free · Full access · Cancel anytime', nl: '14 dagen gratis · Volledige toegang · Opzeggen wanneer je wilt' },
   'landing.footerCta.madeIn': { en: 'Proudly built in The Netherlands 🇳🇱', nl: 'Proudly built in The Netherlands 🇳🇱' },
 
-  'landing.nav.login': { en: 'Log in', nl: 'Inloggen' },
-  'landing.nav.startFree': { en: 'Start free →', nl: 'Start gratis →' },
+  'landing.nav.login': { en: 'Log in', nl: 'Inloggen', de: 'Anmelden', es: 'Iniciar sesión' },
+  'landing.nav.startFree': { en: 'Start free →', nl: 'Start gratis →', de: 'Kostenlos starten →', es: 'Empezar gratis →' },
 
   'landing.audience.label': { en: 'For everyone in music education', nl: 'Voor iedereen in de muziekles' },
   'landing.audience.h2': { en: 'Three roles. One platform.', nl: 'Drie mensen. Één platform.' },
@@ -7991,9 +8168,8 @@ export const detectBrowserLanguage = (): Language => {
   try {
     const browserLang = navigator.language.toLowerCase();
     if (browserLang.startsWith('nl')) return 'nl';
-    // DE and ES detection ready — uncomment when translations are available:
-    // if (browserLang.startsWith('de')) return 'de';
-    // if (browserLang.startsWith('es')) return 'es';
+    if (browserLang.startsWith('de')) return 'de';
+    if (browserLang.startsWith('es')) return 'es';
     return 'en';
   } catch {
     return 'en';
