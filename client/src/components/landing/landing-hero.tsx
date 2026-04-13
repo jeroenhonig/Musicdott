@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
 interface LandingHeroProps {
   onLoginClick: () => void;
@@ -11,51 +12,58 @@ const TEACH_BLOCKS = [
   { icon: "📝", name: "Huiswerkopdracht", type: "Tekst" },
 ];
 
-const QUICK_CONTROLS: Array<{ icon: string; label: string; active?: boolean }> = [
-  { icon: "⏱️", label: "Timer" },
-  { icon: "🥁", label: "Metronoom", active: true },
-  { icon: "⏸️", label: "Pauze" },
-];
-
 const REACTIONS = ["✋ Hand opsteken", "👍 Duidelijk", "❓ Vraag"];
 
 export function LandingHero({ onLoginClick }: LandingHeroProps) {
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
+
+  const QUICK_CONTROLS: Array<{ icon: string; label: string; active?: boolean }> = [
+    { icon: "⏱️", label: t('landing.hero.social3').replace('⚡ ', '') },
+    { icon: "🥁", label: "Metronoom", active: true },
+    { icon: "⏸️", label: "Pauze" },
+  ];
 
   return (
     <section className="bg-gradient-to-b from-white to-gray-50/80">
       {/* Hero text */}
       <div className="text-center px-6 pt-24 pb-14 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 bg-[#1B2B6B] text-white text-xs font-semibold tracking-wide px-4 py-1.5 rounded-full mb-7">
-          🎵 Voor muziekscholen en privédocenten
+          {t('landing.hero.badge')}
         </div>
         <h1
           className="font-black tracking-[-0.04em] leading-[0.92] text-[#1B2B6B] mb-2"
-          style={{ fontSize: "clamp(60px, 8.5vw, 104px)" }}
+          style={{ fontSize: "clamp(52px, 8vw, 96px)" }}
         >
-          Geef les.<br />
-          <span className="text-[#F5B800]">Niet administratie.</span>
+          {t('landing.hero.h1a')}<br />
+          <span className="text-[#F5B800]">{t('landing.hero.h1b')}</span>
         </h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto mt-7 mb-11 leading-relaxed">
-          Het enige platform dat gebouwd is rondom de les — niet de boekhouding.
-          Voor eigenaren, docenten én leerlingen.
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-7 mb-4 leading-relaxed font-medium">
+          {t('landing.hero.hookPre')}<strong>{t('landing.hero.hookBold')}</strong>{t('landing.hero.hookPost')}
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-11">
+        <p className="text-base text-gray-400 max-w-xl mx-auto mb-11 leading-relaxed">
+          {t('landing.hero.sub')}
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
           <Button
             size="lg"
-            className="bg-[#1B2B6B] hover:bg-[#1B2B6B]/90 text-white shadow-[0_4px_20px_rgba(27,43,107,0.3)] px-8"
+            className="bg-[#1B2B6B] hover:bg-[#1B2B6B]/90 text-white shadow-[0_4px_20px_rgba(27,43,107,0.3)] px-10 text-base h-12"
             onClick={() => navigate("/signup")}
           >
-            Start gratis — 30 dagen
+            {t('landing.hero.cta')}
           </Button>
-          <Button variant="outline" size="lg" onClick={onLoginClick}>
-            Al een account? Log in →
+          <Button variant="outline" size="lg" className="h-12" onClick={onLoginClick}>
+            {t('landing.hero.loginBtn')}
           </Button>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
-          {["100+ muziekscholen", "Gebouwd door docenten", "AVG-compliant"].map((item) => (
-            <span key={item} className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+        <p className="text-xs text-gray-400 mb-8">{t('landing.hero.legal')}</p>
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+          {[
+            t('landing.hero.social1'),
+            t('landing.hero.social2'),
+            t('landing.hero.social3'),
+          ].map((item) => (
+            <span key={item} className="flex items-center gap-2 font-medium">
               {item}
             </span>
           ))}
@@ -77,10 +85,10 @@ export function LandingHero({ onLoginClick }: LandingHeroProps) {
             <div className="border-r border-gray-100 flex flex-col">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <span className="text-xs font-bold text-[#1B2B6B]">
-                  🎹 Teach Mode — Jazzakkoorden les 3
+                  {t('landing.hero.teachLabel')}
                 </span>
                 <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
-                  ● Live
+                  {t('landing.hero.live')}
                 </span>
               </div>
               <div className="flex flex-col gap-2 p-3 flex-1">
@@ -145,7 +153,7 @@ export function LandingHero({ onLoginClick }: LandingHeroProps) {
             <div className="bg-[#0A0A1A] flex flex-col">
               <div className="px-5 py-3 flex items-center justify-between">
                 <span className="text-[10px] font-semibold text-white/40 uppercase tracking-widest">
-                  Leerlingscherm
+                  {t('landing.hero.studentScreen')}
                 </span>
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />

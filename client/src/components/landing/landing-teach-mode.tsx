@@ -1,10 +1,4 @@
-const BULLETS = [
-  { icon: "▶️", text: "Push video's, bladmuziek en oefenpatronen met één klik" },
-  { icon: "⏱️", text: "Stuur een afteltimer rechtstreeks naar de leerling" },
-  { icon: "🥁", text: "Activeer de metronoom op het leerlingscherm" },
-  { icon: "✋", text: "Leerlingen sturen feedback: hand opsteken, vraag stellen" },
-  { icon: "⏸️", text: "Pauzeer en stuur een bericht naar het scherm" },
-];
+import { useTranslation } from "@/lib/i18n";
 
 const MINI_BLOCKS = [
   { icon: "🥁", name: "Patroon 1–4" },
@@ -12,23 +6,30 @@ const MINI_BLOCKS = [
 ];
 
 export function LandingTeachMode() {
+  const { t } = useTranslation();
+
+  const BULLETS = [
+    { icon: "▶️", text: t('landing.teachMode.bullet1') },
+    { icon: "⏱️", text: t('landing.teachMode.bullet2') },
+    { icon: "🥁", text: t('landing.teachMode.bullet3') },
+    { icon: "✋", text: t('landing.teachMode.bullet4') },
+    { icon: "⏸️", text: t('landing.teachMode.bullet5') },
+  ];
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Text */}
         <div>
           <span className="inline-flex text-xs font-bold tracking-widest uppercase text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-5">
-            Unieke functie
+            {t('landing.teachMode.label')}
           </span>
           <h2 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[#1B2B6B] leading-tight mb-5">
-            Stuur je les live<br />
-            naar het scherm<br />
-            van de leerling
+            {t('landing.teachMode.h2a')}<br />
+            {t('landing.teachMode.h2b')}
           </h2>
           <p className="text-gray-500 leading-relaxed mb-7">
-            Met Teach Mode bepaal jij wat de leerling ziet. Druk op een blok en het
-            verschijnt direct op zijn scherm — of je nu in dezelfde kamer zit of
-            online lesgeeft.
+            {t('landing.teachMode.body')}
           </p>
           <ul className="space-y-3">
             {BULLETS.map((item) => (
@@ -54,7 +55,7 @@ export function LandingTeachMode() {
             >
               {/* Teacher mini */}
               <div className="border-r border-gray-100 p-3">
-                <div className="text-[10px] font-bold text-[#1B2B6B] mb-3">🎹 Teach Mode</div>
+                <div className="text-[10px] font-bold text-[#1B2B6B] mb-3">{t('landing.teachMode.mini.label')}</div>
                 {/* Active block */}
                 <div className="flex items-center gap-2 p-2 rounded-lg border-2 border-blue-400 bg-blue-50 mb-2">
                   <span className="text-sm">▶️</span>

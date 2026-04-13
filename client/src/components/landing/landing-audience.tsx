@@ -1,34 +1,4 @@
-const EIGENAAR_FEATURES = [
-  "Meerdere docenten en klassen beheren",
-  "Dashboard met leerlingen, lessen en activiteit",
-  "Analyses: wie loopt achter, wat werkt?",
-  "Vakantieperiodes en roosterbeheer",
-  "Eigen branding: logo, kleuren, schoolnaam",
-  "Leerlingen uitnodigen en koppelen aan docenten",
-  "AVG-compliant zonder extra moeite",
-];
-
-const DOCENT_FEATURES = [
-  "Lessen bouwen met 19 bloktypen",
-  "Teach Mode: stuur content live naar de leerling",
-  "Timer en metronoom vanuit de les bedienen",
-  "Voortgang en prestaties per leerling volgen",
-  "Opdrachten met deadlines toewijzen",
-  "Rooster met terugkerende lessen",
-  "Leerlingen sturen een vraag via de app",
-  "Achievements en punten uitdelen",
-];
-
-const LEERLING_FEATURES = [
-  "Alle toegewezen lessen direct beschikbaar",
-  "Opdrachten met deadlines en status",
-  "Eigen rooster en geplande lessen",
-  "Achievements, badges en punten verdienen",
-  "Ranglijst: wie heeft de meeste punten?",
-  "Beloningswinkel: punten inwisselen",
-  "Vragen stellen aan de docent",
-  "Oefensessies bijhouden",
-];
+import { useTranslation } from "@/lib/i18n";
 
 interface AudienceCardProps {
   tag: string;
@@ -63,36 +33,70 @@ function AudienceCard({ tag, title, sub, features, featured = false }: AudienceC
 }
 
 export function LandingAudience() {
+  const { t } = useTranslation();
+
+  const ownerFeatures = [
+    t('landing.audience.owner.f1'),
+    t('landing.audience.owner.f2'),
+    t('landing.audience.owner.f3'),
+    t('landing.audience.owner.f4'),
+    t('landing.audience.owner.f5'),
+    t('landing.audience.owner.f6'),
+    t('landing.audience.owner.f7'),
+  ];
+
+  const teacherFeatures = [
+    t('landing.audience.teacher.f1'),
+    t('landing.audience.teacher.f2'),
+    t('landing.audience.teacher.f3'),
+    t('landing.audience.teacher.f4'),
+    t('landing.audience.teacher.f5'),
+    t('landing.audience.teacher.f6'),
+    t('landing.audience.teacher.f7'),
+    t('landing.audience.teacher.f8'),
+  ];
+
+  const studentFeatures = [
+    t('landing.audience.student.f1'),
+    t('landing.audience.student.f2'),
+    t('landing.audience.student.f3'),
+    t('landing.audience.student.f4'),
+    t('landing.audience.student.f5'),
+    t('landing.audience.student.f6'),
+    t('landing.audience.student.f7'),
+    t('landing.audience.student.f8'),
+  ];
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <span className="inline-flex text-xs font-bold tracking-widest uppercase text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-4">
-            Voor iedereen in de muziekles
+            {t('landing.audience.label')}
           </span>
           <h2 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[#1B2B6B] leading-tight">
-            Drie mensen. Één platform.
+            {t('landing.audience.h2')}
           </h2>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <AudienceCard
-            tag="Voor de schooleigenaar"
-            title="Jouw school, onder controle"
-            sub="Compleet overzicht van leerlingen, docenten en lesinhoud — zonder spreadsheets."
-            features={EIGENAAR_FEATURES}
+            tag={t('landing.audience.owner.tag')}
+            title={t('landing.audience.owner.title')}
+            sub={t('landing.audience.owner.sub')}
+            features={ownerFeatures}
           />
           <AudienceCard
-            tag="Voor de docent"
-            title="Gewoon goede les geven"
-            sub="Alles wat je nodig hebt om geweldige lessen te bouwen en je leerlingen écht te leren kennen."
-            features={DOCENT_FEATURES}
+            tag={t('landing.audience.teacher.tag')}
+            title={t('landing.audience.teacher.title')}
+            sub={t('landing.audience.teacher.sub')}
+            features={teacherFeatures}
             featured
           />
           <AudienceCard
-            tag="Voor de leerling"
-            title="Muziek leren op jouw manier"
-            sub="Een eigen omgeving met alle lessen, opdrachten en behaalde mijlpalen op één plek."
-            features={LEERLING_FEATURES}
+            tag={t('landing.audience.student.tag')}
+            title={t('landing.audience.student.title')}
+            sub={t('landing.audience.student.sub')}
+            features={studentFeatures}
           />
         </div>
       </div>

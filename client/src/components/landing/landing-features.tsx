@@ -1,50 +1,54 @@
-const FEATURES = [
-  {
-    icon: "📅",
-    title: "Slimme agenda",
-    body: "Terugkerende lessen, dubbele boekingen voorkomen en iCal sync met Google Calendar of Apple Calendar.",
-  },
-  {
-    icon: "💰",
-    title: "Facturering",
-    body: "Stripe-integratie, automatische incasso en facturen per leerling — alles op één plek.",
-  },
-  {
-    icon: "📚",
-    title: "Lesbibliotheek",
-    body: "19 contentblok types: noten, video's, akkoorden, tabs, theorie, opdrachten en meer.",
-  },
-  {
-    icon: "🎯",
-    title: "Opdrachten",
-    body: "Wijs huiswerk toe per leerling, volg de voortgang en geef feedback direct in de app.",
-  },
-  {
-    icon: "🏆",
-    title: "Gamificatie",
-    body: "Houd leerlingen gemotiveerd met XP-punten, badges en leaderboards. Leren wordt een spel.",
-  },
-  {
-    icon: "📊",
-    title: "Rapportage",
-    body: "Inzicht in voortgang, aanwezigheid en statistieken per leerling, docent en school.",
-  },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export function LandingFeatures() {
+  const { t } = useTranslation();
+
+  const FEATURES = [
+    {
+      icon: "📅",
+      title: t('landing.features.1.title'),
+      body: t('landing.features.1.body'),
+    },
+    {
+      icon: "💰",
+      title: t('landing.features.2.title'),
+      body: t('landing.features.2.body'),
+    },
+    {
+      icon: "📚",
+      title: t('landing.features.3.title'),
+      body: t('landing.features.3.body'),
+    },
+    {
+      icon: "🎯",
+      title: t('landing.features.4.title'),
+      body: t('landing.features.4.body'),
+    },
+    {
+      icon: "🏆",
+      title: t('landing.features.5.title'),
+      body: t('landing.features.5.body'),
+    },
+    {
+      icon: "📊",
+      title: t('landing.features.6.title'),
+      body: t('landing.features.6.body'),
+    },
+  ];
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <span className="inline-flex text-xs font-bold tracking-widest uppercase text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-4">
-            Alles wat je nodig hebt
+            {t('landing.features.label')}
           </span>
           <h2 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[#1B2B6B] leading-tight">
-            Eén platform.<br />
-            Alle tools.
+            {t('landing.features.h2a')}<br />
+            {t('landing.features.h2b')}
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
-            Van planning tot facturering en van lesinhoud tot voortgangsrapportage — MusicDott dekt alles.
+            {t('landing.features.sub')}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

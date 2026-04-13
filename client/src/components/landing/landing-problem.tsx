@@ -1,32 +1,36 @@
-const PROBLEMS = [
-  {
-    icon: "💬",
-    title: "Lesprogramma's via WhatsApp",
-    body: "Huiswerk, noten en feedback verspreid over tientallen apps. Niemand weet meer wat de afspraak was.",
-  },
-  {
-    icon: "🔍",
-    title: "Geen zicht op voortgang",
-    body: "Je weet niet hoe een leerling vorige week presteerde, welke doelen behaald zijn of waar hij vastloopt.",
-  },
-  {
-    icon: "📅",
-    title: "Rooster dat chaos veroorzaakt",
-    body: "Dubbele boekingen, gemiste lessen en vakanties die te laat worden ingepland.",
-  },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export function LandingProblem() {
+  const { t } = useTranslation();
+
+  const PROBLEMS = [
+    {
+      icon: "💬",
+      title: t('landing.problem.1.title'),
+      body: t('landing.problem.1.body'),
+    },
+    {
+      icon: "🔍",
+      title: t('landing.problem.2.title'),
+      body: t('landing.problem.2.body'),
+    },
+    {
+      icon: "💸",
+      title: t('landing.problem.3.title'),
+      body: t('landing.problem.3.body'),
+    },
+  ];
+
   return (
     <section className="bg-gray-50 py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <span className="inline-flex text-xs font-bold tracking-widest uppercase text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-4">
-            Klinkt dit bekend?
+            {t('landing.problem.label')}
           </span>
           <h2 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[#1B2B6B] leading-tight">
-            Muziekles is geweldig.<br />
-            De rommel eromheen niet.
+            {t('landing.problem.h2a')}<br />
+            {t('landing.problem.h2b')}
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
