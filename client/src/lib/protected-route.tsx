@@ -31,9 +31,9 @@ export function ProtectedRoute({
         <div className="flex items-center justify-center min-h-screen flex-col gap-4">
           <div className="text-destructive text-lg">Authentication Error</div>
           <div className="text-muted-foreground">Please try logging in again</div>
-          <button 
+          <button
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
-            onClick={() => window.location.href = "/auth"}
+            onClick={() => window.location.href = "/"}
           >
             Go to Login
           </button>
@@ -46,7 +46,7 @@ export function ProtectedRoute({
   if (!user) {
     return (
       <Route path={path}>
-        <Redirect to="/auth" />
+        <Redirect to="/" />
       </Route>
     );
   }

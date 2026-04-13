@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import RouteSeo from "@/components/seo/route-seo";
 import { PasswordChangeDialog } from "@/components/password-change-dialog";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingLoginModal } from "@/components/landing/landing-login-modal";
@@ -51,6 +52,44 @@ export default function AuthPage() {
 
   return (
     <>
+      <RouteSeo
+        title="MusicDott — Software voor Muziekscholen & Muziekleraren"
+        description="Beheer je muziekschool in één platform. Roosters, lessen, leerlingen, facturering en Teach Mode. Gratis proberen — geen creditcard nodig."
+        canonical="https://musicdott.app/"
+        robots="index, follow"
+        alternates={[
+          { hreflang: "nl", href: "https://musicdott.app/" },
+          { hreflang: "en", href: "https://musicdott.app/" },
+          { hreflang: "x-default", href: "https://musicdott.app/" },
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "MusicDott",
+          "url": "https://musicdott.app",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "Web Browser",
+          "description": "Compleet platform voor muziekscholen en muziekleraren: roosters, lessen, leerlingbeheer, facturering en real-time les geven.",
+          "inLanguage": ["nl", "en"],
+          "offers": {
+            "@type": "Offer",
+            "price": "29.95",
+            "priceCurrency": "EUR",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "29.95",
+              "priceCurrency": "EUR",
+              "billingDuration": "P1M"
+            }
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "MusicDott",
+            "url": "https://musicdott.app",
+            "sameAs": []
+          }
+        }}
+      />
       <LandingNav onLoginClick={() => setLoginModalOpen(true)} />
       <LandingLoginModal
         isOpen={loginModalOpen}

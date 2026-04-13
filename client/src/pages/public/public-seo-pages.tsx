@@ -12,6 +12,7 @@ type PageConfig = {
   featureCards: Array<{ title: string; body: string }>;
   workflow: string[];
   faq: Array<{ q: string; a: string }>;
+  lang?: string;
 };
 
 const APP_ORIGIN = "https://musicdott.app";
@@ -253,6 +254,105 @@ const pages: Record<string, PageConfig> = {
       { q: "Can drum-focused schools use it?", a: "Yes. GrooveScribe and notation-heavy drum workflows are supported alongside broader music-school use cases." },
     ],
   },
+  muziekschoolSoftwareNL: {
+    path: "/muziekschool-software",
+    title: "Muziekschool Software | Roosters, Lessen & Leerlingbeheer | MusicDott",
+    description: "MusicDott is de software voor muziekscholen in Nederland. Plan roosters, bouw lessen, beheer leerlingen en factureer — alles op één plek. Gratis proberen.",
+    eyebrow: "Voor Nederlandse muziekscholen",
+    headline: "Stop met Excel. Begin met MusicDott.",
+    subhead: "Muziekscholen die overstappen besparen gemiddeld 4 uur per week op administratie. Alles wat je nu in WhatsApp, Excel en losse apps doet, zit in één platform.",
+    audience: "Muziekschooleigenaren, coördinatoren en privé-muziekleraren in Nederland",
+    outcomes: [
+      "Nooit meer dubbele boekingen — slim roosterbeheer per leraar en leerling",
+      "Lessen bouwen met video, noten, Spotify en PDF in één editor",
+      "Leerlingdossiers, aanwezigheid en voortgang op één plek",
+      "Facturering per leerling, automatisch berekend op basis van lessen",
+    ],
+    featureCards: [
+      { title: "Slimme Roostering", body: "Wekelijkse en tweewekelijkse roosters, inhaallessen en beschikbaarheidsbeheer — zonder WhatsApp-groepen." },
+      { title: "Lessenbuilder", body: "Bouw lessen met GrooveScribe-notatie, YouTube-video, Spotify-fragmenten, PDF en externe links als herbruikbare blokken." },
+      { title: "Leerlingdossier", body: "Bijhouden van aanwezigheid, notities per les, oefenlogboek en voortgang per leerling — zichtbaar voor leraar én eigenaar." },
+      { title: "Teach Mode", body: "Geef les in real-time via het platform. Stuur noten, video en opdrachten live naar de leerling tijdens de les." },
+    ],
+    workflow: [
+      "Maak je school aan en voeg leraren toe",
+      "Importeer bestaande lessen en nummers",
+      "Plan herhalende roosters per leraar",
+      "Wijs lessen en opdrachten toe aan leerlingen",
+    ],
+    faq: [
+      { q: "Is MusicDott alleen voor drumscholen?", a: "Nee. MusicDott ondersteunt alle muziekinstrumenten. De notatiefuncties zijn extra krachtig voor drumslagen (GrooveScribe), maar het platform werkt voor elke muziekschool." },
+      { q: "Kan ik starten met één leraar en later uitbreiden?", a: "Ja. Je begint als privé-leraar en voegt eenvoudig extra leraren, leerlingen en roosters toe naarmate je school groeit." },
+      { q: "Hoe lang duurt het om te starten?", a: "De meeste scholen zijn binnen een middag volledig ingericht. Je kunt bestaande lessen importeren of direct beginnen met bouwen." },
+    ],
+    lang: "nl",
+  },
+  drumlesSoftwareNL: {
+    path: "/drum-les-software",
+    title: "Drum Les Software | GrooveScribe, Roosters & Leerlingbeheer | MusicDott",
+    description: "Software speciaal voor drumdocenten en drumscholen. Bouw lessen met GrooveScribe, plan herhalende roosters en volg de voortgang van elke leerling.",
+    eyebrow: "Voor drumdocenten en drumscholen",
+    headline: "Jouw drumschool verdient betere software dan Excel",
+    subhead: "MusicDott is gebouwd voor de manier waarop drumdocenten werken: GrooveScribe-patronen, herhalende roosters, en leerlingvoortgang die je écht kunt bijhouden.",
+    audience: "Privé-drumdocenten en drumscholen die GrooveScribe en notatie gebruiken",
+    outcomes: [
+      "GrooveScribe-patronen direct in lessen — geen losse links meer",
+      "Herhalende wekelijkse roosters zonder handmatig bijhouden",
+      "Leerlingvoortgang en aanwezigheid bijhouden per les",
+      "Bestaande patronen en lessen importeren en hergebruiken",
+    ],
+    featureCards: [
+      { title: "GrooveScribe Integratie", body: "Voeg drumpatronen toe als interactieve GrooveScribe-blokken. Leerlingen zien het patroon direct, jij kunt het live aanpassen tijdens de les." },
+      { title: "Rooster op maat", body: "Wekelijkse en tweewekelijkse lessen per leerling, met ondersteuning voor inhaallessen en beschikbaarheidsuitzonderingen." },
+      { title: "Teach Mode voor Drum", body: "Geef les op afstand of live via het platform. Stuur notatie, video en oefeningen real-time naar de leerling." },
+      { title: "Leerlingdossier", body: "Per leerling: aanwezigheid, leraarnotities, oefenlogboek, punten en behaalde mijlpalen." },
+    ],
+    workflow: [
+      "Importeer bestaande drumpatronen en lessen",
+      "Bouw herbruikbare lesmodules met GrooveScribe",
+      "Plan wekelijkse roosters per leerling",
+      "Volg voortgang en geef feedback via Teach Mode",
+    ],
+    faq: [
+      { q: "Werkt het ook met andere notatieprogramma's dan GrooveScribe?", a: "Ja. Naast GrooveScribe ondersteunt MusicDott YouTube-video, Spotify, PDF, bladmuziek (ABC-notatie) en externe links als lesblokken." },
+      { q: "Kan ik mijn bestaande GrooveScribe-links importeren?", a: "Ja. De importfunctie normaliseert bestaande GrooveScribe-URL's naar herbruikbare blokken die je daarna kunt bewerken." },
+      { q: "Werkt MusicDott voor zowel privélessen als groepslessen?", a: "Ja. Je kunt lessen toewijzen aan individuele leerlingen of aan meerdere leerlingen tegelijk." },
+    ],
+    lang: "nl",
+  },
+  muziekschoolPlanningNL: {
+    path: "/muziekschool-planning",
+    title: "Muziekschool Planning & Roosters | MusicDott",
+    description: "Plan herhalende roosters, beheer leraarsbeschikbaarheid en stuur automatische reminders voor je muziekschool. MusicDott vervangt Excel en WhatsApp.",
+    eyebrow: "Roosters & Planning",
+    headline: "Nooit meer een dubbele boeking in je muziekschool",
+    subhead: "MusicDott detecteert conflicten automatisch, beheert herhalende roosters per leraar en houdt leerlingrooster gesynchroniseerd — zonder WhatsApp-berichten.",
+    audience: "Muziekscholen met meerdere leraren en drukke roosters",
+    outcomes: [
+      "Automatische conflictdetectie bij dubbele boekingen",
+      "Wekelijkse en tweewekelijkse herhalende roosters",
+      "Leerling- en leraaroverzicht in één kalenderweergave",
+      "Inhaallessen en uitzonderingen eenvoudig inplannen",
+    ],
+    featureCards: [
+      { title: "Conflictdetectie", body: "Het systeem waarschuwt direct bij dubbele boekingen — voor leraar én leerling — nog voordat je opslaat." },
+      { title: "Herhalende Roosters", body: "Stel één keer wekelijkse of tweewekelijkse lessen in. MusicDott herhaalt automatisch en past aan bij uitzonderingen." },
+      { title: "Kalenderoverzicht", body: "Zie de hele week per leraar of voor de hele school. Filter op leerling, leraar of instrument." },
+      { title: "Leerlingkoppeling", body: "Roosters zijn direct gekoppeld aan leerlingdossiers, zodat aanwezigheid en notities altijd bij de juiste les staan." },
+    ],
+    workflow: [
+      "Voeg leraren en hun beschikbaarheid toe",
+      "Plan herhalende lessen per leerling",
+      "Bekijk de weekkalender en los conflicten op",
+      "Exporteer roosters of stuur reminders",
+    ],
+    faq: [
+      { q: "Kan ik de beschikbaarheid van leraren instellen?", a: "Ja. Per leraar kun je vaste beschikbaarheidstijden instellen en uitzonderingen (vakantie, ziekte) toevoegen." },
+      { q: "Werkt het met inhaallessen?", a: "Ja. Je kunt inhaallessen plannen en de reden bijhouden in het leerlingdossier." },
+      { q: "Hoeveel leraren kan ik toevoegen?", a: "Er is geen vaste limiet. Het Standard-plan ondersteunt meerdere leraren; het Pro-plan is onbeperkt schaalbaar." },
+    ],
+    lang: "nl",
+  },
   schoolsWorldwide: {
     path: "/music-school-software/international",
     title: "International Music School Platform | MusicDott",
@@ -330,7 +430,7 @@ function PublicLandingPage({ page }: { page: PageConfig }) {
         canonical={canonical}
         robots="index, follow"
         alternates={[
-          { hreflang: "en", href: canonical },
+          { hreflang: page.lang ?? "en", href: canonical },
           { hreflang: "x-default", href: canonical },
         ]}
         jsonLd={jsonLd}
@@ -505,4 +605,16 @@ export function MusicSchoolSoftwareGermanySeoPage() {
 
 export function MusicSchoolSoftwareInternationalSeoPage() {
   return <PublicLandingPage page={pages.schoolsWorldwide} />;
+}
+
+export function MuziekschoolSoftwareNLPage() {
+  return <PublicLandingPage page={pages.muziekschoolSoftwareNL} />;
+}
+
+export function DrumlesSoftwareNLPage() {
+  return <PublicLandingPage page={pages.drumlesSoftwareNL} />;
+}
+
+export function MuziekschoolPlanningNLPage() {
+  return <PublicLandingPage page={pages.muziekschoolPlanningNL} />;
 }

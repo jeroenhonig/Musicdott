@@ -77,6 +77,63 @@ export async function registerRoutes(app: Express, server?: Server, options: Reg
     });
   });
 
+  // OG Image generation
+  app.get('/og-image.png', async (_req, res) => {
+    try {
+      const sharp = (await import('sharp')).default;
+      const svg = `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1B2B6B;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="1200" height="630" fill="url(#bg)"/>
+      <rect x="0" y="0" width="8" height="630" fill="#F5B800"/>
+      <text x="80" y="180" font-family="Arial, Helvetica, sans-serif" font-size="86" font-weight="bold" fill="white" letter-spacing="-2">MusicDott</text>
+      <text x="80" y="260" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#F5B800" font-weight="600">Software voor muziekscholen &amp; muziekleraren</text>
+      <text x="80" y="330" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#94a3b8">Roosters · Lessen · Leerlingen · Facturering · Teach Mode</text>
+      <rect x="80" y="400" width="280" height="64" rx="32" fill="#F5B800"/>
+      <text x="220" y="440" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#1B2B6B" text-anchor="middle">Gratis proberen</text>
+      <text x="390" y="440" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#64748b">Geen creditcard · Geen contract</text>
+      <text x="1120" y="590" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#334155" text-anchor="end">musicdott.app</text>
+    </svg>`;
+      const png = await sharp(Buffer.from(svg)).png().toBuffer();
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(png);
+    } catch (err) {
+      res.status(500).send('Image generation failed');
+    }
+  });
+
+  app.get('/twitter-image.png', async (_req, res) => {
+    try {
+      const sharp = (await import('sharp')).default;
+      const svg = `<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1B2B6B;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="1200" height="600" fill="url(#bg)"/>
+      <rect x="0" y="0" width="8" height="600" fill="#F5B800"/>
+      <text x="80" y="170" font-family="Arial, Helvetica, sans-serif" font-size="80" font-weight="bold" fill="white" letter-spacing="-2">MusicDott</text>
+      <text x="80" y="245" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#F5B800" font-weight="600">Software voor muziekscholen</text>
+      <text x="80" y="310" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">Roosters · Lessen · Leerlingen · Facturering</text>
+      <rect x="80" y="380" width="260" height="60" rx="30" fill="#F5B800"/>
+      <text x="210" y="418" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#1B2B6B" text-anchor="middle">Gratis proberen</text>
+    </svg>`;
+      const png = await sharp(Buffer.from(svg)).png().toBuffer();
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(png);
+    } catch (err) {
+      res.status(500).send('Image generation failed');
+    }
+  });
+
   // Enhanced API health check with comprehensive database status
   app.get("/api/health", async (req: Request, res: Response) => {
     try {

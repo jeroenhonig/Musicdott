@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Route } from "wouter";
@@ -75,7 +75,23 @@ import {
   MusicSchoolSoftwareInternationalSeoPage,
   MusicSchoolSoftwareNetherlandsSeoPage,
   MusicTeacherSchedulingSeoPage,
+  MuziekschoolSoftwareNLPage,
+  DrumlesSoftwareNLPage,
+  MuziekschoolPlanningNLPage,
 } from "@/pages/public/public-seo-pages";
+
+function HomeGate() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (!user) return <AuthPage />;
+  return <Dashboard />;
+}
 
 // Global Real-time Sync Provider Component
 function RealtimeSyncProvider({ children }: { children: React.ReactNode }) {
@@ -105,15 +121,11 @@ function Router() {
       <Route path="/music-school-software/netherlands" component={MusicSchoolSoftwareNetherlandsSeoPage} />
       <Route path="/music-school-software/germany" component={MusicSchoolSoftwareGermanySeoPage} />
       <Route path="/music-school-software/international" component={MusicSchoolSoftwareInternationalSeoPage} />
+      <Route path="/muziekschool-software" component={MuziekschoolSoftwareNLPage} />
+      <Route path="/drum-les-software" component={DrumlesSoftwareNLPage} />
+      <Route path="/muziekschool-planning" component={MuziekschoolPlanningNLPage} />
 
-      <ProtectedRoute 
-        path="/" 
-        component={() => (
-          <RouteErrorBoundary fallbackTitle="Dashboard Error" fallbackMessage="Unable to load dashboard. Please try again.">
-            <Dashboard />
-          </RouteErrorBoundary>
-        )} 
-      />
+      <Route path="/" component={HomeGate} />
       
       {/* Teacher/School routes */}
       <ProtectedRoute 
